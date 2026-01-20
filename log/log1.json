@@ -1,0 +1,829 @@
+[
+    {
+        "level": "info",
+        "ts": "2026-01-14T09:37:06.338Z",
+        "caller": "extensions/extensions.go:45",
+        "msg": "Extension is starting...",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "pprof",
+        "otelcol.component.kind": "extension"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T09:37:06.338Z",
+        "caller": "pprofextension@v0.128.0/pprofextension.go:61",
+        "msg": "Starting net/http/pprof server",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "pprof",
+        "otelcol.component.kind": "extension",
+        "config": {
+            "TCPAddr": {
+                "Endpoint": "0.0.0.0:1777",
+                "DialerConfig": {
+                    "Timeout": 0
+                }
+            },
+            "BlockProfileFraction": 0,
+            "MutexProfileFraction": 0,
+            "SaveToFile": ""
+        }
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T09:37:06.338Z",
+        "caller": "extensions/extensions.go:62",
+        "msg": "Extension started.",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "pprof",
+        "otelcol.component.kind": "extension"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T09:37:06.338Z",
+        "caller": "extensions/extensions.go:45",
+        "msg": "Extension is starting...",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "health_check",
+        "otelcol.component.kind": "extension"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T09:37:06.338Z",
+        "caller": "healthcheckextension@v0.128.0/healthcheckextension.go:32",
+        "msg": "Starting health_check extension",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "health_check",
+        "otelcol.component.kind": "extension",
+        "config": {
+            "Endpoint": "0.0.0.0:13133",
+            "TLS": null,
+            "CORS": null,
+            "Auth": null,
+            "MaxRequestBodySize": 0,
+            "IncludeMetadata": false,
+            "ResponseHeaders": null,
+            "CompressionAlgorithms": null,
+            "ReadTimeout": 0,
+            "ReadHeaderTimeout": 0,
+            "WriteTimeout": 0,
+            "IdleTimeout": 0,
+            "Middlewares": null,
+            "Path": "/",
+            "ResponseBody": null,
+            "CheckCollectorPipeline": {
+                "Enabled": false,
+                "Interval": "5m",
+                "ExporterFailureThreshold": 5
+            }
+        }
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T09:37:06.338Z",
+        "caller": "extensions/extensions.go:62",
+        "msg": "Extension started.",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "health_check",
+        "otelcol.component.kind": "extension"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T09:37:06.343Z",
+        "caller": "signozspanmetricsprocessor/processor.go:446",
+        "msg": "Starting signozspanmetricsprocessor with config",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "signozspanmetrics/delta",
+        "otelcol.component.kind": "processor",
+        "otelcol.pipeline.id": "traces",
+        "otelcol.signal": "traces",
+        "config": {
+            "MetricsExporter": "signozclickhousemetrics",
+            "LatencyHistogramBuckets": [
+                100000,
+                1000000,
+                2000000,
+                6000000,
+                10000000,
+                50000000,
+                100000000,
+                250000000,
+                500000000,
+                1000000000,
+                1400000000,
+                2000000000,
+                5000000000,
+                10000000000,
+                20000000000,
+                40000000000,
+                60000000000
+            ],
+            "Dimensions": [
+                {
+                    "Name": "service.namespace",
+                    "Default": "default"
+                },
+                {
+                    "Name": "deployment.environment",
+                    "Default": "default"
+                },
+                {
+                    "Name": "signoz.collector.id",
+                    "Default": null
+                },
+                {
+                    "Name": "service.version",
+                    "Default": null
+                },
+                {
+                    "Name": "browser.platform",
+                    "Default": null
+                },
+                {
+                    "Name": "browser.mobile",
+                    "Default": null
+                },
+                {
+                    "Name": "k8s.cluster.name",
+                    "Default": null
+                },
+                {
+                    "Name": "k8s.node.name",
+                    "Default": null
+                },
+                {
+                    "Name": "k8s.namespace.name",
+                    "Default": null
+                },
+                {
+                    "Name": "host.name",
+                    "Default": null
+                },
+                {
+                    "Name": "host.type",
+                    "Default": null
+                },
+                {
+                    "Name": "container.name",
+                    "Default": null
+                }
+            ],
+            "ExcludePatterns": null,
+            "DimensionsCacheSize": 100000,
+            "AggregationTemporality": "AGGREGATION_TEMPORALITY_DELTA",
+            "MetricsFlushInterval": 60000000000,
+            "TimeBucketInterval": 60000000000,
+            "EnableExpHistogram": true,
+            "MaxServicesToTrack": 256,
+            "MaxOperationsToTrackPerService": 2048,
+            "SkipSpansOlderThan": 0
+        }
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T09:37:06.343Z",
+        "caller": "signozspanmetricsprocessor/processor.go:476",
+        "msg": "Found exporter",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "signozspanmetrics/delta",
+        "otelcol.component.kind": "processor",
+        "otelcol.pipeline.id": "traces",
+        "otelcol.signal": "traces",
+        "signozspanmetrics-exporter": "signozclickhousemetrics"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T09:37:06.343Z",
+        "caller": "signozspanmetricsprocessor/processor.go:484",
+        "msg": "Started signozspanmetricsprocessor",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "signozspanmetrics/delta",
+        "otelcol.component.kind": "processor",
+        "otelcol.pipeline.id": "traces",
+        "otelcol.signal": "traces"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T09:37:06.344Z",
+        "caller": "otlpreceiver@v0.128.0/otlp.go:117",
+        "msg": "Starting GRPC server",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "otlp",
+        "otelcol.component.kind": "receiver",
+        "endpoint": "0.0.0.0:4317"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T09:37:06.345Z",
+        "caller": "otlpreceiver@v0.128.0/otlp.go:175",
+        "msg": "Starting HTTP server",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "otlp",
+        "otelcol.component.kind": "receiver",
+        "endpoint": "0.0.0.0:4318"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T09:37:06.346Z",
+        "caller": "prometheusreceiver@v0.128.0/metrics_receiver.go:157",
+        "msg": "Starting discovery manager",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T09:37:06.346Z",
+        "caller": "targetallocator/manager.go:188",
+        "msg": "Scrape job added",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "jobName": "otel-collector"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T09:37:06.347Z",
+        "caller": "healthcheck/handler.go:132",
+        "msg": "Health Check state change",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "health_check",
+        "otelcol.component.kind": "extension",
+        "status": "ready"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T09:37:06.347Z",
+        "caller": "service@v0.128.0/service.go:282",
+        "msg": "Everything is ready. Begin running and processing data.",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        }
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T09:37:06.347Z",
+        "caller": "prometheusreceiver@v0.128.0/metrics_receiver.go:216",
+        "msg": "Starting scrape manager",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics"
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-14T09:37:06.507Z",
+        "caller": "signozcol/collector.go:120",
+        "msg": "Collector service is running"
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-14T09:37:06.510Z",
+        "logger": "agent-config-manager",
+        "caller": "opamp/config_manager.go:172",
+        "msg": "Config has not changed"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T09:47:06.332Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T09:57:06.332Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T10:07:06.332Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T10:17:06.332Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T10:27:06.332Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T10:37:06.332Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T10:47:06.332Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T10:57:06.332Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T11:07:06.332Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T11:17:06.332Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T11:27:06.332Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T11:37:06.332Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T11:47:06.332Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T11:57:06.332Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T12:07:06.332Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T12:17:06.332Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T12:27:06.332Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T12:37:06.333Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T12:47:06.332Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T12:57:06.332Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T13:07:06.333Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T13:17:06.332Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T13:27:06.332Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T13:37:06.332Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T13:47:06.332Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T13:57:06.332Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T14:07:06.332Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T14:17:06.331Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T14:27:06.331Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T14:37:06.331Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T14:47:06.333Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-14T14:57:06.332Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "63630737-d9d5-46d6-a2bd-1d075d059bd3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    }
+]
