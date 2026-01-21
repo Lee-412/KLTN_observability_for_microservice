@@ -25,5 +25,11 @@ services:
       timeout: 5s
       retries: 3
     restart: unless-stopped
+    networks:
+      - default
     extra_hosts:
       - "host.docker.internal:host-gateway"
+networks:
+  default:
+    name: signoz-net 
+    external: true

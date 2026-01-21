@@ -1,0 +1,163 @@
+{
+    "level": "info",
+    "ts": "2026-01-21T05:24:21.326Z",
+    "resource": {
+        "service.instance.id": "574f5198-d953-4f7e-b621-b081eafac0b0",
+        "service.name": "/signoz-otel-collector",
+        "service.version": "dev"
+    },
+    "otelcol.component.id": "debug",
+    "otelcol.component.kind": "exporter",
+    "otelcol.signal": "traces",
+    "msg_parsed": {
+        "resourceSpans": [
+            {
+                "resource": {
+                    "attributes": {
+                        "service.name": "payment-service",
+                        "telemetry.sdk.language": "python",
+                        "telemetry.sdk.name": "opentelemetry",
+                        "telemetry.sdk.version": "1.39.1"
+                    }
+                },
+                "scopeSpans": [
+                    {
+                        "scope": {
+                            "name": "opentelemetry.instrumentation.fastapi",
+                            "version": "0.60b1"
+                        },
+                        "spans": [
+                            {
+                                "traceId": "b34d63555219f25c5b74bbae0aaf918a",
+                                "spanId": "a58e902baf0d45c5",
+                                "name": "POST /pay",
+                                "kind": "Server",
+                                "status": {
+                                    "code": "Unset"
+                                },
+                                "attributes": {
+                                    "http.method": "POST",
+                                    "http.url": "http://localhost:8003/pay",
+                                    "http.status_code": 200,
+                                    "net.peer.port": 41108
+                                }
+                            },
+                            {
+                                "traceId": "a453a7e1e6179e40c8ebcb3fb9234e34",
+                                "spanId": "f51d67a4b88accfe",
+                                "name": "POST /pay",
+                                "kind": "Server",
+                                "status": {
+                                    "code": "Unset"
+                                },
+                                "attributes": {
+                                    "http.method": "POST",
+                                    "http.url": "http://localhost:8003/pay",
+                                    "http.status_code": 400
+                                }
+                            },
+                            {
+                                "traceId": "e8067251bebb1537d6c2715c2443d413",
+                                "spanId": "7ea992bc017fe37e",
+                                "name": "POST /pay",
+                                "kind": "Server",
+                                "status": {
+                                    "code": "Error"
+                                },
+                                "attributes": {
+                                    "http.method": "POST",
+                                    "http.url": "http://localhost:8003/pay",
+                                    "http.status_code": 500
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "resource": {
+                    "attributes": {
+                        "service.name": "user-service",
+                        "telemetry.sdk.language": "python"
+                    }
+                },
+                "scopeSpans": [
+                    {
+                        "spans": [
+                            {
+                                "traceId": "08b949f33facc4673603ddbe3a17da04",
+                                "spanId": "71fd04034345e918",
+                                "name": "POST",
+                                "kind": "Server",
+                                "attributes": {
+                                    "http.target": "/order",
+                                    "http.url": "http://localhost:8002/order?user_id=1",
+                                    "http.status_code": 404
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "resource": {
+                    "attributes": {
+                        "service.name": "order-service",
+                        "telemetry.sdk.language": "python"
+                    }
+                },
+                "scopeSpans": [
+                    {
+                        "spans": [
+                            {
+                                "traceId": "d0376cd554b2c0907b67652ed15ba84e",
+                                "spanId": "a18df1f5b22a094c",
+                                "name": "GET",
+                                "kind": "Server",
+                                "attributes": {
+                                    "http.target": "/user/1",
+                                    "http.url": "http://localhost:8001/user/1",
+                                    "http.status_code": 404
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "resource": {
+                    "attributes": {
+                        "service.name": "gateway-service",
+                        "telemetry.sdk.language": "python"
+                    }
+                },
+                "scopeSpans": [
+                    {
+                        "spans": [
+                            {
+                                "traceId": "3a66efca2f90c445adb523e8ab4c110b",
+                                "spanId": "b78e5b8049c05306",
+                                "name": "POST /checkout",
+                                "kind": "Server",
+                                "attributes": {
+                                    "http.target": "/checkout",
+                                    "http.status_code": 200
+                                }
+                            },
+                            {
+                                "traceId": "77b70096eb267b5c8480ab498193882c",
+                                "spanId": "197db3bd7812e79d",
+                                "name": "POST /checkout",
+                                "kind": "Server",
+                                "attributes": {
+                                    "http.target": "/checkout",
+                                    "http.status_code": 401
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

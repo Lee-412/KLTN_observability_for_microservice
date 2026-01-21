@@ -60,13 +60,13 @@ extensions:
 
 exporters:
   clickhousetraces:
-    datasource: tcp://host.docker.internal:9000/signoz_traces
+    datasource: tcp://signoz-clickhouse:9000/signoz_traces
     low_cardinal_exception_grouping: ${env:LOW_CARDINAL_EXCEPTION_GROUPING}
     use_new_schema: true
   signozclickhousemetrics:
-    dsn: tcp://host.docker.internal:9000/signoz_metrics
+    dsn: tcp://signoz-clickhouse:9000/signoz_metrics
   clickhouselogsexporter:
-    dsn: tcp://host.docker.internal:9000/signoz_logs
+    dsn: tcp://signoz-clickhouse:9000/signoz_logs
     timeout: 10s
     use_new_schema: true
   debug:
@@ -83,16 +83,16 @@ service:
     traces:
       receivers: [otlp]
       processors: [signozspanmetrics/delta, batch]
-      exporters: [clickhousetraces]
+      exporters: [clickhousetraces, debug]
     metrics:
       receivers: [otlp]
       processors: [batch]
-      exporters: [signozclickhousemetrics]
+      exporters: [signozclickhousemetrics, debug]
     metrics/prometheus:
       receivers: [prometheus]
       processors: [batch]
-      exporters: [signozclickhousemetrics]
+      exporters: [signozclickhousemetrics, debug]
     logs:
       receivers: [otlp]
       processors: [batch]
-      exporters: [clickhouselogsexporter]
+      exporters: [clickhouselogsexporter, debug]
