@@ -1,0 +1,3534 @@
+[
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:14:25.905Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T07:14:50.092Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:15:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:16:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:17:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:18:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:19:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:20:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:21:25.910Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:22:25.910Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:23:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:24:25.910Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T07:24:50.093Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:25:25.912Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:26:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:27:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:28:25.912Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:29:25.910Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:30:25.910Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:31:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:32:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:33:25.910Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:34:25.904Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T07:34:50.092Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:35:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:36:25.908Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:37:25.910Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:38:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:39:25.904Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:40:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:41:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:42:25.910Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:43:25.910Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:44:25.910Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T07:44:50.093Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:45:25.910Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:46:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:47:25.905Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:48:25.906Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:49:25.910Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:50:25.910Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:51:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:52:25.909Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:53:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:54:25.912Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T07:54:50.092Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:55:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:56:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:57:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:58:25.909Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T07:59:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:00:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:01:25.912Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:02:25.909Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:03:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:04:25.905Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T08:04:50.092Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:05:25.909Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:06:25.910Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:07:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:08:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:09:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:10:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:11:25.910Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:12:25.910Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:13:25.912Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:14:25.905Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T08:14:50.093Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:15:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:16:25.910Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:17:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:18:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:19:25.913Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:20:25.910Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:21:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:22:25.912Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:23:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:24:25.905Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T08:24:50.093Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:25:25.912Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:26:25.912Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:27:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:28:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:29:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:30:25.910Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:31:25.912Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:32:25.912Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:33:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:34:25.905Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T08:34:50.093Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:35:25.910Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:36:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:37:25.910Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:38:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:39:25.910Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:40:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:41:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:42:25.909Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:43:25.909Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:44:25.905Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T08:44:50.093Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:45:25.908Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:46:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:47:25.910Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:48:25.910Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:49:25.912Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:50:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:51:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:52:25.910Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:53:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:54:25.904Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T08:54:50.093Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:55:25.910Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:56:25.910Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:57:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:58:25.912Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T08:59:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T09:00:25.910Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T09:01:25.910Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T09:02:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T09:03:25.911Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T09:04:25.905Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T09:04:50.093Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "warn",
+        "ts": "2026-01-20T09:05:25.910Z",
+        "msg": "Error on ingesting samples that are too old or are too far into the future",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "scrape_pool": "otel-collector",
+        "target": "http://localhost:8888/metrics",
+        "num_dropped": 262
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T09:14:50.093Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T09:24:50.092Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T09:34:50.093Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T09:44:50.093Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T09:54:50.093Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:04:50.093Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:05:05.440Z",
+        "caller": "opamp/helpers.go:119",
+        "msg": "Unexpected error while receiving: websocket: close 1006 (abnormal closure): unexpected EOF",
+        "component": "opamp-server-client",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*Logger).Errorf\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/helpers.go:119\ngithub.com/open-telemetry/opamp-go/client/internal.(*wsReceiver).ReceiverLoop\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/wsreceiver.go:90"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:05:05.442Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp 172.18.0.5:4320: connect: connection refused",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:239\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:05:05.442Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp 172.18.0.5:4320: connect: connection refused",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:232\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:253\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:05:05.442Z",
+        "caller": "opamp/helpers.go:119",
+        "msg": "Connection failed (dial tcp 172.18.0.5:4320: connect: connection refused), will retry.",
+        "component": "opamp-server-client",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*Logger).Errorf\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/helpers.go:119\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:288\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:05:05.802Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp 172.18.0.5:4320: connect: connection refused",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:239\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:05:05.802Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp 172.18.0.5:4320: connect: connection refused",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:232\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:253\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:05:05.802Z",
+        "caller": "opamp/helpers.go:119",
+        "msg": "Connection failed (dial tcp 172.18.0.5:4320: connect: connection refused), will retry.",
+        "component": "opamp-server-client",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*Logger).Errorf\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/helpers.go:119\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:288\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:05:06.245Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp 172.18.0.5:4320: connect: connection refused",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:239\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:05:06.245Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp 172.18.0.5:4320: connect: connection refused",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:232\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:253\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:05:06.245Z",
+        "caller": "opamp/helpers.go:119",
+        "msg": "Connection failed (dial tcp 172.18.0.5:4320: connect: connection refused), will retry.",
+        "component": "opamp-server-client",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*Logger).Errorf\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/helpers.go:119\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:288\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:05:07.153Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp 172.18.0.5:4320: connect: connection refused",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:239\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:05:07.154Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp 172.18.0.5:4320: connect: connection refused",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:232\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:253\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:05:07.154Z",
+        "caller": "opamp/helpers.go:119",
+        "msg": "Connection failed (dial tcp 172.18.0.5:4320: connect: connection refused), will retry.",
+        "component": "opamp-server-client",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*Logger).Errorf\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/helpers.go:119\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:288\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:05:08.688Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp 172.18.0.5:4320: connect: connection refused",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:239\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:05:08.688Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp 172.18.0.5:4320: connect: connection refused",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:232\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:253\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:05:08.688Z",
+        "caller": "opamp/helpers.go:119",
+        "msg": "Connection failed (dial tcp 172.18.0.5:4320: connect: connection refused), will retry.",
+        "component": "opamp-server-client",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*Logger).Errorf\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/helpers.go:119\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:288\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:05:11.791Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp 172.18.0.5:4320: connect: connection refused",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:239\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:05:11.791Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp 172.18.0.5:4320: connect: connection refused",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:232\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:253\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:05:11.792Z",
+        "caller": "opamp/helpers.go:119",
+        "msg": "Connection failed (dial tcp 172.18.0.5:4320: connect: connection refused), will retry.",
+        "component": "opamp-server-client",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*Logger).Errorf\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/helpers.go:119\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:288\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:05:16.237Z",
+        "caller": "opamp/server_client.go:140",
+        "msg": "Connected to the server. Applying default config.",
+        "component": "opamp-server-client"
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:05:16.274Z",
+        "logger": "agent-config-manager",
+        "caller": "opamp/config_manager.go:172",
+        "msg": "Config has not changed"
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:05:16.275Z",
+        "logger": "agent-config-manager",
+        "caller": "opamp/config_manager.go:172",
+        "msg": "Config has not changed"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:06:10.005Z",
+        "caller": "opamp/helpers.go:119",
+        "msg": "Unexpected error while receiving: websocket: close 1006 (abnormal closure): unexpected EOF",
+        "component": "opamp-server-client",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*Logger).Errorf\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/helpers.go:119\ngithub.com/open-telemetry/opamp-go/client/internal.(*wsReceiver).ReceiverLoop\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/wsreceiver.go:90"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:06:10.006Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp 172.18.0.5:4320: connect: connection refused",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:239\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:06:10.006Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp 172.18.0.5:4320: connect: connection refused",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:232\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:253\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:06:10.006Z",
+        "caller": "opamp/helpers.go:119",
+        "msg": "Connection failed (dial tcp 172.18.0.5:4320: connect: connection refused), will retry.",
+        "component": "opamp-server-client",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*Logger).Errorf\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/helpers.go:119\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:288\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:06:10.554Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp: lookup signoz on 127.0.0.11:53: server misbehaving",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:239\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:06:10.554Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp: lookup signoz on 127.0.0.11:53: server misbehaving",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:232\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:253\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:06:10.554Z",
+        "caller": "opamp/helpers.go:119",
+        "msg": "Connection failed (dial tcp: lookup signoz on 127.0.0.11:53: server misbehaving), will retry.",
+        "component": "opamp-server-client",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*Logger).Errorf\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/helpers.go:119\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:288\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:06:11.274Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp: lookup signoz on 127.0.0.11:53: server misbehaving",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:239\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:06:11.274Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp: lookup signoz on 127.0.0.11:53: server misbehaving",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:232\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:253\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:06:11.275Z",
+        "caller": "opamp/helpers.go:119",
+        "msg": "Connection failed (dial tcp: lookup signoz on 127.0.0.11:53: server misbehaving), will retry.",
+        "component": "opamp-server-client",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*Logger).Errorf\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/helpers.go:119\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:288\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:06:12.902Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp: lookup signoz on 127.0.0.11:53: server misbehaving",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:239\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:06:12.902Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp: lookup signoz on 127.0.0.11:53: server misbehaving",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:232\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:253\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:06:12.902Z",
+        "caller": "opamp/helpers.go:119",
+        "msg": "Connection failed (dial tcp: lookup signoz on 127.0.0.11:53: server misbehaving), will retry.",
+        "component": "opamp-server-client",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*Logger).Errorf\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/helpers.go:119\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:288\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:06:15.409Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp: lookup signoz on 127.0.0.11:53: server misbehaving",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:239\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:06:15.410Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp: lookup signoz on 127.0.0.11:53: server misbehaving",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:232\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:253\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:06:15.410Z",
+        "caller": "opamp/helpers.go:119",
+        "msg": "Connection failed (dial tcp: lookup signoz on 127.0.0.11:53: server misbehaving), will retry.",
+        "component": "opamp-server-client",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*Logger).Errorf\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/helpers.go:119\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:288\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:06:18.762Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp: lookup signoz on 127.0.0.11:53: server misbehaving",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:239\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:06:18.763Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp: lookup signoz on 127.0.0.11:53: server misbehaving",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:232\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:253\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:06:18.763Z",
+        "caller": "opamp/helpers.go:119",
+        "msg": "Connection failed (dial tcp: lookup signoz on 127.0.0.11:53: server misbehaving), will retry.",
+        "component": "opamp-server-client",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*Logger).Errorf\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/helpers.go:119\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:288\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:06:21.141Z",
+        "caller": "signozotelcollector/main.go:112",
+        "msg": "Context done, shutting down..."
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:06:21.141Z",
+        "caller": "service/service.go:79",
+        "msg": "Shutting down service"
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:06:21.141Z",
+        "caller": "opamp/server_client.go:254",
+        "msg": "Stopping OpAMP server client",
+        "component": "opamp-server-client"
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:06:21.141Z",
+        "caller": "signozcol/collector.go:143",
+        "msg": "Shutting down collector service"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:06:21.141Z",
+        "caller": "otelcol@v0.128.0/collector.go:366",
+        "msg": "Received shutdown request",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        }
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:06:21.141Z",
+        "caller": "service@v0.128.0/service.go:324",
+        "msg": "Starting shutdown...",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        }
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:06:21.141Z",
+        "caller": "healthcheck/handler.go:132",
+        "msg": "Health Check state change",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "health_check",
+        "otelcol.component.kind": "extension",
+        "status": "unavailable"
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:06:21.141Z",
+        "caller": "opamp/client.go:54",
+        "msg": "Collector is stopped",
+        "component": "opamp-server-client"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:06:21.141Z",
+        "caller": "signozspanmetricsprocessor/processor.go:505",
+        "msg": "Shutting down signozspanmetricsprocessor",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "signozspanmetrics/delta",
+        "otelcol.component.kind": "processor",
+        "otelcol.pipeline.id": "traces",
+        "otelcol.signal": "traces"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:06:21.141Z",
+        "caller": "signozspanmetricsprocessor/processor.go:508",
+        "msg": "Stopping ticker",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "signozspanmetrics/delta",
+        "otelcol.component.kind": "processor",
+        "otelcol.pipeline.id": "traces",
+        "otelcol.signal": "traces"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:06:21.142Z",
+        "caller": "clickhousetracesexporter/clickhouse_exporter.go:161",
+        "msg": "Stopping usage collector",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:06:21.154Z",
+        "caller": "extensions/extensions.go:69",
+        "msg": "Stopping extensions...",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        }
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:06:21.154Z",
+        "caller": "service@v0.128.0/service.go:338",
+        "msg": "Shutdown complete.",
+        "resource": {
+            "service.instance.id": "57f458d8-d96b-4d3b-9b28-eb522fe7d2e3",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        }
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:06:21.155Z",
+        "caller": "signozcol/collector.go:151",
+        "msg": "Collector service is shut down"
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:06:21.155Z",
+        "caller": "service/service.go:83",
+        "msg": "Client stopped successfully"
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:07:00.080Z",
+        "logger": "dynamic-config",
+        "caller": "opamp/config_manager.go:89",
+        "msg": "Added instance id to config file",
+        "component": "opamp-server-client",
+        "instance_id": "5d819c8d-0934-422a-a4ad-544291b0dfdf"
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:07:00.080Z",
+        "caller": "service/service.go:69",
+        "msg": "Starting service"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:07:00.082Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp: lookup signoz on 127.0.0.11:53: server misbehaving",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:239\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:07:00.082Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp: lookup signoz on 127.0.0.11:53: server misbehaving",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:232\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:253\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:07:00.082Z",
+        "caller": "opamp/helpers.go:119",
+        "msg": "Connection failed (dial tcp: lookup signoz on 127.0.0.11:53: server misbehaving), will retry.",
+        "component": "opamp-server-client",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*Logger).Errorf\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/helpers.go:119\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:288\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:07:00.083Z",
+        "caller": "signozcol/collector.go:167",
+        "msg": "Restarting collector service"
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:07:00.083Z",
+        "caller": "signozcol/collector.go:143",
+        "msg": "Shutting down collector service"
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:07:00.083Z",
+        "caller": "signozcol/collector.go:153",
+        "msg": "Collector service is not running"
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:07:00.084Z",
+        "caller": "signozcol/collector.go:102",
+        "msg": "Starting collector service"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:00.094Z",
+        "caller": "service@v0.128.0/service.go:199",
+        "msg": "Setting up own telemetry...",
+        "resource": {
+            "service.instance.id": "181572d0-bb2d-49bf-9455-b3b9ac0b2f3d",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        }
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:00.095Z",
+        "caller": "service@v0.128.0/service.go:259",
+        "msg": "Starting /signoz-otel-collector...",
+        "resource": {
+            "service.instance.id": "181572d0-bb2d-49bf-9455-b3b9ac0b2f3d",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "Version": "dev",
+        "NumCPU": 16
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:00.095Z",
+        "caller": "extensions/extensions.go:41",
+        "msg": "Starting extensions...",
+        "resource": {
+            "service.instance.id": "181572d0-bb2d-49bf-9455-b3b9ac0b2f3d",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        }
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:00.095Z",
+        "caller": "extensions/extensions.go:45",
+        "msg": "Extension is starting...",
+        "resource": {
+            "service.instance.id": "181572d0-bb2d-49bf-9455-b3b9ac0b2f3d",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "health_check",
+        "otelcol.component.kind": "extension"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:00.096Z",
+        "caller": "healthcheckextension@v0.128.0/healthcheckextension.go:32",
+        "msg": "Starting health_check extension",
+        "resource": {
+            "service.instance.id": "181572d0-bb2d-49bf-9455-b3b9ac0b2f3d",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "health_check",
+        "otelcol.component.kind": "extension",
+        "config": {
+            "Endpoint": "0.0.0.0:13133",
+            "TLS": null,
+            "CORS": null,
+            "Auth": null,
+            "MaxRequestBodySize": 0,
+            "IncludeMetadata": false,
+            "ResponseHeaders": null,
+            "CompressionAlgorithms": null,
+            "ReadTimeout": 0,
+            "ReadHeaderTimeout": 0,
+            "WriteTimeout": 0,
+            "IdleTimeout": 0,
+            "Middlewares": null,
+            "Path": "/",
+            "ResponseBody": null,
+            "CheckCollectorPipeline": {
+                "Enabled": false,
+                "Interval": "5m",
+                "ExporterFailureThreshold": 5
+            }
+        }
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:00.096Z",
+        "caller": "extensions/extensions.go:62",
+        "msg": "Extension started.",
+        "resource": {
+            "service.instance.id": "181572d0-bb2d-49bf-9455-b3b9ac0b2f3d",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "health_check",
+        "otelcol.component.kind": "extension"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:00.096Z",
+        "caller": "extensions/extensions.go:45",
+        "msg": "Extension is starting...",
+        "resource": {
+            "service.instance.id": "181572d0-bb2d-49bf-9455-b3b9ac0b2f3d",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "pprof",
+        "otelcol.component.kind": "extension"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:00.096Z",
+        "caller": "pprofextension@v0.128.0/pprofextension.go:61",
+        "msg": "Starting net/http/pprof server",
+        "resource": {
+            "service.instance.id": "181572d0-bb2d-49bf-9455-b3b9ac0b2f3d",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "pprof",
+        "otelcol.component.kind": "extension",
+        "config": {
+            "TCPAddr": {
+                "Endpoint": "0.0.0.0:1777",
+                "DialerConfig": {
+                    "Timeout": 0
+                }
+            },
+            "BlockProfileFraction": 0,
+            "MutexProfileFraction": 0,
+            "SaveToFile": ""
+        }
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:00.096Z",
+        "caller": "extensions/extensions.go:62",
+        "msg": "Extension started.",
+        "resource": {
+            "service.instance.id": "181572d0-bb2d-49bf-9455-b3b9ac0b2f3d",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "pprof",
+        "otelcol.component.kind": "extension"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:00.096Z",
+        "caller": "healthcheck/handler.go:132",
+        "msg": "Health Check state change",
+        "resource": {
+            "service.instance.id": "181572d0-bb2d-49bf-9455-b3b9ac0b2f3d",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "health_check",
+        "otelcol.component.kind": "extension",
+        "status": "ready"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:00.096Z",
+        "caller": "service@v0.128.0/service.go:282",
+        "msg": "Everything is ready. Begin running and processing data.",
+        "resource": {
+            "service.instance.id": "181572d0-bb2d-49bf-9455-b3b9ac0b2f3d",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        }
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:07:00.284Z",
+        "caller": "signozcol/collector.go:120",
+        "msg": "Collector service is running"
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:07:00.284Z",
+        "caller": "service/service.go:73",
+        "msg": "Client started successfully"
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:07:00.284Z",
+        "caller": "opamp/client.go:50",
+        "msg": "Ensuring collector is running",
+        "component": "opamp-server-client"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:07:00.409Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp: lookup signoz on 127.0.0.11:53: server misbehaving",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:239\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:07:00.410Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp: lookup signoz on 127.0.0.11:53: server misbehaving",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:232\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:253\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:07:00.410Z",
+        "caller": "opamp/helpers.go:119",
+        "msg": "Connection failed (dial tcp: lookup signoz on 127.0.0.11:53: server misbehaving), will retry.",
+        "component": "opamp-server-client",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*Logger).Errorf\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/helpers.go:119\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:288\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:07:01.176Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp: lookup signoz on 127.0.0.11:53: server misbehaving",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:239\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:07:01.176Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp: lookup signoz on 127.0.0.11:53: server misbehaving",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:232\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:253\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:07:01.176Z",
+        "caller": "opamp/helpers.go:119",
+        "msg": "Connection failed (dial tcp: lookup signoz on 127.0.0.11:53: server misbehaving), will retry.",
+        "component": "opamp-server-client",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*Logger).Errorf\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/helpers.go:119\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:288\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:07:02.146Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp: lookup signoz on 127.0.0.11:53: server misbehaving",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:239\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:07:02.146Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp: lookup signoz on 127.0.0.11:53: server misbehaving",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:232\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:253\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:07:02.146Z",
+        "caller": "opamp/helpers.go:119",
+        "msg": "Connection failed (dial tcp: lookup signoz on 127.0.0.11:53: server misbehaving), will retry.",
+        "component": "opamp-server-client",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*Logger).Errorf\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/helpers.go:119\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:288\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:07:03.903Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp 172.18.0.6:4320: connect: connection refused",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:239\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:07:03.903Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp 172.18.0.6:4320: connect: connection refused",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:232\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:253\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:07:03.903Z",
+        "caller": "opamp/helpers.go:119",
+        "msg": "Connection failed (dial tcp 172.18.0.6:4320: connect: connection refused), will retry.",
+        "component": "opamp-server-client",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*Logger).Errorf\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/helpers.go:119\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:288\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:07:06.929Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp 172.18.0.6:4320: connect: connection refused",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:239\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:07:06.929Z",
+        "caller": "opamp/server_client.go:143",
+        "msg": "Failed to connect to the server: %v",
+        "component": "opamp-server-client",
+        "error": "dial tcp 172.18.0.6:4320: connect: connection refused",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*serverClient).Start.func2\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/server_client.go:143\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:232\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).tryConnectOnce\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:253\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:282\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:07:06.929Z",
+        "caller": "opamp/helpers.go:119",
+        "msg": "Connection failed (dial tcp 172.18.0.6:4320: connect: connection refused), will retry.",
+        "component": "opamp-server-client",
+        "stacktrace": "github.com/SigNoz/signoz-otel-collector/opamp.(*Logger).Errorf\n\t/home/runner/work/signoz-otel-collector/signoz-otel-collector/opamp/helpers.go:119\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).ensureConnected\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:288\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runOneCycle\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:326\ngithub.com/open-telemetry/opamp-go/client.(*wsClient).runUntilStopped\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/wsclient.go:412\ngithub.com/open-telemetry/opamp-go/client/internal.(*ClientCommon).StartConnectAndRun.func1\n\t/home/runner/go/pkg/mod/github.com/open-telemetry/opamp-go@v0.19.0/client/internal/clientcommon.go:208"
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:07:09.740Z",
+        "caller": "opamp/server_client.go:140",
+        "msg": "Connected to the server. Applying default config.",
+        "component": "opamp-server-client"
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:07:09.746Z",
+        "logger": "agent-config-manager",
+        "caller": "opamp/config_manager.go:176",
+        "msg": "Config has changed, reloading",
+        "path": "/var/tmp/collector-config.yaml"
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:07:09.746Z",
+        "caller": "signozcol/collector.go:167",
+        "msg": "Restarting collector service"
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:07:09.746Z",
+        "caller": "signozcol/collector.go:143",
+        "msg": "Shutting down collector service"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:09.746Z",
+        "caller": "otelcol@v0.128.0/collector.go:366",
+        "msg": "Received shutdown request",
+        "resource": {
+            "service.instance.id": "181572d0-bb2d-49bf-9455-b3b9ac0b2f3d",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        }
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:09.746Z",
+        "caller": "service@v0.128.0/service.go:324",
+        "msg": "Starting shutdown...",
+        "resource": {
+            "service.instance.id": "181572d0-bb2d-49bf-9455-b3b9ac0b2f3d",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        }
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:09.746Z",
+        "caller": "healthcheck/handler.go:132",
+        "msg": "Health Check state change",
+        "resource": {
+            "service.instance.id": "181572d0-bb2d-49bf-9455-b3b9ac0b2f3d",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "health_check",
+        "otelcol.component.kind": "extension",
+        "status": "unavailable"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:09.746Z",
+        "caller": "extensions/extensions.go:69",
+        "msg": "Stopping extensions...",
+        "resource": {
+            "service.instance.id": "181572d0-bb2d-49bf-9455-b3b9ac0b2f3d",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        }
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:09.746Z",
+        "caller": "service@v0.128.0/service.go:338",
+        "msg": "Shutdown complete.",
+        "resource": {
+            "service.instance.id": "181572d0-bb2d-49bf-9455-b3b9ac0b2f3d",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        }
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:07:09.746Z",
+        "caller": "signozcol/collector.go:151",
+        "msg": "Collector service is shut down"
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:07:09.746Z",
+        "caller": "signozcol/collector.go:102",
+        "msg": "Starting collector service"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:09.755Z",
+        "caller": "service@v0.128.0/service.go:199",
+        "msg": "Setting up own telemetry...",
+        "resource": {
+            "service.instance.id": "5c45cef6-56be-4f98-979a-f5cce6c8812c",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        }
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:09.757Z",
+        "caller": "clickhousetracesexporter/writer.go:113",
+        "msg": "fetching should skip keys",
+        "resource": {
+            "service.instance.id": "5c45cef6-56be-4f98-979a-f5cce6c8812c",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "clickhousetraces",
+        "otelcol.component.kind": "exporter",
+        "otelcol.signal": "traces",
+        "query": "\n\t\tSELECT tag_key, tag_type, tag_data_type, countDistinct(string_value) as string_count, countDistinct(number_value) as number_count\n\t\tFROM signoz_traces.distributed_tag_attributes_v2\n\t\tWHERE unix_milli >= (toUnixTimestamp(now() - toIntervalHour(6)) * 1000)\n\t\tGROUP BY tag_key, tag_type, tag_data_type\n\t\tHAVING string_count > 25000 OR number_count > 25000\n\t\tSETTINGS max_threads = 2"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:09.757Z",
+        "caller": "signozspanmetricsprocessor/processor.go:261",
+        "msg": "Building signozspanmetricsprocessor with config",
+        "resource": {
+            "service.instance.id": "5c45cef6-56be-4f98-979a-f5cce6c8812c",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "signozspanmetrics/delta",
+        "otelcol.component.kind": "processor",
+        "otelcol.pipeline.id": "traces",
+        "otelcol.signal": "traces",
+        "config": {
+            "MetricsExporter": "signozclickhousemetrics",
+            "LatencyHistogramBuckets": [
+                100000,
+                1000000,
+                2000000,
+                6000000,
+                10000000,
+                50000000,
+                100000000,
+                250000000,
+                500000000,
+                1000000000,
+                1400000000,
+                2000000000,
+                5000000000,
+                10000000000,
+                20000000000,
+                40000000000,
+                60000000000
+            ],
+            "Dimensions": [
+                {
+                    "Name": "service.namespace",
+                    "Default": "default"
+                },
+                {
+                    "Name": "deployment.environment",
+                    "Default": "default"
+                },
+                {
+                    "Name": "signoz.collector.id",
+                    "Default": null
+                },
+                {
+                    "Name": "service.version",
+                    "Default": null
+                },
+                {
+                    "Name": "browser.platform",
+                    "Default": null
+                },
+                {
+                    "Name": "browser.mobile",
+                    "Default": null
+                },
+                {
+                    "Name": "k8s.cluster.name",
+                    "Default": null
+                },
+                {
+                    "Name": "k8s.node.name",
+                    "Default": null
+                },
+                {
+                    "Name": "k8s.namespace.name",
+                    "Default": null
+                },
+                {
+                    "Name": "host.name",
+                    "Default": null
+                },
+                {
+                    "Name": "host.type",
+                    "Default": null
+                },
+                {
+                    "Name": "container.name",
+                    "Default": null
+                }
+            ],
+            "ExcludePatterns": null,
+            "DimensionsCacheSize": 100000,
+            "AggregationTemporality": "AGGREGATION_TEMPORALITY_DELTA",
+            "MetricsFlushInterval": 60000000000,
+            "TimeBucketInterval": 0,
+            "EnableExpHistogram": true,
+            "MaxServicesToTrack": 256,
+            "MaxOperationsToTrackPerService": 2048,
+            "SkipSpansOlderThan": 0
+        }
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:09.758Z",
+        "caller": "service@v0.128.0/service.go:259",
+        "msg": "Starting /signoz-otel-collector...",
+        "resource": {
+            "service.instance.id": "5c45cef6-56be-4f98-979a-f5cce6c8812c",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "Version": "dev",
+        "NumCPU": 16
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:09.758Z",
+        "caller": "extensions/extensions.go:41",
+        "msg": "Starting extensions...",
+        "resource": {
+            "service.instance.id": "5c45cef6-56be-4f98-979a-f5cce6c8812c",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        }
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:09.758Z",
+        "caller": "extensions/extensions.go:45",
+        "msg": "Extension is starting...",
+        "resource": {
+            "service.instance.id": "5c45cef6-56be-4f98-979a-f5cce6c8812c",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "pprof",
+        "otelcol.component.kind": "extension"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:09.759Z",
+        "caller": "pprofextension@v0.128.0/pprofextension.go:61",
+        "msg": "Starting net/http/pprof server",
+        "resource": {
+            "service.instance.id": "5c45cef6-56be-4f98-979a-f5cce6c8812c",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "pprof",
+        "otelcol.component.kind": "extension",
+        "config": {
+            "TCPAddr": {
+                "Endpoint": "0.0.0.0:1777",
+                "DialerConfig": {
+                    "Timeout": 0
+                }
+            },
+            "BlockProfileFraction": 0,
+            "MutexProfileFraction": 0,
+            "SaveToFile": ""
+        }
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:09.759Z",
+        "caller": "extensions/extensions.go:62",
+        "msg": "Extension started.",
+        "resource": {
+            "service.instance.id": "5c45cef6-56be-4f98-979a-f5cce6c8812c",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "pprof",
+        "otelcol.component.kind": "extension"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:09.759Z",
+        "caller": "extensions/extensions.go:45",
+        "msg": "Extension is starting...",
+        "resource": {
+            "service.instance.id": "5c45cef6-56be-4f98-979a-f5cce6c8812c",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "health_check",
+        "otelcol.component.kind": "extension"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:09.759Z",
+        "caller": "healthcheckextension@v0.128.0/healthcheckextension.go:32",
+        "msg": "Starting health_check extension",
+        "resource": {
+            "service.instance.id": "5c45cef6-56be-4f98-979a-f5cce6c8812c",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "health_check",
+        "otelcol.component.kind": "extension",
+        "config": {
+            "Endpoint": "0.0.0.0:13133",
+            "TLS": null,
+            "CORS": null,
+            "Auth": null,
+            "MaxRequestBodySize": 0,
+            "IncludeMetadata": false,
+            "ResponseHeaders": null,
+            "CompressionAlgorithms": null,
+            "ReadTimeout": 0,
+            "ReadHeaderTimeout": 0,
+            "WriteTimeout": 0,
+            "IdleTimeout": 0,
+            "Middlewares": null,
+            "Path": "/",
+            "ResponseBody": null,
+            "CheckCollectorPipeline": {
+                "Enabled": false,
+                "Interval": "5m",
+                "ExporterFailureThreshold": 5
+            }
+        }
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:09.759Z",
+        "caller": "extensions/extensions.go:62",
+        "msg": "Extension started.",
+        "resource": {
+            "service.instance.id": "5c45cef6-56be-4f98-979a-f5cce6c8812c",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "health_check",
+        "otelcol.component.kind": "extension"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:09.759Z",
+        "caller": "otlpreceiver@v0.128.0/otlp.go:117",
+        "msg": "Starting GRPC server",
+        "resource": {
+            "service.instance.id": "5c45cef6-56be-4f98-979a-f5cce6c8812c",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "otlp",
+        "otelcol.component.kind": "receiver",
+        "endpoint": "0.0.0.0:4317"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:09.759Z",
+        "caller": "otlpreceiver@v0.128.0/otlp.go:175",
+        "msg": "Starting HTTP server",
+        "resource": {
+            "service.instance.id": "5c45cef6-56be-4f98-979a-f5cce6c8812c",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "otlp",
+        "otelcol.component.kind": "receiver",
+        "endpoint": "0.0.0.0:4318"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:09.759Z",
+        "caller": "prometheusreceiver@v0.128.0/metrics_receiver.go:157",
+        "msg": "Starting discovery manager",
+        "resource": {
+            "service.instance.id": "5c45cef6-56be-4f98-979a-f5cce6c8812c",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:09.759Z",
+        "caller": "targetallocator/manager.go:188",
+        "msg": "Scrape job added",
+        "resource": {
+            "service.instance.id": "5c45cef6-56be-4f98-979a-f5cce6c8812c",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics",
+        "jobName": "otel-collector"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:09.760Z",
+        "caller": "prometheusreceiver@v0.128.0/metrics_receiver.go:216",
+        "msg": "Starting scrape manager",
+        "resource": {
+            "service.instance.id": "5c45cef6-56be-4f98-979a-f5cce6c8812c",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "prometheus",
+        "otelcol.component.kind": "receiver",
+        "otelcol.signal": "metrics"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:09.760Z",
+        "caller": "signozspanmetricsprocessor/processor.go:446",
+        "msg": "Starting signozspanmetricsprocessor with config",
+        "resource": {
+            "service.instance.id": "5c45cef6-56be-4f98-979a-f5cce6c8812c",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "signozspanmetrics/delta",
+        "otelcol.component.kind": "processor",
+        "otelcol.pipeline.id": "traces",
+        "otelcol.signal": "traces",
+        "config": {
+            "MetricsExporter": "signozclickhousemetrics",
+            "LatencyHistogramBuckets": [
+                100000,
+                1000000,
+                2000000,
+                6000000,
+                10000000,
+                50000000,
+                100000000,
+                250000000,
+                500000000,
+                1000000000,
+                1400000000,
+                2000000000,
+                5000000000,
+                10000000000,
+                20000000000,
+                40000000000,
+                60000000000
+            ],
+            "Dimensions": [
+                {
+                    "Name": "service.namespace",
+                    "Default": "default"
+                },
+                {
+                    "Name": "deployment.environment",
+                    "Default": "default"
+                },
+                {
+                    "Name": "signoz.collector.id",
+                    "Default": null
+                },
+                {
+                    "Name": "service.version",
+                    "Default": null
+                },
+                {
+                    "Name": "browser.platform",
+                    "Default": null
+                },
+                {
+                    "Name": "browser.mobile",
+                    "Default": null
+                },
+                {
+                    "Name": "k8s.cluster.name",
+                    "Default": null
+                },
+                {
+                    "Name": "k8s.node.name",
+                    "Default": null
+                },
+                {
+                    "Name": "k8s.namespace.name",
+                    "Default": null
+                },
+                {
+                    "Name": "host.name",
+                    "Default": null
+                },
+                {
+                    "Name": "host.type",
+                    "Default": null
+                },
+                {
+                    "Name": "container.name",
+                    "Default": null
+                }
+            ],
+            "ExcludePatterns": null,
+            "DimensionsCacheSize": 100000,
+            "AggregationTemporality": "AGGREGATION_TEMPORALITY_DELTA",
+            "MetricsFlushInterval": 60000000000,
+            "TimeBucketInterval": 60000000000,
+            "EnableExpHistogram": true,
+            "MaxServicesToTrack": 256,
+            "MaxOperationsToTrackPerService": 2048,
+            "SkipSpansOlderThan": 0
+        }
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:09.760Z",
+        "caller": "signozspanmetricsprocessor/processor.go:476",
+        "msg": "Found exporter",
+        "resource": {
+            "service.instance.id": "5c45cef6-56be-4f98-979a-f5cce6c8812c",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "signozspanmetrics/delta",
+        "otelcol.component.kind": "processor",
+        "otelcol.pipeline.id": "traces",
+        "otelcol.signal": "traces",
+        "signozspanmetrics-exporter": "signozclickhousemetrics"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:09.760Z",
+        "caller": "signozspanmetricsprocessor/processor.go:484",
+        "msg": "Started signozspanmetricsprocessor",
+        "resource": {
+            "service.instance.id": "5c45cef6-56be-4f98-979a-f5cce6c8812c",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "signozspanmetrics/delta",
+        "otelcol.component.kind": "processor",
+        "otelcol.pipeline.id": "traces",
+        "otelcol.signal": "traces"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:09.764Z",
+        "caller": "healthcheck/handler.go:132",
+        "msg": "Health Check state change",
+        "resource": {
+            "service.instance.id": "5c45cef6-56be-4f98-979a-f5cce6c8812c",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        },
+        "otelcol.component.id": "health_check",
+        "otelcol.component.kind": "extension",
+        "status": "ready"
+    },
+    {
+        "level": "info",
+        "ts": "2026-01-20T10:07:09.764Z",
+        "caller": "service@v0.128.0/service.go:282",
+        "msg": "Everything is ready. Begin running and processing data.",
+        "resource": {
+            "service.instance.id": "5c45cef6-56be-4f98-979a-f5cce6c8812c",
+            "service.name": "/signoz-otel-collector",
+            "service.version": "dev"
+        }
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:07:09.947Z",
+        "caller": "signozcol/collector.go:120",
+        "msg": "Collector service is running"
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:07:09.947Z",
+        "logger": "agent-config-manager",
+        "caller": "opamp/config_manager.go:172",
+        "msg": "Config has not changed"
+    }
+]

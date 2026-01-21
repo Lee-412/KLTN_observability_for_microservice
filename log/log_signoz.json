@@ -1,0 +1,214 @@
+[
+    {
+        "timestamp": "2026-01-20T10:07:03.570858973Z",
+        "level": "INFO",
+        "code": {
+            "function": "github.com/SigNoz/signoz/pkg/signoz.New",
+            "file": "/home/runner/work/signoz/signoz/pkg/signoz/signoz.go",
+            "line": 99
+        },
+        "msg": "starting signoz",
+        "version": "v0.106.0",
+        "variant": "enterprise",
+        "commit": "fce1cce",
+        "branch": "v0.106.0",
+        "go": "go1.24.11"
+    },
+    {
+        "timestamp": "2026-01-20T10:07:03.571186142Z",
+        "level": "INFO",
+        "code": {
+            "function": "github.com/SigNoz/signoz/pkg/sqlstore/sqlitesqlstore.New",
+            "file": "/home/runner/work/signoz/signoz/pkg/sqlstore/sqlitesqlstore/provider.go",
+            "line": 55
+        },
+        "msg": "connected to sqlite",
+        "logger": "github.com/SigNoz/signoz/pkg/sqlitesqlstore",
+        "path": "/var/lib/signoz/signoz.db"
+    },
+    {
+        "timestamp": "2026-01-20T10:07:03.573410848Z",
+        "level": "ERROR",
+        "code": {
+            "function": "github.com/prometheus/prometheus/promql.NewActiveQueryTracker",
+            "file": "/home/runner/go/pkg/mod/github.com/prometheus/prometheus@v0.304.1/promql/query_logger.go",
+            "line": 137
+        },
+        "msg": "Failed to create directory for logging active queries",
+        "logger": "github.com/SigNoz/signoz/pkg/prometheus/clickhouseprometheus"
+    },
+    {
+        "timestamp": "2026-01-20T10:07:03.574397137Z",
+        "level": "INFO",
+        "code": {
+            "function": "github.com/SigNoz/signoz/pkg/sqlmigrator.(*migrator).Migrate",
+            "file": "/home/runner/work/signoz/signoz/pkg/sqlmigrator/migrator.go",
+            "line": 44
+        },
+        "msg": "starting sqlstore migrations",
+        "logger": "github.com/SigNoz/signoz/pkg/sqlmigrator",
+        "dialect": "sqlite"
+    },
+    {
+        "timestamp": "2026-01-20T10:07:03.578828353Z",
+        "level": "INFO",
+        "code": {
+            "function": "github.com/SigNoz/signoz/pkg/sqlmigrator.(*migrator).Lock",
+            "file": "/home/runner/work/signoz/signoz/pkg/sqlmigrator/migrator.go",
+            "line": 91
+        },
+        "msg": "acquired migration lock",
+        "logger": "github.com/SigNoz/signoz/pkg/sqlmigrator",
+        "dialect": "sqlite"
+    },
+    {
+        "timestamp": "2026-01-20T10:07:03.579247303Z",
+        "level": "INFO",
+        "code": {
+            "function": "github.com/SigNoz/signoz/pkg/sqlmigrator.(*migrator).Migrate",
+            "file": "/home/runner/work/signoz/signoz/pkg/sqlmigrator/migrator.go",
+            "line": 61
+        },
+        "msg": "no new migrations to run (database is up to date)",
+        "logger": "github.com/SigNoz/signoz/pkg/sqlmigrator",
+        "dialect": "sqlite"
+    },
+    {
+        "timestamp": "2026-01-20T10:07:03.583825181Z",
+        "level": "ERROR",
+        "code": {
+            "function": "github.com/SigNoz/signoz/pkg/tokenizer/jwttokenizer.New",
+            "file": "/home/runner/work/signoz/signoz/pkg/tokenizer/jwttokenizer/provider.go",
+            "line": 45
+        },
+        "msg": "\ud83d\udea8 CRITICAL SECURITY ISSUE: No JWT secret key specified!",
+        "logger": "github.com/SigNoz/signoz/pkg/tokenizer/jwttokenizer",
+        "error": "SIGNOZ_JWT_SECRET environment variable is not set. This has dire consequences for the security of the application. Without a JWT secret, user sessions are vulnerable to tampering and unauthorized access. Please set the SIGNOZ_TOKENIZER_JWT_SECRET environment variable immediately. For more information, please refer to https://github.com/SigNoz/signoz/issues/8400."
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:07:09.588Z",
+        "caller": "app/server.go:387",
+        "msg": "rules manager is ready"
+    },
+    {
+        "level": "error",
+        "timestamp": "2026-01-20T10:07:09.589Z",
+        "caller": "usage/manager.go:86",
+        "msg": "failed to get active license",
+        "error": "no active license found for the organization 019bbbdd-5af8-71f2-9764-153213897f7d",
+        "stacktrace": "github.com/SigNoz/signoz/ee/query-service/usage.(*Manager).UploadUsage\n\t/home/runner/work/signoz/signoz/ee/query-service/usage/manager.go:86\ngithub.com/SigNoz/signoz/ee/query-service/usage.(*Manager).Start\n\t/home/runner/work/signoz/signoz/ee/query-service/usage/manager.go:72\ngithub.com/SigNoz/signoz/ee/query-service/app.NewServer\n\t/home/runner/work/signoz/signoz/ee/query-service/app/server.go:158\nmain.runServer\n\t/home/runner/work/signoz/signoz/cmd/enterprise/server.go:129\nmain.registerServer.func1\n\t/home/runner/work/signoz/signoz/cmd/enterprise/server.go:55\ngithub.com/spf13/cobra.(*Command).execute\n\t/home/runner/go/pkg/mod/github.com/spf13/cobra@v1.10.1/command.go:1015\ngithub.com/spf13/cobra.(*Command).ExecuteC\n\t/home/runner/go/pkg/mod/github.com/spf13/cobra@v1.10.1/command.go:1148\ngithub.com/spf13/cobra.(*Command).Execute\n\t/home/runner/go/pkg/mod/github.com/spf13/cobra@v1.10.1/command.go:1071\ngithub.com/SigNoz/signoz/cmd.Execute\n\t/home/runner/work/signoz/signoz/cmd/root.go:28\nmain.main\n\t/home/runner/work/signoz/signoz/cmd/enterprise/main.go:18\nruntime.main\n\t/opt/hostedtoolcache/go/1.24.11/x64/src/runtime/proc.go:283"
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:07:09.595Z",
+        "caller": "app/server.go:287",
+        "msg": "Query server started listening on 0.0.0.0:8080..."
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:07:09.595Z",
+        "caller": "app/server.go:319",
+        "msg": "Starting pprof server",
+        "addr": "0.0.0.0:6060"
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:07:09.595Z",
+        "caller": "app/server.go:328",
+        "msg": "Starting OpAmp Websocket server",
+        "addr": "0.0.0.0:4320"
+    },
+    {
+        "level": "info",
+        "timestamp": "2026-01-20T10:07:09.595Z",
+        "caller": "app/server.go:307",
+        "msg": "Starting HTTP server",
+        "port": 8080,
+        "addr": "0.0.0.0:8080"
+    },
+    {
+        "timestamp": "2026-01-20T10:07:09.595215044Z",
+        "level": "INFO",
+        "code": {
+            "function": "github.com/SigNoz/signoz/pkg/factory.(*Registry).Start.func1",
+            "file": "/home/runner/work/signoz/signoz/pkg/factory/registry.go",
+            "line": 50
+        },
+        "msg": "starting service",
+        "pkg": "go.signoz.io/pkg/factory",
+        "service": "analytics"
+    },
+    {
+        "timestamp": "2026-01-20T10:07:09.595266556Z",
+        "level": "INFO",
+        "code": {
+            "function": "github.com/SigNoz/signoz/pkg/factory.(*Registry).Start.func1",
+            "file": "/home/runner/work/signoz/signoz/pkg/factory/registry.go",
+            "line": 50
+        },
+        "msg": "starting service",
+        "pkg": "go.signoz.io/pkg/factory",
+        "service": "instrumentation"
+    },
+    {
+        "timestamp": "2026-01-20T10:07:09.595268331Z",
+        "level": "INFO",
+        "code": {
+            "function": "github.com/SigNoz/signoz/pkg/factory.(*Registry).Start.func1",
+            "file": "/home/runner/work/signoz/signoz/pkg/factory/registry.go",
+            "line": 50
+        },
+        "msg": "starting service",
+        "pkg": "go.signoz.io/pkg/factory",
+        "service": "alertmanager"
+    },
+    {
+        "timestamp": "2026-01-20T10:07:09.595285384Z",
+        "level": "INFO",
+        "code": {
+            "function": "github.com/SigNoz/signoz/pkg/factory.(*Registry).Start.func1",
+            "file": "/home/runner/work/signoz/signoz/pkg/factory/registry.go",
+            "line": 50
+        },
+        "msg": "starting service",
+        "pkg": "go.signoz.io/pkg/factory",
+        "service": "tokenizer"
+    },
+    {
+        "timestamp": "2026-01-20T10:07:09.595291783Z",
+        "level": "INFO",
+        "code": {
+            "function": "github.com/SigNoz/signoz/pkg/factory.(*Registry).Start.func1",
+            "file": "/home/runner/work/signoz/signoz/pkg/factory/registry.go",
+            "line": 50
+        },
+        "msg": "starting service",
+        "pkg": "go.signoz.io/pkg/factory",
+        "service": "authz"
+    },
+    {
+        "timestamp": "2026-01-20T10:07:09.595297782Z",
+        "level": "INFO",
+        "code": {
+            "function": "github.com/SigNoz/signoz/pkg/factory.(*Registry).Start.func1",
+            "file": "/home/runner/work/signoz/signoz/pkg/factory/registry.go",
+            "line": 50
+        },
+        "msg": "starting service",
+        "pkg": "go.signoz.io/pkg/factory",
+        "service": "statsreporter"
+    },
+    {
+        "timestamp": "2026-01-20T10:07:09.595300131Z",
+        "level": "INFO",
+        "code": {
+            "function": "github.com/SigNoz/signoz/pkg/factory.(*Registry).Start.func1",
+            "file": "/home/runner/work/signoz/signoz/pkg/factory/registry.go",
+            "line": 50
+        },
+        "msg": "starting service",
+        "pkg": "go.signoz.io/pkg/factory",
+        "service": "licensing"
+    }
+]

@@ -39,7 +39,8 @@ def create_order(user_id: int):
 
     return {
         "order_id": random.randint(1000, 9999),
-        "status": "created"
+        "status": "created",
+        "detail": "Order successfully created"
     }
 
 @app.get("/order/{order_id}")

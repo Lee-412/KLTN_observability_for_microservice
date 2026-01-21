@@ -1,0 +1,151 @@
+{
+    "status": "success",
+    "data": {
+        "type": "raw",
+        "meta": {
+            "rowsScanned": 780,
+            "bytesScanned": 68710,
+            "durationMs": 49
+        },
+        "data": {
+            "results": [
+                {
+                    "queryName": "A",
+                    "nextCursor": "MTc2ODkyMDM5MjAzNw==",
+                    "rows": [
+                        {
+                            "data": {
+                                "duration_nano": 858063,
+                                "http_method": "GET",
+                                "name": "GET",
+                                "response_status_code": "404",
+                                "service.name": "order-service",
+                                "span_id": "557210c2137e8b51",
+                                "timestamp": "2026-01-20T14:46:35.693821408Z",
+                                "trace_id": "a0acf01fb0047c4eb184f80a1fe9797e"
+                            },
+                            "timestamp": "2026-01-20T14:46:35.693821408Z"
+                        },
+                        {
+                            "data": {
+                                "duration_nano": 956445,
+                                "http_method": "GET",
+                                "name": "GET",
+                                "response_status_code": "404",
+                                "service.name": "order-service",
+                                "span_id": "794dd1ac29df9baa",
+                                "timestamp": "2026-01-20T14:46:35.081897915Z",
+                                "trace_id": "d36d8cb2b2153b0b28f1d396d9d0fd1e"
+                            },
+                            "timestamp": "2026-01-20T14:46:35.081897915Z"
+                        },
+                        {
+                            "data": {
+                                "duration_nano": 1038396,
+                                "http_method": "GET",
+                                "name": "GET",
+                                "response_status_code": "404",
+                                "service.name": "order-service",
+                                "span_id": "79570830276c444b",
+                                "timestamp": "2026-01-20T14:46:34.48495563Z",
+                                "trace_id": "481f93e89ec209e3b95d0f66325a28ac"
+                            },
+                            "timestamp": "2026-01-20T14:46:34.48495563Z"
+                        },
+                        {
+                            "data": {
+                                "duration_nano": 738429,
+                                "http_method": "GET",
+                                "name": "GET",
+                                "response_status_code": "404",
+                                "service.name": "order-service",
+                                "span_id": "03b2e2cfa9f4f619",
+                                "timestamp": "2026-01-20T14:46:34.039508248Z",
+                                "trace_id": "4639a401c4d19275c2d6319c8e6f1b7c"
+                            },
+                            "timestamp": "2026-01-20T14:46:34.039508248Z"
+                        },
+                        {
+                            "data": {
+                                "duration_nano": 699286,
+                                "http_method": "GET",
+                                "name": "GET",
+                                "response_status_code": "404",
+                                "service.name": "order-service",
+                                "span_id": "6163d4ba5b60d440",
+                                "timestamp": "2026-01-20T14:46:33.870619827Z",
+                                "trace_id": "cb2203e64ba9a5b708b7c80861381ae9"
+                            },
+                            "timestamp": "2026-01-20T14:46:33.870619827Z"
+                        },
+                        {
+                            "data": {
+                                "duration_nano": 526589,
+                                "http_method": "GET",
+                                "name": "GET",
+                                "response_status_code": "404",
+                                "service.name": "order-service",
+                                "span_id": "8b1887d714ce6afa",
+                                "timestamp": "2026-01-20T14:46:33.237991186Z",
+                                "trace_id": "b331ab7818e9b291331edec0c9380a35"
+                            },
+                            "timestamp": "2026-01-20T14:46:33.237991186Z"
+                        },
+                        {
+                            "data": {
+                                "duration_nano": 666477,
+                                "http_method": "GET",
+                                "name": "GET",
+                                "response_status_code": "404",
+                                "service.name": "order-service",
+                                "span_id": "98267c179dce15d5",
+                                "timestamp": "2026-01-20T14:46:32.889681393Z",
+                                "trace_id": "40dbb222f91f422180d2c26afe6c606d"
+                            },
+                            "timestamp": "2026-01-20T14:46:32.889681393Z"
+                        },
+                        {
+                            "data": {
+                                "duration_nano": 997083,
+                                "http_method": "GET",
+                                "name": "GET",
+                                "response_status_code": "404",
+                                "service.name": "order-service",
+                                "span_id": "5a84762c20de4a79",
+                                "timestamp": "2026-01-20T14:46:32.715561491Z",
+                                "trace_id": "ab4df3088c020e2384e04423a420aa13"
+                            },
+                            "timestamp": "2026-01-20T14:46:32.715561491Z"
+                        },
+                        {
+                            "data": {
+                                "duration_nano": 556695,
+                                "http_method": "GET",
+                                "name": "GET",
+                                "response_status_code": "404",
+                                "service.name": "order-service",
+                                "span_id": "3c87fbdb8ac05773",
+                                "timestamp": "2026-01-20T14:46:32.339722922Z",
+                                "trace_id": "5090cc0609d95c7e8fc77b5ed2714500"
+                            },
+                            "timestamp": "2026-01-20T14:46:32.339722922Z"
+                        },
+                        {
+                            "data": {
+                                "duration_nano": 1587852,
+                                "http_method": "GET",
+                                "name": "GET",
+                                "response_status_code": "404",
+                                "service.name": "order-service",
+                                "span_id": "c25a23d1c7fd7612",
+                                "timestamp": "2026-01-20T14:46:32.037097014Z",
+                                "trace_id": "b2af7f0b71cb51adbc7daec759b5456f"
+                            },
+                            "timestamp": "2026-01-20T14:46:32.037097014Z"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
