@@ -3,6 +3,7 @@ package signoztailsampler
 import (
 	"math"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -35,6 +36,74 @@ func TestValidate_ModelPolicy_Valid(t *testing.T) {
 	}
 
 	require.NoError(t, cfg.Validate())
+}
+
+func TestValidate_ModelPolicy_AdaptiveValid(t *testing.T) {
+	t.Parallel()
+
+	cfg := &Config{
+		PolicyCfgs: []PolicyGroupCfg{
+			{
+				BasePolicy: BasePolicy{
+					Name:     "model-policy",
+					Type:     Model,
+					Priority: 1,
+					ModelCfg: &ModelCfg{
+						Type:      "linear",
+						Threshold: 0.0,
+						Intercept: 0.0,
+						Weights: map[string]float64{
+							"duration_ms": 1.0,
+						},
+						Adaptive: &ModelAdaptiveCfg{
+							Enabled:            true,
+							WindowDuration:     30 * time.Second,
+							RecomputeInterval:  5 * time.Second,
+							MaxSamples:         2048,
+							TargetTracesPerSec: 10,
+							AlwaysKeepErrors:   true,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	require.NoError(t, cfg.Validate())
+}
+
+func TestValidate_ModelPolicy_AdaptiveMissingTargets(t *testing.T) {
+	t.Parallel()
+
+	cfg := &Config{
+		PolicyCfgs: []PolicyGroupCfg{
+			{
+				BasePolicy: BasePolicy{
+					Name:     "model-policy",
+					Type:     Model,
+					Priority: 1,
+					ModelCfg: &ModelCfg{
+						Threshold: 0.0,
+						Intercept: 0.0,
+						Weights: map[string]float64{
+							"duration_ms": 1.0,
+						},
+						Adaptive: &ModelAdaptiveCfg{
+							Enabled:           true,
+							WindowDuration:    30 * time.Second,
+							RecomputeInterval: 5 * time.Second,
+							MaxSamples:        100,
+							// missing TargetTracesPerSec and KeepRatio
+						},
+					},
+				},
+			},
+		},
+	}
+
+	err := cfg.Validate()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "model.adaptive requires target_traces_per_sec")
 }
 
 // Validate model policy missing configuration

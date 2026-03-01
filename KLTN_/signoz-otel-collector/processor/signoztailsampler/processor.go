@@ -85,9 +85,8 @@ func newTracesProcessor(logger *zap.Logger, nextConsumer consumer.Traces, cfg Co
 
 	ctx := context.Background()
 	var policies []*policy
-	policyGroups := []PolicyGroupCfg{}
-
-	copy(policyGroups, cfg.PolicyCfgs)
+	// Copy policy groups so sorting doesn't mutate cfg.PolicyCfgs.
+	policyGroups := append([]PolicyGroupCfg(nil), cfg.PolicyCfgs...)
 	// sort the policies by priority
 	sort.Slice(policyGroups, func(i, j int) bool {
 		return policyGroups[i].Priority < policyGroups[j].Priority

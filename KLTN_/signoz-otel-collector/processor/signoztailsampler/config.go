@@ -64,6 +64,41 @@ type ModelCfg struct {
 	Threshold float64            `mapstructure:"threshold"`
 	Intercept float64            `mapstructure:"intercept"`
 	Weights   map[string]float64 `mapstructure:"weights"`
+
+	// Adaptive thresholding chooses a dynamic threshold based on recent traffic
+	// and score distribution (e.g. to hit a target traces/sec budget).
+	Adaptive *ModelAdaptiveCfg `mapstructure:"adaptive"`
+}
+
+// ModelAdaptiveCfg holds configuration for adaptive thresholding in model-based sampling.
+//
+// If enabled, the sampler attempts to keep approximately a target fraction of traces
+// by selecting a threshold based on a score quantile.
+type ModelAdaptiveCfg struct {
+	Enabled bool `mapstructure:"enabled"`
+
+	// WindowDuration is used to estimate incoming trace rate and SLA violation rate.
+	WindowDuration time.Duration `mapstructure:"window_duration"`
+	// RecomputeInterval controls how often the adaptive threshold is recomputed.
+	RecomputeInterval time.Duration `mapstructure:"recompute_interval"`
+	// MaxSamples is the maximum number of recent scores kept for quantile estimation.
+	MaxSamples int `mapstructure:"max_samples"`
+
+	// TargetTracesPerSec sets a budget. The sampler will try to keep ~TargetTracesPerSec
+	// given the estimated incoming traces/sec. If set, it takes precedence over KeepRatio.
+	TargetTracesPerSec float64 `mapstructure:"target_traces_per_sec"`
+	// KeepRatio is a direct target keep fraction in [0,1]. Used when TargetTracesPerSec is 0.
+	KeepRatio float64 `mapstructure:"keep_ratio"`
+
+	MinKeepRatio float64 `mapstructure:"min_keep_ratio"`
+	MaxKeepRatio float64 `mapstructure:"max_keep_ratio"`
+
+	AlwaysKeepErrors bool `mapstructure:"always_keep_errors"`
+
+	// SLA/incident knobs (optional).
+	SlaDurationMs          float64 `mapstructure:"sla_duration_ms"`
+	ViolationRateThreshold float64 `mapstructure:"violation_rate_threshold"`
+	IncidentKeepRatio      float64 `mapstructure:"incident_keep_ratio"`
 }
 
 // NumericAttributeCfg holds the configurable settings to create a numeric attribute filter
@@ -224,6 +259,51 @@ func validateAndNormalizeBasePolicy(p *BasePolicy) error {
 	}
 	if math.IsNaN(p.ModelCfg.Intercept) || math.IsInf(p.ModelCfg.Intercept, 0) {
 		errs = append(errs, fmt.Errorf("model.intercept must be a finite number"))
+	}
+
+	if p.ModelCfg.Adaptive != nil {
+		ac := p.ModelCfg.Adaptive
+		if !ac.Enabled {
+			// Normalize: ignore adaptive config if explicitly disabled.
+			p.ModelCfg.Adaptive = nil
+		} else {
+			if ac.WindowDuration <= 0 {
+				errs = append(errs, fmt.Errorf("model.adaptive.window_duration must be > 0"))
+			}
+			if ac.RecomputeInterval <= 0 {
+				errs = append(errs, fmt.Errorf("model.adaptive.recompute_interval must be > 0"))
+			}
+			if ac.MaxSamples <= 0 {
+				errs = append(errs, fmt.Errorf("model.adaptive.max_samples must be > 0"))
+			}
+			if ac.TargetTracesPerSec <= 0 && (ac.KeepRatio <= 0 || ac.KeepRatio > 1) {
+				errs = append(errs, fmt.Errorf("model.adaptive requires target_traces_per_sec > 0 or keep_ratio in (0,1]"))
+			}
+			if ac.TargetTracesPerSec < 0 {
+				errs = append(errs, fmt.Errorf("model.adaptive.target_traces_per_sec must be >= 0"))
+			}
+			if ac.KeepRatio < 0 || ac.KeepRatio > 1 {
+				errs = append(errs, fmt.Errorf("model.adaptive.keep_ratio must be within [0,1]"))
+			}
+			if ac.MinKeepRatio < 0 || ac.MinKeepRatio > 1 {
+				errs = append(errs, fmt.Errorf("model.adaptive.min_keep_ratio must be within [0,1]"))
+			}
+			if ac.MaxKeepRatio < 0 || ac.MaxKeepRatio > 1 {
+				errs = append(errs, fmt.Errorf("model.adaptive.max_keep_ratio must be within [0,1]"))
+			}
+			if ac.MaxKeepRatio > 0 && ac.MinKeepRatio > ac.MaxKeepRatio {
+				errs = append(errs, fmt.Errorf("model.adaptive.min_keep_ratio must be <= max_keep_ratio"))
+			}
+			if ac.SlaDurationMs < 0 {
+				errs = append(errs, fmt.Errorf("model.adaptive.sla_duration_ms must be >= 0"))
+			}
+			if ac.ViolationRateThreshold < 0 || ac.ViolationRateThreshold > 1 {
+				errs = append(errs, fmt.Errorf("model.adaptive.violation_rate_threshold must be within [0,1]"))
+			}
+			if ac.IncidentKeepRatio < 0 || ac.IncidentKeepRatio > 1 {
+				errs = append(errs, fmt.Errorf("model.adaptive.incident_keep_ratio must be within [0,1]"))
+			}
+		}
 	}
 
 	if len(p.ModelCfg.Weights) == 0 {

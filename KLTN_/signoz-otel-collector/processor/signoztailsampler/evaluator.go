@@ -62,7 +62,52 @@ func NewDefaultEvaluator(logger *zap.Logger, policyCfg BasePolicy, subpolicies [
 			logger.Error("policy type is model but model config is missing; excluding all traces", zap.String("policy", policyCfg.Name))
 			sampler = sampling.NewNeverSample(logger)
 		} else {
-			sampler = sampling.NewLinearModelSampler(logger, policyCfg.ModelCfg.Threshold, policyCfg.ModelCfg.Intercept, policyCfg.ModelCfg.Weights)
+			if policyCfg.ModelCfg.Adaptive != nil {
+				ac := policyCfg.ModelCfg.Adaptive
+				logger.Info(
+					"model tail-sampling policy using adaptive thresholding",
+					zap.String("policy", policyCfg.Name),
+					zap.String("model_type", policyCfg.ModelCfg.Type),
+					zap.Float64("fallback_threshold", policyCfg.ModelCfg.Threshold),
+					zap.Duration("window_duration", ac.WindowDuration),
+					zap.Duration("recompute_interval", ac.RecomputeInterval),
+					zap.Int("max_samples", ac.MaxSamples),
+					zap.Float64("target_traces_per_sec", ac.TargetTracesPerSec),
+					zap.Float64("keep_ratio", ac.KeepRatio),
+					zap.Float64("min_keep_ratio", ac.MinKeepRatio),
+					zap.Float64("max_keep_ratio", ac.MaxKeepRatio),
+					zap.Bool("always_keep_errors", ac.AlwaysKeepErrors),
+				)
+			} else {
+				logger.Info(
+					"model tail-sampling policy using static threshold",
+					zap.String("policy", policyCfg.Name),
+					zap.String("model_type", policyCfg.ModelCfg.Type),
+					zap.Float64("threshold", policyCfg.ModelCfg.Threshold),
+				)
+			}
+
+			if policyCfg.ModelCfg.Adaptive != nil {
+				ac := policyCfg.ModelCfg.Adaptive
+				sampler = sampling.NewAdaptiveLinearModelSampler(logger, sampling.AdaptiveLinearModelSamplerConfig{
+					FallbackThreshold:      policyCfg.ModelCfg.Threshold,
+					Intercept:              policyCfg.ModelCfg.Intercept,
+					Weights:                policyCfg.ModelCfg.Weights,
+					WindowDuration:         ac.WindowDuration,
+					RecomputeInterval:      ac.RecomputeInterval,
+					MaxSamples:             ac.MaxSamples,
+					TargetTracesPerSec:     ac.TargetTracesPerSec,
+					KeepRatio:              ac.KeepRatio,
+					MinKeepRatio:           ac.MinKeepRatio,
+					MaxKeepRatio:           ac.MaxKeepRatio,
+					AlwaysKeepErrors:       ac.AlwaysKeepErrors,
+					SlaDurationMs:          ac.SlaDurationMs,
+					ViolationRateThreshold: ac.ViolationRateThreshold,
+					IncidentKeepRatio:      ac.IncidentKeepRatio,
+				})
+			} else {
+				sampler = sampling.NewLinearModelSampler(logger, policyCfg.ModelCfg.Threshold, policyCfg.ModelCfg.Intercept, policyCfg.ModelCfg.Weights)
+			}
 		}
 	} else {
 		// todo(amol): need to handle cases where percent is not set by the user
@@ -108,6 +153,10 @@ func (de *defaultEvaluator) Evaluate(traceId pcommon.TraceID, trace *sampling.Tr
 
 	// capture if any of the filter in current policy matches
 	var filterMatched bool
+	if len(de.filters) == 0 {
+		// No filters configured means the policy should apply to all traces.
+		filterMatched = true
+	}
 
 	for _, fe := range de.filters {
 		// evaluate each filter from (sub-)policy

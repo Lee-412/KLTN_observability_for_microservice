@@ -1,0 +1,37 @@
+command: /home/leeduc/miniconda3/bin/python3 /home/leeduc/Desktop/KLTN/KLTN_/scripts/compare_otlp_traces.py --base /home/leeduc/Desktop/KLTN/KLTN_/signoz/deploy/docker/otel-export/latencytest_baseline/traces.baseline.json --test /home/leeduc/Desktop/KLTN/KLTN_/signoz/deploy/docker/otel-export/latencytest_sampled/traces.sampled.json --details
+exit_code: 0
+base: /home/leeduc/Desktop/KLTN/KLTN_/signoz/deploy/docker/otel-export/latencytest_baseline/traces.baseline.json
+test: /home/leeduc/Desktop/KLTN/KLTN_/signoz/deploy/docker/otel-export/latencytest_sampled/traces.sampled.json
+
+---- stdout ----
+== BASE ==
+file: /home/leeduc/Desktop/KLTN/KLTN_/signoz/deploy/docker/otel-export/latencytest_baseline/traces.baseline.json
+records(lines): 9
+spans: 9000
+unique traceIds: 350
+error spans: 16 (0.18%)
+
+-- spans by service.name (top 10) --
+    9000  latency-mix-gen
+
+== TEST ==
+file: /home/leeduc/Desktop/KLTN/KLTN_/signoz/deploy/docker/otel-export/latencytest_sampled/traces.sampled.json
+records(lines): 9
+spans: 9000
+unique traceIds: 350
+error spans: 16 (0.18%)
+
+-- spans by service.name (top 10) --
+    9000  latency-mix-gen
+
+== DELTA (TEST vs BASE) ==
+records(lines)  : 9 -> 9 (+0), ratio=1.000x
+spans           : 9000 -> 9000 (+0), ratio=1.000x
+unique traceIds : 350 -> 350 (+0), ratio=1.000x
+error spans     : 16 -> 16 (+0), ratio=1.000x
+
+Approx kept spans rate: 9000/9000 = 100.00%
+
+---- stderr ----
+
+

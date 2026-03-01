@@ -52,12 +52,23 @@ processors:
           sampling_percentage: 0
         model:
           type: linear
-          threshold: 2.0
+          threshold: 12.0
           intercept: 0.0
           weights:
             duration_ms: 0.01
             has_error: 2.0
             span_count: 0.05
+          adaptive:
+            enabled: true
+            window_duration: 30s
+            recompute_interval: 5s
+            max_samples: 5000
+            # Make drop clearly visible during testing.
+            # With HotROD (~few traces/sec), this should keep only a small fraction.
+            target_traces_per_sec: 0.2
+            min_keep_ratio: 0
+            max_keep_ratio: 0.2
+            always_keep_errors: true
   resourcedetection:
     # Using OTEL_RESOURCE_ATTRIBUTES envvar, env detector adds custom labels.
     detectors: [env, system]
@@ -99,6 +110,7 @@ exporters:
     use_new_schema: true
   # Config exporter traces
   file/traces:
+    # path: /var/signoz/otel-export/traces.json
     path: /var/signoz/otel-export/traces.model.json
     append: true
     format: json
@@ -111,7 +123,9 @@ exporters:
 
   # Config exporter logs
   file/logs:
+    # path: /var/signoz/otel-export/logs.json
     path: /var/signoz/otel-export/logs.model.json
+
     append: true
     format: json
   signozclickhousemeter:
@@ -123,6 +137,7 @@ service:
   telemetry:
     logs:
       encoding: json
+      level: debug
   extensions:
     - health_check
     - pprof
@@ -131,6 +146,7 @@ service:
       receivers: [otlp]
       # enable signoz_tail_sampling processor
       # enable exporter file/traces
+      # processors: [signozspanmetrics/delta, batch]
       processors: [signozspanmetrics/delta, signoz_tail_sampling, batch]
       exporters: [clickhousetraces, signozmeter, file/traces]
     metrics:

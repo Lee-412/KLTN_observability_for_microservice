@@ -16,6 +16,7 @@ services:
     container_name: hotrod
     command: [ "all" ]
     environment:
+      - ERROR_RATE=${ERROR_RATE:-0.3}
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://host.docker.internal:4318  # In case of external SigNoz or cloud, update the endpoint and access token
       # - OTEL_OTLP_HEADERS=signoz-access-token=<your-access-token>
   load-hotrod:
@@ -26,10 +27,10 @@ services:
       ATTACKED_HOST: http://hotrod:8080
       LOCUST_MODE: standalone
       NO_PROXY: standalone
-      TASK_DELAY_FROM: 5
-      TASK_DELAY_TO: 30
+      TASK_DELAY_FROM: ${TASK_DELAY_FROM:-0}
+      TASK_DELAY_TO: ${TASK_DELAY_TO:-1}
       QUIET_MODE: "${QUIET_MODE:-false}"
-      LOCUST_OPTS: "--headless -u 10 -r 1"
+      LOCUST_OPTS: "${LOCUST_OPTS:---headless -u 200 -r 20}"
     volumes:
       - ../../../common/locust-scripts:/locust
 

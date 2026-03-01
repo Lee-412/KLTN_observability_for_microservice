@@ -1,4 +1,3 @@
-version: "3"
 x-common: &common
   networks:
     - signoz-net
@@ -148,8 +147,6 @@ services:
     container_name: signoz-otel-collector
     command:
       - --config=/etc/otel-collector-config.yaml
-      - --manager-config=/etc/manager-config.yaml
-      - --copy-path=/var/tmp/collector-config.yaml
     volumes:
       - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
       - ../common/signoz/otel-collector-opamp-config.yaml:/etc/manager-config.yaml
@@ -159,6 +156,7 @@ services:
       - LOW_CARDINAL_EXCEPTION_GROUPING=false
     ports:
       # - "1777:1777"     # pprof extension
+      - "8888:8888" # collector telemetry metrics (Prometheus)
       - "4317:4317" # OTLP gRPC receiver
       - "4318:4318" # OTLP HTTP receiver
     depends_on:

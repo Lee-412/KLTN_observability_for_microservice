@@ -89,6 +89,21 @@ func TestSequentialTraceMapSize(t *testing.T) {
 	}
 }
 
+func TestNewTracesProcessorLoadsPoliciesFromConfig(t *testing.T) {
+	cfg := Config{
+		DecisionWait:            defaultTestDecisionWait,
+		NumTraces:               uint64(100),
+		ExpectedNewTracesPerSec: 64,
+		PolicyCfgs:              testPolicy,
+	}
+	sp, err := newTracesProcessor(zap.NewNop(), consumertest.NewNop(), cfg)
+	require.NoError(t, err)
+
+	tsp := sp.(*tailSamplingSpanProcessor)
+	require.Len(t, tsp.policies, len(testPolicy))
+	require.NoError(t, tsp.Shutdown(context.Background()))
+}
+
 func TestSamplingPolicyTypicalPath(t *testing.T) {
 	const maxSize = 100
 	const decisionWaitSeconds = 5

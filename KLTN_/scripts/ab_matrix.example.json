@@ -1,0 +1,72 @@
+{
+  "compose": {
+    "workdir": "signoz/deploy/docker",
+    "files": [
+      "docker-compose.yaml",
+      "docker-compose.latencytest.ab.yaml"
+    ],
+    "service": "otel-collector"
+  },
+  "exports": {
+    "baseline": "signoz/deploy/docker/otel-export/latencytest_baseline/traces.baseline.json",
+    "sampled": "signoz/deploy/docker/otel-export/latencytest_sampled/traces.sampled.json"
+  },
+  "generator": {
+    "python": "/home/leeduc/miniconda3/bin/python",
+    "script": "scripts/tracegen_latency_mix.py",
+    "endpoint": "127.0.0.1:4317",
+    "insecure": true,
+    "seconds": 30,
+    "rps": 25,
+    "slow_ratio": 0.4,
+    "fast_ms": [
+      5,
+      40
+    ],
+    "slow_ms": [
+      800,
+      2500
+    ],
+    "spans": [
+      10,
+      40
+    ],
+    "error_ratio": 0.05,
+    "concurrency": 50
+  },
+  "timing": {
+    "post_load_sleep_seconds": 8
+  },
+  "variants": [
+    {
+      "name": "variant_a",
+      "build": {
+        "enabled": true,
+        "collector_repo": "signoz-otel-collector",
+        "git_ref": "HEAD",
+        "image": "signoz/signoz-otel-collector",
+        "tag": "kltn-a",
+        "targetos": "linux",
+        "targetarch": "amd64"
+      },
+      "runtime": {
+        "OTELCOL_TAG": "kltn-a"
+      }
+    },
+    {
+      "name": "variant_b",
+      "build": {
+        "enabled": true,
+        "collector_repo": "signoz-otel-collector",
+        "git_ref": "HEAD",
+        "image": "signoz/signoz-otel-collector",
+        "tag": "kltn-b",
+        "targetos": "linux",
+        "targetarch": "amd64"
+      },
+      "runtime": {
+        "OTELCOL_TAG": "kltn-b"
+      }
+    }
+  ]
+}

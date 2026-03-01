@@ -63,6 +63,30 @@ func TestDefaultEvaluator(t *testing.T) {
 	require.Equal(t, sampling.NoResult, decision1, "expected to not sampled decision for trace as per policy")
 }
 
+func TestPolicyWithNoFilters_AppliesToAllTraces(t *testing.T) {
+	logger := zap.NewNop()
+
+	// Policy with no filters should apply to all traces.
+	policy := BasePolicy{
+		Name: "no-filters",
+		Type: Probabilistic,
+		ProbabilisticCfg: ProbabilisticCfg{
+			SamplingPercentage: 0,
+		},
+		PolicyFilterCfg: PolicyFilterCfg{},
+	}
+
+	e := NewDefaultEvaluator(logger, policy, nil)
+
+	// Any trace should be evaluated by the sampler (never sample in this case).
+	traceID := pcommon.TraceID([16]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16})
+	trace := &sampling.TraceData{}
+
+	decision, err := e.Evaluate(traceID, trace)
+	require.NoError(t, err)
+	require.Equal(t, sampling.NotSampled, decision)
+}
+
 func TestProbablisticCfg(t *testing.T) {
 	cfg := PolicyGroupCfg{
 		BasePolicy: BasePolicy{
