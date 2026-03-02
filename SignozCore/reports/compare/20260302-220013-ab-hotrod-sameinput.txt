@@ -1,0 +1,49 @@
+== BASE ==
+file: signoz/deploy/docker/otel-export/traces.json
+records(lines): 8
+spans: 9731
+unique traceIds: 247
+error spans: 617 (6.34%)
+
+-- spans by service.name (top 10) --
+    3332  redis-manual
+    3199  frontend
+    2460  route
+     247  customer
+     247  mysql
+     246  driver
+
+-- top routes/methods (best-effort, top 10) --
+    2460  /route
+     492  FindNearest
+     247  /customer
+     246  /dispatch
+
+== TEST ==
+file: signoz/deploy/docker/otel-export/traces.model.json
+records(lines): 9
+spans: 9731
+unique traceIds: 247
+error spans: 617 (6.34%)
+
+-- spans by service.name (top 10) --
+    3332  redis-manual
+    3199  frontend
+    2460  route
+     247  customer
+     247  mysql
+     246  driver
+
+-- top routes/methods (best-effort, top 10) --
+    2460  /route
+     492  FindNearest
+     247  /customer
+     246  /dispatch
+
+== DELTA (TEST vs BASE) ==
+records(lines)  : 8 -> 9 (+1), ratio=1.125x
+spans           : 9731 -> 9731 (+0), ratio=1.000x
+unique traceIds : 247 -> 247 (+0), ratio=1.000x
+error spans     : 617 -> 617 (+0), ratio=1.000x
+
+Approx kept spans rate: 9731/9731 = 100.00%

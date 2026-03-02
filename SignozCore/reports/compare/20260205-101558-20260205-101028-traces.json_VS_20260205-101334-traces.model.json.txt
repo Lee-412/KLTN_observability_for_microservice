@@ -1,0 +1,29 @@
+command: /home/leeduc/miniconda3/bin/python3 /home/leeduc/Desktop/KLTN/KLTN_/scripts/compare_otlp_traces.py --base /home/leeduc/Desktop/KLTN/KLTN_/otel-export/baseline2/20260205-101028-traces.json --test /home/leeduc/Desktop/KLTN/KLTN_/otel-export/model1/20260205-101334-traces.model.json --details
+exit_code: 1
+base: /home/leeduc/Desktop/KLTN/KLTN_/otel-export/baseline2/20260205-101028-traces.json
+test: /home/leeduc/Desktop/KLTN/KLTN_/otel-export/model1/20260205-101334-traces.model.json
+
+---- stdout ----
+
+
+---- stderr ----
+Traceback (most recent call last):
+  File "/home/leeduc/Desktop/KLTN/KLTN_/scripts/compare_otlp_traces.py", line 215, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/home/leeduc/Desktop/KLTN/KLTN_/scripts/compare_otlp_traces.py", line 188, in main
+    base = summarize(args.base)
+  File "/home/leeduc/Desktop/KLTN/KLTN_/scripts/compare_otlp_traces.py", line 117, in summarize
+    for line in p.read_text(errors="replace").splitlines():
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/home/leeduc/miniconda3/lib/python3.13/pathlib/_local.py", line 546, in read_text
+    return PathBase.read_text(self, encoding, errors, newline)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/leeduc/miniconda3/lib/python3.13/pathlib/_abc.py", line 632, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/leeduc/miniconda3/lib/python3.13/pathlib/_local.py", line 537, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/leeduc/Desktop/KLTN/KLTN_/otel-export/baseline2/20260205-101028-traces.json'
+

@@ -1,0 +1,37 @@
+command: /home/leeduc/miniconda3/bin/python3 /home/leeduc/Desktop/KLTN/SignozCore/scripts/compare_otlp_traces.py --base /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260302-225619-traces.json --test /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260302-225735-traces.model.json --details
+exit_code: 0
+base: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260302-225619-traces.json
+test: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260302-225735-traces.model.json
+
+---- stdout ----
+== BASE ==
+file: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260302-225619-traces.json
+records(lines): 64
+spans: 637782
+unique traceIds: 50000
+error spans: 99842 (15.65%)
+
+-- spans by service.name (top 10) --
+  637782  thesis-proof-gen
+
+== TEST ==
+file: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260302-225735-traces.model.json
+records(lines): 34
+spans: 340330
+unique traceIds: 17804
+error spans: 99736 (29.31%)
+
+-- spans by service.name (top 10) --
+  340330  thesis-proof-gen
+
+== DELTA (TEST vs BASE) ==
+records(lines)  : 64 -> 34 (-30), ratio=0.531x
+spans           : 637782 -> 340330 (-297452), ratio=0.534x
+unique traceIds : 50000 -> 17804 (-32196), ratio=0.356x
+error spans     : 99842 -> 99736 (-106), ratio=0.999x
+
+Approx kept spans rate: 340330/637782 = 53.36%
+
+---- stderr ----
+
+

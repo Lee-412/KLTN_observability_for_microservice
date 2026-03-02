@@ -1,0 +1,59 @@
+command: /home/leeduc/miniconda3/bin/python3 /home/leeduc/Desktop/KLTN/KLTN_/scripts/compare_otlp_traces.py --base /home/leeduc/Desktop/KLTN/KLTN_/signoz/deploy/docker/otel-export/baseline2/20260225-084446-traces.json --test /home/leeduc/Desktop/KLTN/KLTN_/signoz/deploy/docker/otel-export/model1/20260225-090234-traces.model.json --details
+exit_code: 0
+base: /home/leeduc/Desktop/KLTN/KLTN_/signoz/deploy/docker/otel-export/baseline2/20260225-084446-traces.json
+test: /home/leeduc/Desktop/KLTN/KLTN_/signoz/deploy/docker/otel-export/model1/20260225-090234-traces.model.json
+
+---- stdout ----
+== BASE ==
+file: /home/leeduc/Desktop/KLTN/KLTN_/signoz/deploy/docker/otel-export/baseline2/20260225-084446-traces.json
+records(lines): 41
+spans: 52312
+unique traceIds: 1325
+error spans: 3312 (6.33%)
+
+-- spans by service.name (top 10) --
+   17885  redis-manual
+   17213  frontend
+   13240  route
+    1325  customer
+    1325  mysql
+    1324  driver
+
+-- top routes/methods (best-effort, top 10) --
+   13240  /route
+    2648  FindNearest
+    1325  /customer
+    1324  /dispatch
+
+== TEST ==
+file: /home/leeduc/Desktop/KLTN/KLTN_/signoz/deploy/docker/otel-export/model1/20260225-090234-traces.model.json
+records(lines): 41
+spans: 52528
+unique traceIds: 1330
+error spans: 3325 (6.33%)
+
+-- spans by service.name (top 10) --
+   17955  redis-manual
+   17286  frontend
+   13297  route
+    1330  customer
+    1330  driver
+    1330  mysql
+
+-- top routes/methods (best-effort, top 10) --
+   13297  /route
+    2660  FindNearest
+    1330  /customer
+    1329  /dispatch
+
+== DELTA (TEST vs BASE) ==
+records(lines)  : 41 -> 41 (+0), ratio=1.000x
+spans           : 52312 -> 52528 (+216), ratio=1.004x
+unique traceIds : 1325 -> 1330 (+5), ratio=1.004x
+error spans     : 3312 -> 3325 (+13), ratio=1.004x
+
+Approx kept spans rate: 52528/52312 = 100.41%
+
+---- stderr ----
+
+

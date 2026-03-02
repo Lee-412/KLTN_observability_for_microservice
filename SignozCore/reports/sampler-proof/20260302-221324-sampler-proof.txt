@@ -1,0 +1,60 @@
+run_id: abproof-http-1772464171
+generated_at: 2026-03-02T22:13:24+07:00
+
+== evaluate_ab_sampling ==
+== INPUT ==
+baseline: signoz/deploy/docker/otel-export/traces.json
+sampled : signoz/deploy/docker/otel-export/traces.model.json
+run_id  : abproof-http-1772464171
+
+== COUNTS ==
+baseline traces: 320
+sampled  traces: 32
+kept traces    : 32/320 (10.00%)
+dropped traces : 288/320 (90.00%)
+
+== ERROR RETENTION ==
+baseline error traces: 32/320 (10.00%)
+sampled  error traces: 32/32 (100.00%)
+kept error traces    : 32/32 (100.00%)
+
+== BY test.case ==
+case=fast
+  baseline traces: 256
+  kept traces    : 0/256 (0.00%)
+case=slow
+  baseline traces: 64
+  kept traces    : 32/64 (50.00%)
+  error traces   : 32/64 (50.00%)
+  kept error     : 32/32 (100.00%)
+
+== compare_otlp_traces ==
+== BASE ==
+file: signoz/deploy/docker/otel-export/traces.json
+records(lines): 2
+spans: 3806
+unique traceIds: 320
+error spans: 881 (23.15%)
+
+-- spans by service.name (top 10) --
+    3806  ab-http-gen
+
+== TEST ==
+file: signoz/deploy/docker/otel-export/traces.model.json
+records(lines): 1
+spans: 881
+unique traceIds: 32
+error spans: 881 (100.00%)
+
+-- spans by service.name (top 10) --
+     881  ab-http-gen
+
+== DELTA (TEST vs BASE) ==
+records(lines)  : 2 -> 1 (-1), ratio=0.500x
+spans           : 3806 -> 881 (-2925), ratio=0.231x
+unique traceIds : 320 -> 32 (-288), ratio=0.100x
+error spans     : 881 -> 881 (+0), ratio=1.000x
+
+Approx kept spans rate: 881/3806 = 23.15%
+
+== collector sampled/notSampled evidence ==

@@ -1,0 +1,6 @@
+otel-export/
+*.log
+*.json
+*.model.json
+
+SignozCore/signoz/deploy/docker/otel-export/

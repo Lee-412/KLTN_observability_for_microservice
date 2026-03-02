@@ -1,0 +1,25 @@
+== INPUT ==
+baseline: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260302-223806-traces.json
+sampled : /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260302-223923-traces.model.json
+run_id  : thesis-proof-20260302-223647
+
+== COUNTS ==
+baseline traces: 50000
+sampled  traces: 17808
+kept traces    : 17808/50000 (35.62%)
+dropped traces : 32192/50000 (64.38%)
+
+== ERROR RETENTION ==
+baseline error traces: 4167/50000 (8.33%)
+sampled  error traces: 4167/17808 (23.40%)
+kept error traces    : 4167/4167 (100.00%)
+
+== BY test.case ==
+case=fast
+  baseline traces: 37500
+  kept traces    : 7756/37500 (20.68%)
+case=slow
+  baseline traces: 12500
+  kept traces    : 10052/12500 (80.42%)
+  error traces   : 4167/12500 (33.34%)
+  kept error     : 4167/4167 (100.00%)

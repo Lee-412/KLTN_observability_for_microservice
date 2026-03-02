@@ -1,0 +1,69 @@
+run_id: thesis-proof-20260302-221750
+baseline_file: signoz/deploy/docker/otel-export/baseline2/20260302-221822-traces.json
+model_file: signoz/deploy/docker/otel-export/model1/20260302-221854-traces.model.json
+
+== retention (trace_id intersection) ==
+== INPUT ==
+baseline: signoz/deploy/docker/otel-export/baseline2/20260302-221822-traces.json
+sampled : signoz/deploy/docker/otel-export/model1/20260302-221854-traces.model.json
+run_id  : thesis-proof-20260302-221750
+
+== COUNTS ==
+baseline traces: 5000
+sampled  traces: 802
+kept traces    : 802/5000 (16.04%)
+dropped traces : 4198/5000 (83.96%)
+
+== ERROR RETENTION ==
+baseline error traces: 417/5000 (8.34%)
+sampled  error traces: 412/802 (51.37%)
+kept error traces    : 412/417 (98.80%)
+
+== BY test.case ==
+case=fast
+  baseline traces: 3750
+  kept traces    : 0/3750 (0.00%)
+case=slow
+  baseline traces: 1250
+  kept traces    : 802/1250 (64.16%)
+  error traces   : 417/1250 (33.36%)
+  kept error     : 412/417 (98.80%)
+
+== aggregate compare ==
+command: /home/leeduc/miniconda3/bin/python3 /home/leeduc/Desktop/KLTN/SignozCore/scripts/compare_otlp_traces.py --base /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260302-221822-traces.json --test /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260302-221854-traces.model.json --details
+exit_code: 0
+base: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260302-221822-traces.json
+test: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260302-221854-traces.model.json
+
+---- stdout ----
+== BASE ==
+file: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260302-221822-traces.json
+records(lines): 7
+spans: 63766
+unique traceIds: 5000
+error spans: 10093 (15.83%)
+
+-- spans by service.name (top 10) --
+   63766  thesis-proof-gen
+
+== TEST ==
+file: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260302-221854-traces.model.json
+records(lines): 2
+spans: 20017
+unique traceIds: 802
+error spans: 9973 (49.82%)
+
+-- spans by service.name (top 10) --
+   20017  thesis-proof-gen
+
+== DELTA (TEST vs BASE) ==
+records(lines)  : 7 -> 2 (-5), ratio=0.286x
+spans           : 63766 -> 20017 (-43749), ratio=0.314x
+unique traceIds : 5000 -> 802 (-4198), ratio=0.160x
+error spans     : 10093 -> 9973 (-120), ratio=0.988x
+
+Approx kept spans rate: 20017/63766 = 31.39%
+
+---- stderr ----
+
+
