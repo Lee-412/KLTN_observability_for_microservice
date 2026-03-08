@@ -143,6 +143,41 @@ def send_deterministic_traces(
     print(f"done run_id={run_id} traces={sent} error_traces={errors}")
 
 
+def extract_eval_summary(eval_text: str) -> list[str]:
+    wanted_prefixes = (
+        "kept traces    :",
+        "dropped traces :",
+        "kept spans rate:",
+        "kept duration_ms p50/p95/p99:",
+        "kept duration_ms range",
+        "estimated keep threshold duration_ms",
+        "non-error separation:",
+    )
+
+    lines = [ln.rstrip() for ln in eval_text.splitlines()]
+    out: list[str] = []
+    in_kept_bucket = False
+
+    for ln in lines:
+        if any(ln.startswith(prefix) for prefix in wanted_prefixes):
+            out.append(ln)
+
+        if ln.strip() == "kept     duration buckets:":
+            in_kept_bucket = True
+            out.append(ln)
+            continue
+
+        if in_kept_bucket:
+            if ln.startswith("  <10ms") or ln.startswith("  10-100ms") or ln.startswith("  100-500ms") or ln.startswith("  >=500ms"):
+                out.append(ln)
+                continue
+            in_kept_bucket = False
+
+    if not out:
+        return ["(summary unavailable)"]
+    return out
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--trace-count", type=int, default=5000)
@@ -213,34 +248,31 @@ def main() -> int:
     shutil.copyfile(traces_model, model_snap)
 
     print("\\n== PASS 3: compare + retention ==")
-    run(
-        [
-            "python3",
-            "scripts/run_compare_and_save.py",
-            "--base",
-            str(base_snap),
-            "--test",
-            str(model_snap),
-        ],
-        cwd=root,
+    compare_cmd = [
+        "python3",
+        "scripts/run_compare_and_save.py",
+        "--base",
+        str(base_snap),
+        "--test",
+        str(model_snap),
+    ]
+    compare_proc = subprocess.run(
+        compare_cmd,
+        cwd=str(root),
+        capture_output=True,
+        text=True,
+        check=True,
     )
 
-    retention_out = root / "reports" / "compare" / f"{now_ts()}-retention-{run_id}.txt"
-    run(
-        [
-            "python3",
-            "scripts/evaluate_ab_sampling.py",
-            "--baseline",
-            str(base_snap),
-            "--sampled",
-            str(model_snap),
-            "--run-id",
-            run_id,
-        ],
-        cwd=root,
-    )
+    compare_report_path: Path | None = None
+    for line in compare_proc.stdout.splitlines():
+        if line.startswith("Saved report:"):
+            maybe_path = line.split(":", 1)[1].strip()
+            if maybe_path:
+                compare_report_path = Path(maybe_path)
+                break
 
-    eval_cmd = subprocess.run(
+    eval_proc = subprocess.run(
         [
             "python3",
             "scripts/evaluate_ab_sampling.py",
@@ -256,7 +288,55 @@ def main() -> int:
         text=True,
         check=True,
     )
-    retention_out.write_text(eval_cmd.stdout, encoding="utf-8")
+
+    reports_compare_dir = root / "reports" / "compare"
+    reports_compare_dir.mkdir(parents=True, exist_ok=True)
+    combined_out = reports_compare_dir / f"{now_ts()}-combined-proof-{run_id}.txt"
+
+    compare_report_text = ""
+    if compare_report_path and compare_report_path.exists():
+        compare_report_text = compare_report_path.read_text(encoding="utf-8")
+    else:
+        compare_report_text = (
+            "command: " + " ".join(compare_cmd) + "\n"
+            + f"exit_code: {compare_proc.returncode}\n\n"
+            + "---- stdout ----\n"
+            + compare_proc.stdout
+            + "\n---- stderr ----\n"
+            + compare_proc.stderr
+            + "\n"
+        )
+
+    eval_summary = extract_eval_summary(eval_proc.stdout)
+
+    combined_out.write_text(
+        "\n".join(
+            [
+                "=== ONE-CLICK SAMPLING REPORT ===",
+                f"generated_at: {datetime.now().isoformat()}",
+                f"run_id: {run_id}",
+                f"trace_count: {trace_count}",
+                f"seed: {args.seed}",
+                f"baseline_file: {base_snap}",
+                f"model_file: {model_snap}",
+                f"compare_report_file: {compare_report_path if compare_report_path else '(inline-only)'}",
+                "",
+                "=== QUICK SUMMARY (KEEP + THRESHOLD) ===",
+                *eval_summary,
+                "",
+                "=== COMPARE OUTPUT ===",
+                compare_report_text.rstrip("\n"),
+                "",
+                "=== EVALUATE OUTPUT ===",
+                eval_proc.stdout.rstrip("\n"),
+                "",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    retention_out = combined_out
 
     proof_out = root / "reports" / "sampler-proof" / f"{now_ts()}-oneclick-proof.txt"
     proof_out.parent.mkdir(parents=True, exist_ok=True)
