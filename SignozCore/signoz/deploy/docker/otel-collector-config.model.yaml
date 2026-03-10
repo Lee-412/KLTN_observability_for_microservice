@@ -58,13 +58,39 @@ processors:
       - name: host.type
       - name: container.name
   signoz_tail_sampling:
-    decision_wait: 5s
+    decision_wait: 8s
     num_traces: 50000
     expected_new_traces_per_sec: 100
     policies:
+      - name: critical-endpoint-floor-checkout
+        type: policy_group
+        priority: 1
+        policy_filter:
+          filter_op: or
+          string_attributes:
+            - key: http.route
+              values: ["/checkout", "/api/checkout", "/orders", "/api/orders"]
+            - key: http.target
+              values: ["/checkout", "/api/checkout", "/orders", "/api/orders"]
+        sampling:
+          sampling_percentage: 20
+
+      - name: critical-endpoint-floor-payment
+        type: policy_group
+        priority: 2
+        policy_filter:
+          filter_op: or
+          string_attributes:
+            - key: http.route
+              values: ["/payment", "/api/payment", "/pay", "/api/pay"]
+            - key: http.target
+              values: ["/payment", "/api/payment", "/pay", "/api/pay"]
+        sampling:
+          sampling_percentage: 15
+
       - name: adaptive-model-policy
         type: model
-        priority: 1
+        priority: 10
         model:
           type: linear
           threshold: 5.0
@@ -76,15 +102,15 @@ processors:
           adaptive:
             enabled: true
             window_duration: 30s
-            recompute_interval: 10s
+            recompute_interval: 5s
             max_samples: 10000
             target_traces_per_sec: 50
             min_keep_ratio: 0.05
             max_keep_ratio: 1.0
             always_keep_errors: true
             sla_duration_ms: 2000
-            violation_rate_threshold: 0.1
-            incident_keep_ratio: 0.5
+            violation_rate_threshold: 0.05
+            incident_keep_ratio: 0.7
 extensions:
   health_check:
     endpoint: 0.0.0.0:13133

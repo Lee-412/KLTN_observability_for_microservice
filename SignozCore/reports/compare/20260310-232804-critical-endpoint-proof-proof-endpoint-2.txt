@@ -1,0 +1,27 @@
+== INPUT ==
+baseline: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260310-232627-traces.json
+sampled : /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260310-232744-traces.model.json
+run_id  : proof-endpoint-2
+endpoint keys: ['http.route', 'http.target']
+critical values (8): ['/api/checkout', '/api/orders', '/api/pay', '/api/payment', '/checkout', '/orders', '/pay', '/payment']
+
+== COVERAGE ==
+baseline traces total            : 50000
+baseline traces with endpoint    : 50000 (100.00%)
+baseline traces without endpoint : 0 (0.00%)
+
+== RETENTION BY GROUP ==
+kept traces overall              : 7475/50000 (14.95%)
+critical endpoint kept           : 2081/12500 (16.65%)
+non-critical endpoint kept       : 5394/37500 (14.38%)
+critical uplift vs non-critical  : +2.26 điểm %
+
+== PER-ENDPOINT (TOP BY BASELINE COUNT) ==
+endpoint                                         kept       rate   critical
+/search                                    1782/12500     14.26%         no
+/catalog                                   1778/12500     14.22%         no
+/product                                   1834/12500     14.67%         no
+/checkout                                    582/3125     18.62%        yes
+/orders                                      582/3125     18.62%        yes
+/payment                                     486/3125     15.55%        yes
+/pay                                         431/3125     13.79%        yes

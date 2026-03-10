@@ -56,6 +56,7 @@ def send_deterministic_traces(
     trace_count: int,
     seed: int,
     sleep_ms: int,
+    endpoint_profile: str,
 ) -> None:
     rng = random.Random(seed)
     sent = 0
@@ -76,6 +77,33 @@ def send_deterministic_traces(
             test_case = "fast"
             span_count = rng.randint(4, 14)
 
+        endpoint_route = None
+        endpoint_tier = None
+        if endpoint_profile == "mixed":
+            if test_case == "slow":
+                critical_pool = ["/checkout", "/orders", "/payment", "/pay"]
+                endpoint_route = critical_pool[(i // 4) % len(critical_pool)]
+                endpoint_tier = "critical"
+            else:
+                non_critical_pool = ["/home", "/search", "/catalog", "/product"]
+                endpoint_route = non_critical_pool[i % len(non_critical_pool)]
+                endpoint_tier = "non-critical"
+        elif endpoint_profile == "priority-proof":
+            endpoint_slot = i % 20
+            if endpoint_slot in (0, 1, 2, 3):
+                critical_pool = ["/payment", "/pay", "/checkout", "/orders"]
+                endpoint_route = critical_pool[endpoint_slot]
+                endpoint_tier = "critical"
+
+                test_case = "fast"
+                duration_ms = rng.randint(8, 70)
+                span_count = rng.randint(4, 10)
+                is_error = False
+            else:
+                non_critical_pool = ["/search", "/catalog", "/product", "/home"]
+                endpoint_route = non_critical_pool[endpoint_slot % len(non_critical_pool)]
+                endpoint_tier = "non-critical"
+
         start = datetime.utcnow()
         root_span_id = gen_span_id(rng)
         spans = []
@@ -93,6 +121,11 @@ def send_deterministic_traces(
                 {"key": "test.duration_ms", "value": {"intValue": str(duration_ms)}},
                 {"key": "test.span_count", "value": {"intValue": str(span_count)}},
             ]
+            if endpoint_route is not None:
+                attrs.append({"key": "http.route", "value": {"stringValue": endpoint_route}})
+                attrs.append({"key": "http.target", "value": {"stringValue": endpoint_route}})
+            if endpoint_tier is not None:
+                attrs.append({"key": "test.endpoint_tier", "value": {"stringValue": endpoint_tier}})
 
             span = {
                 "traceId": trace_id,
@@ -186,6 +219,16 @@ def main() -> int:
     parser.add_argument("--sleep-ms", type=int, default=0, help="Optional delay after each sent trace")
     parser.add_argument("--seed", type=int, default=20260302)
     parser.add_argument("--run-id", default="", help="Optional explicit run_id")
+    parser.add_argument(
+        "--endpoint-profile",
+        choices=["none", "mixed", "priority-proof"],
+        default="none",
+        help=(
+            "Inject endpoint attrs into traces. "
+            "'mixed' adds basic critical/non-critical routes, "
+            "'priority-proof' makes critical endpoints low-score to test rescue by priority/floor policies."
+        ),
+    )
 
     parser.add_argument("--endpoint", default="http://localhost:4318/v1/traces")
     parser.add_argument("--flush-wait", type=int, default=12)
@@ -232,7 +275,7 @@ def main() -> int:
     run(["docker-compose", "up", "-d", "--force-recreate", "otel-collector"], cwd=docker_dir)
     time.sleep(6)
     traces_base.write_text("", encoding="utf-8")
-    send_deterministic_traces(args.endpoint, run_id, trace_count, args.seed, args.sleep_ms)
+    send_deterministic_traces(args.endpoint, run_id, trace_count, args.seed, args.sleep_ms, args.endpoint_profile)
     time.sleep(args.flush_wait)
     base_snap = baseline_snap_dir / f"{now_ts()}-traces.json"
     shutil.copyfile(traces_base, base_snap)
@@ -242,7 +285,7 @@ def main() -> int:
     run(["docker-compose", "up", "-d", "--force-recreate", "otel-collector"], cwd=docker_dir)
     time.sleep(6)
     traces_model.write_text("", encoding="utf-8")
-    send_deterministic_traces(args.endpoint, run_id, trace_count, args.seed, args.sleep_ms)
+    send_deterministic_traces(args.endpoint, run_id, trace_count, args.seed, args.sleep_ms, args.endpoint_profile)
     time.sleep(args.flush_wait)
     model_snap = model_snap_dir / f"{now_ts()}-traces.model.json"
     shutil.copyfile(traces_model, model_snap)
@@ -317,6 +360,7 @@ def main() -> int:
                 f"run_id: {run_id}",
                 f"trace_count: {trace_count}",
                 f"seed: {args.seed}",
+                f"endpoint_profile: {args.endpoint_profile}",
                 f"baseline_file: {base_snap}",
                 f"model_file: {model_snap}",
                 f"compare_report_file: {compare_report_path if compare_report_path else '(inline-only)'}",
@@ -346,6 +390,7 @@ def main() -> int:
                 f"run_id: {run_id}",
                 f"trace_count: {trace_count}",
                 f"seed: {args.seed}",
+                f"endpoint_profile: {args.endpoint_profile}",
                 f"baseline_file: {base_snap}",
                 f"model_file: {model_snap}",
                 f"retention_file: {retention_out}",

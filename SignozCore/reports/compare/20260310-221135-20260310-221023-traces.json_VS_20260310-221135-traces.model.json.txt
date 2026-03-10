@@ -1,0 +1,55 @@
+command: /home/leeduc/miniconda3/bin/python3 /home/leeduc/Desktop/KLTN/SignozCore/scripts/compare_otlp_traces.py --base /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260310-221023-traces.json --test /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260310-221135-traces.model.json --details
+exit_code: 0
+base: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260310-221023-traces.json
+test: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260310-221135-traces.model.json
+
+---- stdout ----
+== BASE ==
+file: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260310-221023-traces.json
+records(lines): 64
+spans: 637782
+unique traceIds: 50000
+error spans: 99842 (15.65%)
+trace duration(ms): p50=97.00, p95=2271.00, p99=2535.00, min=8.00, max=2600.00
+-- trace duration buckets --
+<10ms     : 683 (1.37%)
+10-100ms  : 25205 (50.41%)
+100-500ms : 11612 (23.22%)
+>=500ms   : 12500 (25.00%)
+
+-- spans by service.name (top 10) --
+  637782  thesis-proof-gen
+
+== TEST ==
+file: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260310-221135-traces.model.json
+records(lines): 51
+spans: 510501
+unique traceIds: 32004
+error spans: 98249 (19.25%)
+trace duration(ms): p50=118.00, p95=2386.00, p99=2557.00, min=8.00, max=2600.00
+-- trace duration buckets --
+<10ms     : 272 (0.85%)
+10-100ms  : 12685 (39.64%)
+100-500ms : 7149 (22.34%)
+>=500ms   : 11898 (37.18%)
+
+-- spans by service.name (top 10) --
+  510501  thesis-proof-gen
+
+== DELTA (TEST vs BASE) ==
+records(lines)  : 64 -> 51 (-13), ratio=0.797x
+spans           : 637782 -> 510501 (-127281), ratio=0.800x
+unique traceIds : 50000 -> 32004 (-17996), ratio=0.640x
+error spans     : 99842 -> 98249 (-1593), ratio=0.984x
+
+trace duration buckets delta (TEST vs BASE):
+<10ms     : 683 -> 272 (-411), ratio=0.398x
+10-100ms  : 25205 -> 12685 (-12520), ratio=0.503x
+100-500ms : 11612 -> 7149 (-4463), ratio=0.616x
+>=500ms   : 12500 -> 11898 (-602), ratio=0.952x
+
+Approx kept spans rate: 510501/637782 = 80.04%
+
+---- stderr ----
+
+
