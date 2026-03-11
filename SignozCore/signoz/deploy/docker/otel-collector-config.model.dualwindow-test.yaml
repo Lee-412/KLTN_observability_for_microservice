@@ -102,6 +102,12 @@ processors:
           adaptive:
             enabled: true
             window_duration: 30s
+            dual_window:
+              enabled: true
+              short_window_duration: 5s
+              long_window_duration: 30s
+              alpha_normal: 0.35
+              alpha_incident: 0.75
             recompute_interval: 5s
             max_samples: 10000
             target_traces_per_sec: 50

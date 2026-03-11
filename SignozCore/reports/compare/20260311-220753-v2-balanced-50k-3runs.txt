@@ -1,0 +1,70 @@
+== V2-BALANCED 50K x3 REPORT ==
+generated_at: 2026-03-11T22:10:13+07:00
+preset: v2-balanced
+script: SignozCore/scripts/simulate_stable_adaptive.py
+
+===== RUN: 20260311-201009-traces.json =====
+== STABLE ADAPTIVE SIMULATION ==
+input: SignozCore/signoz/deploy/docker/otel-export/baseline2/20260311-201009-traces.json
+run_id: (none)
+preset: v2-balanced
+config: target_tps=43.0, incident_keep=0.64, short=5s, long=30s, alpha=(0.3,0.6), exit_incident=20s
+total traces: 50000
+kept traces : 32458/50000 (64.92%)
+kept error traces: 3333/3333 (100.00%)
+critical_endpoint_coverage_pct: 33.65 (3365/10000)
+
+== METRICS V2 ==
+incident_capture_latency_ms: NA
+early_incident_retention_pct: 64.24
+threshold_volatility_pct: 8.01
+max_step_change_pct: 84.50
+
+===== RUN: 20260311-202920-traces.json =====
+== STABLE ADAPTIVE SIMULATION ==
+input: SignozCore/signoz/deploy/docker/otel-export/baseline2/20260311-202920-traces.json
+run_id: (none)
+preset: v2-balanced
+config: target_tps=43.0, incident_keep=0.64, short=5s, long=30s, alpha=(0.3,0.6), exit_incident=20s
+total traces: 50000
+kept traces : 32359/50000 (64.72%)
+kept error traces: 3333/3333 (100.00%)
+critical_endpoint_coverage_pct: 33.36 (3336/10000)
+
+== METRICS V2 ==
+incident_capture_latency_ms: NA
+early_incident_retention_pct: 64.30
+threshold_volatility_pct: 8.48
+max_step_change_pct: 72.60
+
+===== RUN: 20260310-220555-traces.json =====
+== STABLE ADAPTIVE SIMULATION ==
+input: SignozCore/signoz/deploy/docker/otel-export/baseline2/20260310-220555-traces.json
+run_id: (none)
+preset: v2-balanced
+config: target_tps=43.0, incident_keep=0.64, short=5s, long=30s, alpha=(0.3,0.6), exit_incident=20s
+total traces: 50000
+kept traces : 32381/50000 (64.76%)
+kept error traces: 4167/4167 (100.00%)
+critical_endpoint_coverage_pct: NA
+
+== METRICS V2 ==
+incident_capture_latency_ms: NA
+early_incident_retention_pct: 64.30
+threshold_volatility_pct: 8.40
+max_step_change_pct: 134.46
+
+== SUMMARY TABLE ==
+| run | kept traces | kept error traces | critical coverage pct | early incident pct | threshold volatility pct | max step change pct |
+|---|---:|---:|---:|---:|---:|---:|
+| 20260311-201009-traces.json | 64.92% | 100.00% | 33.65 | 64.24 | 8.01 | 84.50 |
+| 20260311-202920-traces.json | 64.72% | 100.00% | 33.36 | 64.30 | 8.48 | 72.60 |
+| 20260310-220555-traces.json | 64.76% | 100.00% | NA | 64.30 | 8.40 | 134.46 |
+
+== SUMMARY MEAN ==
+- kept traces mean: 64.80%
+- kept error traces mean: 100.00%
+- critical coverage mean: 33.50%
+- early incident retention mean: 64.28%
+- threshold volatility mean: 8.30%
+- max step change mean: 97.19%

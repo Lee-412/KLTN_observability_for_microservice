@@ -185,6 +185,11 @@ def extract_eval_summary(eval_text: str) -> list[str]:
         "kept duration_ms range",
         "estimated keep threshold duration_ms",
         "non-error separation:",
+        "incident_capture_latency_ms:",
+        "early_incident_retention_pct:",
+        "critical_endpoint_coverage_pct:",
+        "threshold_volatility_pct:",
+        "max_step_change_pct:",
     )
 
     lines = [ln.rstrip() for ln in eval_text.splitlines()]
