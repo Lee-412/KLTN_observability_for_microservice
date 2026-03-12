@@ -95,10 +95,29 @@ type ModelAdaptiveCfg struct {
 
 	AlwaysKeepErrors bool `mapstructure:"always_keep_errors"`
 
+	// DualWindow enables threshold blending from short/long score windows.
+	DualWindow *ModelAdaptiveDualWindowCfg `mapstructure:"dual_window"`
+
 	// SLA/incident knobs (optional).
 	SlaDurationMs          float64 `mapstructure:"sla_duration_ms"`
 	ViolationRateThreshold float64 `mapstructure:"violation_rate_threshold"`
 	IncidentKeepRatio      float64 `mapstructure:"incident_keep_ratio"`
+}
+
+// ModelAdaptiveDualWindowCfg controls optional dual-window threshold blending.
+// When enabled, threshold is blended from short and long windows:
+//
+//	threshold = alpha * short_q + (1-alpha) * long_q
+//
+// where alpha can differ between normal and incident states.
+type ModelAdaptiveDualWindowCfg struct {
+	Enabled bool `mapstructure:"enabled"`
+
+	ShortWindowDuration time.Duration `mapstructure:"short_window_duration"`
+	LongWindowDuration  time.Duration `mapstructure:"long_window_duration"`
+
+	AlphaNormal   float64 `mapstructure:"alpha_normal"`
+	AlphaIncident float64 `mapstructure:"alpha_incident"`
 }
 
 // NumericAttributeCfg holds the configurable settings to create a numeric attribute filter
@@ -302,6 +321,29 @@ func validateAndNormalizeBasePolicy(p *BasePolicy) error {
 			}
 			if ac.IncidentKeepRatio < 0 || ac.IncidentKeepRatio > 1 {
 				errs = append(errs, fmt.Errorf("model.adaptive.incident_keep_ratio must be within [0,1]"))
+			}
+
+			if ac.DualWindow != nil {
+				dw := ac.DualWindow
+				if !dw.Enabled {
+					ac.DualWindow = nil
+				} else {
+					if dw.ShortWindowDuration <= 0 {
+						errs = append(errs, fmt.Errorf("model.adaptive.dual_window.short_window_duration must be > 0"))
+					}
+					if dw.LongWindowDuration <= 0 {
+						errs = append(errs, fmt.Errorf("model.adaptive.dual_window.long_window_duration must be > 0"))
+					}
+					if dw.ShortWindowDuration > 0 && dw.LongWindowDuration > 0 && dw.ShortWindowDuration > dw.LongWindowDuration {
+						errs = append(errs, fmt.Errorf("model.adaptive.dual_window.short_window_duration must be <= long_window_duration"))
+					}
+					if dw.AlphaNormal < 0 || dw.AlphaNormal > 1 {
+						errs = append(errs, fmt.Errorf("model.adaptive.dual_window.alpha_normal must be within [0,1]"))
+					}
+					if dw.AlphaIncident < 0 || dw.AlphaIncident > 1 {
+						errs = append(errs, fmt.Errorf("model.adaptive.dual_window.alpha_incident must be within [0,1]"))
+					}
+				}
 			}
 		}
 	}

@@ -23,7 +23,7 @@ Nếu collector custom, kiểm tra `.env`:
 Từ folder `SignozCore`:
 
 - Theo số trace:
-  - `python3 scripts/one_click_sampling_proof.py --trace-count 5000`
+  - `python3 scripts/one_click_sampling_proof.py --trace-count 50000`
 
 - Theo thời gian + tốc độ:
   - `python3 scripts/one_click_sampling_proof.py --duration-seconds 120 --rps 40`
@@ -64,7 +64,7 @@ Sau mỗi lần chạy script sẽ tạo:
 - `/KLTN/SignozCore`
 
 ### Step B — chạy test baseline vs model
-- `python3 scripts/one_click_sampling_proof.py --trace-count 5000`
+- `python3 scripts/one_click_sampling_proof.py --trace-count 50000`
 
 ### Step C — mở kết quả
 - `ls -lt reports/sampler-proof | head`
@@ -75,3 +75,8 @@ Sau mỗi lần chạy script sẽ tạo:
 - Dùng file `retention-<run_id>.txt` để chứng minh kept/dropped theo trace_id.
 - Dùng file compare để chứng minh chênh lệch aggregate (spans/traceIds/error spans).
 - Nếu cần tăng độ tin cậy: chạy 3 lần với cùng tham số và so sánh xu hướng.
+
+## 9) Chuẩn chạy hiện tại
+
+- Mặc định script one-click hiện là `--trace-count 50000`.
+- Tất cả lần chạy proof sau này dùng `50000` trace để so sánh công bằng và đủ độ tin cậy.

@@ -1,0 +1,130 @@
+=== ONE-CLICK SAMPLING REPORT ===
+generated_at: 2026-03-12T21:19:02.359666
+run_id: thesis-proof-20260312-211757
+trace_count: 5000
+seed: 20260302
+endpoint_profile: none
+baseline_file: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260312-211829-traces.json
+model_file: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260312-211900-traces.model.json
+compare_report_file: /home/leeduc/Desktop/KLTN/SignozCore/reports/compare/20260312-211900-20260312-211829-traces.json_VS_20260312-211900-traces.model.json.txt
+
+=== QUICK SUMMARY (KEEP + THRESHOLD) ===
+kept traces    : 917/5000 (18.34%)
+dropped traces : 4083/5000 (81.66%)
+kept spans rate: 20006/63766 (31.37%)
+kept duration_ms p50/p95/p99: 1787.0/2533.0/2582.0
+kept duration_ms range      : 8..2600
+estimated keep threshold duration_ms (non-error, min kept): 8
+non-error separation: overlap (max dropped=2598, min kept=8)
+incident_capture_latency_ms: 0.0
+early_incident_retention_pct: 18.34
+critical_endpoint_coverage_pct: NA
+threshold_volatility_pct: 2.94
+max_step_change_pct: 4.05
+
+=== COMPARE OUTPUT ===
+command: /home/leeduc/miniconda3/bin/python3 /home/leeduc/Desktop/KLTN/SignozCore/scripts/compare_otlp_traces.py --base /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260312-211829-traces.json --test /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260312-211900-traces.model.json --details
+exit_code: 0
+base: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260312-211829-traces.json
+test: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260312-211900-traces.model.json
+
+---- stdout ----
+== BASE ==
+file: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260312-211829-traces.json
+records(lines): 7
+spans: 63766
+unique traceIds: 5000
+error spans: 10093 (15.83%)
+trace duration(ms): p50=97.00, p95=2263.05, p99=2543.01, min=8.00, max=2600.00
+-- trace duration buckets --
+<10ms     : 59 (1.18%)
+10-100ms  : 2509 (50.18%)
+100-500ms : 1182 (23.64%)
+>=500ms   : 1250 (25.00%)
+
+-- spans by service.name (top 10) --
+   63766  thesis-proof-gen
+
+== TEST ==
+file: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260312-211900-traces.model.json
+records(lines): 2
+spans: 20006
+unique traceIds: 917
+error spans: 8524 (42.61%)
+trace duration(ms): p50=1787.00, p95=2533.00, p99=2582.00, min=8.00, max=2600.00
+-- trace duration buckets --
+<10ms     : 2 (0.22%)
+10-100ms  : 113 (12.32%)
+100-500ms : 79 (8.62%)
+>=500ms   : 723 (78.84%)
+
+-- spans by service.name (top 10) --
+   20006  thesis-proof-gen
+
+== DELTA (TEST vs BASE) ==
+records(lines)  : 7 -> 2 (-5), ratio=0.286x
+spans           : 63766 -> 20006 (-43760), ratio=0.314x
+unique traceIds : 5000 -> 917 (-4083), ratio=0.183x
+error spans     : 10093 -> 8524 (-1569), ratio=0.845x
+
+trace duration buckets delta (TEST vs BASE):
+<10ms     : 59 -> 2 (-57), ratio=0.034x
+10-100ms  : 2509 -> 113 (-2396), ratio=0.045x
+100-500ms : 1182 -> 79 (-1103), ratio=0.067x
+>=500ms   : 1250 -> 723 (-527), ratio=0.578x
+
+Approx kept spans rate: 20006/63766 = 31.37%
+
+---- stderr ----
+
+=== EVALUATE OUTPUT ===
+== INPUT ==
+baseline: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260312-211829-traces.json
+sampled : /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260312-211900-traces.model.json
+run_id  : thesis-proof-20260312-211757
+
+== COUNTS ==
+baseline traces: 5000
+sampled  traces: 917
+baseline spans : 63766
+sampled  spans : 20006
+kept traces    : 917/5000 (18.34%)
+dropped traces : 4083/5000 (81.66%)
+kept spans rate: 20006/63766 (31.37%)
+
+== ERROR RETENTION ==
+baseline error traces: 417/5000 (8.34%)
+sampled  error traces: 353/917 (38.50%)
+kept error traces    : 353/417 (84.65%)
+kept non-error traces: 564/4583 (12.31%)
+error lift (kept_err/kept_all): 353/917 (38.50%)
+
+== KEEP DURATION / THRESHOLD (EMPIRICAL) ==
+kept duration_ms p50/p95/p99: 1787.0/2533.0/2582.0
+kept duration_ms range      : 8..2600
+dropped duration_ms p50/p95/p99: 85.0/1575.9/2197.1
+dropped duration_ms range      : 8..2598
+estimated keep threshold duration_ms (non-error, min kept): 8
+non-error separation: overlap (max dropped=2598, min kept=8)
+
+== KEPT TRACE ROUTES (TOP, BASELINE vs SAMPLED) ==
+endpoint                                         kept       rate     sampled   baseline
+(none)                                     917/5000     18.34%       917       5000
+
+== METRICS V2 ==
+incident params:
+  E_thr: 0.1
+  L_thr: 2000.0
+  N_seconds: 10
+  delta_keep_min: 0.1
+  hold_seconds: 3
+  short_window_seconds: 5
+  long_window_seconds: 30
+  dual_alpha_normal: 0.35
+  dual_alpha_incident: 0.75
+incident_capture_latency_ms: 0.0
+early_incident_retention_pct: 18.34
+critical_endpoint_coverage_pct: NA
+threshold_volatility_pct: 2.94
+max_step_change_pct: 4.05
+

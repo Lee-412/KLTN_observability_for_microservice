@@ -1,0 +1,75 @@
+command: /home/leeduc/miniconda3/bin/python3 /home/leeduc/Desktop/KLTN/SignozCore/scripts/compare_otlp_traces.py --base /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260312-213929-traces.json --test /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260312-214045-traces.model.json --details
+exit_code: 0
+base: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260312-213929-traces.json
+test: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260312-214045-traces.model.json
+
+---- stdout ----
+== BASE ==
+file: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260312-213929-traces.json
+records(lines): 58
+spans: 579189
+unique traceIds: 50000
+error spans: 79581 (13.74%)
+trace duration(ms): p50=74.00, p95=2183.00, p99=2519.00, min=8.00, max=2600.00
+-- trace duration buckets --
+<10ms     : 969 (1.94%)
+10-100ms  : 29904 (59.81%)
+100-500ms : 9127 (18.25%)
+>=500ms   : 10000 (20.00%)
+
+-- spans by service.name (top 10) --
+  579189  thesis-proof-gen
+
+-- top routes/methods (best-effort, top 10) --
+  239240  /search
+   90246  /catalog
+   89720  /product
+   89715  /home
+   17628  /orders
+   17603  /checkout
+   17565  /payment
+   17472  /pay
+
+== TEST ==
+file: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260312-214045-traces.model.json
+records(lines): 43
+spans: 430391
+unique traceIds: 28056
+error spans: 79264 (18.42%)
+trace duration(ms): p50=111.00, p95=2370.00, p99=2558.00, min=8.00, max=2600.00
+-- trace duration buckets --
+<10ms     : 336 (1.20%)
+10-100ms  : 12215 (43.54%)
+100-500ms : 5707 (20.34%)
+>=500ms   : 9798 (34.92%)
+
+-- spans by service.name (top 10) --
+  430391  thesis-proof-gen
+
+-- top routes/methods (best-effort, top 10) --
+  234759  /search
+   61528  /catalog
+   61061  /product
+   60674  /home
+    3635  /orders
+    3403  /checkout
+    2841  /payment
+    2490  /pay
+
+== DELTA (TEST vs BASE) ==
+records(lines)  : 58 -> 43 (-15), ratio=0.741x
+spans           : 579189 -> 430391 (-148798), ratio=0.743x
+unique traceIds : 50000 -> 28056 (-21944), ratio=0.561x
+error spans     : 79581 -> 79264 (-317), ratio=0.996x
+
+trace duration buckets delta (TEST vs BASE):
+<10ms     : 969 -> 336 (-633), ratio=0.347x
+10-100ms  : 29904 -> 12215 (-17689), ratio=0.408x
+100-500ms : 9127 -> 5707 (-3420), ratio=0.625x
+>=500ms   : 10000 -> 9798 (-202), ratio=0.980x
+
+Approx kept spans rate: 430391/579189 = 74.31%
+
+---- stderr ----
+
+

@@ -9,9 +9,9 @@ What it does:
 5) Run compare + retention reports and write a final sampler-proof file.
 
 Usage examples:
-  python3 scripts/one_click_sampling_proof.py --trace-count 5000
+    python3 scripts/one_click_sampling_proof.py --trace-count 50000
   python3 scripts/one_click_sampling_proof.py --duration-seconds 120 --rps 40
-  python3 scripts/one_click_sampling_proof.py --trace-count 8000 --model-config signoz/deploy/docker/otel-collector-config.model.yaml
+    python3 scripts/one_click_sampling_proof.py --trace-count 50000 --model-config signoz/deploy/docker/otel-collector-config.model.yaml
 """
 
 from __future__ import annotations
@@ -22,6 +22,7 @@ import random
 import shutil
 import subprocess
 import time
+import urllib.error
 import urllib.request
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -65,8 +66,6 @@ def send_deterministic_traces(
     for i in range(trace_count):
         trace_id = gen_trace_id(rng)
         is_error = (i % 12 == 0)
-        if is_error:
-            errors += 1
 
         if i % 4 == 0:
             duration_ms = rng.randint(900, 2600)
@@ -103,6 +102,9 @@ def send_deterministic_traces(
                 non_critical_pool = ["/search", "/catalog", "/product", "/home"]
                 endpoint_route = non_critical_pool[endpoint_slot % len(non_critical_pool)]
                 endpoint_tier = "non-critical"
+
+        if is_error:
+            errors += 1
 
         start = datetime.utcnow()
         root_span_id = gen_span_id(rng)
@@ -176,6 +178,32 @@ def send_deterministic_traces(
     print(f"done run_id={run_id} traces={sent} error_traces={errors}")
 
 
+def wait_for_endpoint(endpoint: str, timeout_sec: int, interval_sec: float) -> None:
+    deadline = time.time() + timeout_sec
+    last_err: Exception | None = None
+
+    while time.time() < deadline:
+        req = urllib.request.Request(
+            endpoint,
+            data=b"{}",
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=3) as resp:
+                resp.read()
+            return
+        except urllib.error.HTTPError:
+            return
+        except urllib.error.URLError as err:
+            last_err = err
+            time.sleep(interval_sec)
+
+    if last_err is None:
+        raise RuntimeError(f"endpoint not ready within {timeout_sec}s: {endpoint}")
+    raise RuntimeError(f"endpoint not ready within {timeout_sec}s: {endpoint}; last error: {last_err}")
+
+
 def extract_eval_summary(eval_text: str) -> list[str]:
     wanted_prefixes = (
         "kept traces    :",
@@ -218,7 +246,7 @@ def extract_eval_summary(eval_text: str) -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--trace-count", type=int, default=5000)
+    parser.add_argument("--trace-count", type=int, default=50000)
     parser.add_argument("--duration-seconds", type=int, default=0, help="If >0, overrides trace-count with duration*rps")
     parser.add_argument("--rps", type=float, default=40.0)
     parser.add_argument("--sleep-ms", type=int, default=0, help="Optional delay after each sent trace")
@@ -237,6 +265,8 @@ def main() -> int:
 
     parser.add_argument("--endpoint", default="http://localhost:4318/v1/traces")
     parser.add_argument("--flush-wait", type=int, default=12)
+    parser.add_argument("--endpoint-ready-timeout", type=int, default=60)
+    parser.add_argument("--endpoint-ready-interval", type=float, default=1.0)
 
     parser.add_argument("--baseline-config", default="signoz/deploy/docker/otel-collector-config.baseline.yaml")
     parser.add_argument("--model-config", default="signoz/deploy/docker/otel-collector-config.model.yaml")
@@ -279,6 +309,7 @@ def main() -> int:
     shutil.copyfile(baseline_cfg, active_cfg)
     run(["docker-compose", "up", "-d", "--force-recreate", "otel-collector"], cwd=docker_dir)
     time.sleep(6)
+    wait_for_endpoint(args.endpoint, args.endpoint_ready_timeout, args.endpoint_ready_interval)
     traces_base.write_text("", encoding="utf-8")
     send_deterministic_traces(args.endpoint, run_id, trace_count, args.seed, args.sleep_ms, args.endpoint_profile)
     time.sleep(args.flush_wait)
@@ -289,6 +320,7 @@ def main() -> int:
     shutil.copyfile(model_cfg, active_cfg)
     run(["docker-compose", "up", "-d", "--force-recreate", "otel-collector"], cwd=docker_dir)
     time.sleep(6)
+    wait_for_endpoint(args.endpoint, args.endpoint_ready_timeout, args.endpoint_ready_interval)
     traces_model.write_text("", encoding="utf-8")
     send_deterministic_traces(args.endpoint, run_id, trace_count, args.seed, args.sleep_ms, args.endpoint_profile)
     time.sleep(args.flush_wait)

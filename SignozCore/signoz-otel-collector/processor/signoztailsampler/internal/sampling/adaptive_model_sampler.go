@@ -26,9 +26,14 @@ type AdaptiveLinearModelSamplerConfig struct {
 	Intercept         float64
 	Weights           map[string]float64
 
-	WindowDuration    time.Duration
-	RecomputeInterval time.Duration
-	MaxSamples        int
+	WindowDuration      time.Duration
+	DualWindowEnabled   bool
+	ShortWindowDuration time.Duration
+	LongWindowDuration  time.Duration
+	AlphaNormal         float64
+	AlphaIncident       float64
+	RecomputeInterval   time.Duration
+	MaxSamples          int
 
 	TargetTracesPerSec float64
 	KeepRatio          float64
@@ -44,6 +49,11 @@ type AdaptiveLinearModelSamplerConfig struct {
 	TimeNow func() time.Time
 }
 
+type scoredSample struct {
+	ts    time.Time
+	score float64
+}
+
 type adaptiveLinearModelSampler struct {
 	logger *zap.Logger
 
@@ -51,9 +61,14 @@ type adaptiveLinearModelSampler struct {
 	intercept         float64
 	weights           map[string]float64
 
-	windowDuration    time.Duration
-	recomputeInterval time.Duration
-	maxSamples        int
+	windowDuration      time.Duration
+	dualWindowEnabled   bool
+	shortWindowDuration time.Duration
+	longWindowDuration  time.Duration
+	alphaNormal         float64
+	alphaIncident       float64
+	recomputeInterval   time.Duration
+	maxSamples          int
 
 	targetTracesPerSec float64
 	keepRatio          float64
@@ -69,9 +84,9 @@ type adaptiveLinearModelSampler struct {
 	now func() time.Time
 
 	mu                   sync.Mutex
-	scores               []float64
-	scoresFilled         bool
-	scoresNextIdx        int
+	samples              []scoredSample
+	samplesFilled        bool
+	samplesNextIdx       int
 	windowStart          time.Time
 	windowTraceCount     int64
 	windowViolationCount int64
@@ -99,12 +114,26 @@ func NewAdaptiveLinearModelSampler(logger *zap.Logger, cfg AdaptiveLinearModelSa
 		maxKeep = 1.0
 	}
 
+	shortWindowDuration := cfg.ShortWindowDuration
+	if shortWindowDuration <= 0 {
+		shortWindowDuration = cfg.WindowDuration
+	}
+	longWindowDuration := cfg.LongWindowDuration
+	if longWindowDuration <= 0 {
+		longWindowDuration = cfg.WindowDuration
+	}
+
 	ms := &adaptiveLinearModelSampler{
 		logger:                 logger,
 		fallbackThreshold:      cfg.FallbackThreshold,
 		intercept:              cfg.Intercept,
 		weights:                weightsCopy,
 		windowDuration:         cfg.WindowDuration,
+		dualWindowEnabled:      cfg.DualWindowEnabled,
+		shortWindowDuration:    shortWindowDuration,
+		longWindowDuration:     longWindowDuration,
+		alphaNormal:            clamp01(cfg.AlphaNormal),
+		alphaIncident:          clamp01(cfg.AlphaIncident),
 		recomputeInterval:      cfg.RecomputeInterval,
 		maxSamples:             cfg.MaxSamples,
 		targetTracesPerSec:     cfg.TargetTracesPerSec,
@@ -124,6 +153,11 @@ func NewAdaptiveLinearModelSampler(logger *zap.Logger, cfg AdaptiveLinearModelSa
 		"adaptive model sampler initialized",
 		zap.Float64("fallback_threshold", cfg.FallbackThreshold),
 		zap.Duration("window_duration", cfg.WindowDuration),
+		zap.Bool("dual_window_enabled", cfg.DualWindowEnabled),
+		zap.Duration("short_window_duration", shortWindowDuration),
+		zap.Duration("long_window_duration", longWindowDuration),
+		zap.Float64("alpha_normal", clamp01(cfg.AlphaNormal)),
+		zap.Float64("alpha_incident", clamp01(cfg.AlphaIncident)),
 		zap.Duration("recompute_interval", cfg.RecomputeInterval),
 		zap.Int("max_samples", cfg.MaxSamples),
 		zap.Float64("target_traces_per_sec", cfg.TargetTracesPerSec),
@@ -139,7 +173,7 @@ func NewAdaptiveLinearModelSampler(logger *zap.Logger, cfg AdaptiveLinearModelSa
 	// until the next recompute interval.
 	ms.windowStart = time.Time{}
 	ms.lastRecompute = time.Time{}
-	ms.scores = make([]float64, 0, cfg.MaxSamples)
+	ms.samples = make([]scoredSample, 0, cfg.MaxSamples)
 	return ms
 }
 
@@ -179,7 +213,7 @@ func (ms *adaptiveLinearModelSampler) Evaluate(traceID pcommon.TraceID, trace *T
 	if hasError || (ms.slaDurationMs > 0 && durationMs >= ms.slaDurationMs) {
 		ms.windowViolationCount++
 	}
-	ms.addScoreLocked(score)
+	ms.addScoreLocked(now, score)
 
 	// recompute threshold periodically.
 	if ms.lastRecompute.IsZero() || now.Sub(ms.lastRecompute) >= ms.recomputeInterval {
@@ -231,23 +265,49 @@ func shouldKeepOnTie(traceID pcommon.TraceID, keepRatio float64) bool {
 	return id <= cutoff
 }
 
-func (ms *adaptiveLinearModelSampler) addScoreLocked(score float64) {
+func (ms *adaptiveLinearModelSampler) addScoreLocked(now time.Time, score float64) {
 	if ms.maxSamples <= 0 {
 		return
 	}
 
-	if len(ms.scores) < ms.maxSamples {
-		ms.scores = append(ms.scores, score)
+	entry := scoredSample{ts: now, score: score}
+
+	if len(ms.samples) < ms.maxSamples {
+		ms.samples = append(ms.samples, entry)
 		return
 	}
 
 	// Ring-buffer overwrite (last-N scores).
-	ms.scores[ms.scoresNextIdx] = score
-	ms.scoresNextIdx++
-	if ms.scoresNextIdx >= ms.maxSamples {
-		ms.scoresNextIdx = 0
-		ms.scoresFilled = true
+	ms.samples[ms.samplesNextIdx] = entry
+	ms.samplesNextIdx++
+	if ms.samplesNextIdx >= ms.maxSamples {
+		ms.samplesNextIdx = 0
+		ms.samplesFilled = true
 	}
+}
+
+func (ms *adaptiveLinearModelSampler) collectScoresLocked(now time.Time) ([]float64, []float64) {
+	if len(ms.samples) == 0 {
+		return nil, nil
+	}
+
+	all := make([]float64, 0, len(ms.samples))
+	shortScores := make([]float64, 0, len(ms.samples))
+
+	shortCutoff := now.Add(-ms.shortWindowDuration)
+	longCutoff := now.Add(-ms.longWindowDuration)
+
+	for _, s := range ms.samples {
+		if ms.dualWindowEnabled && ms.longWindowDuration > 0 && s.ts.Before(longCutoff) {
+			continue
+		}
+		all = append(all, s.score)
+		if ms.shortWindowDuration <= 0 || !s.ts.Before(shortCutoff) {
+			shortScores = append(shortScores, s.score)
+		}
+	}
+
+	return all, shortScores
 }
 
 func (ms *adaptiveLinearModelSampler) recomputeLocked(now time.Time) {
@@ -259,6 +319,7 @@ func (ms *adaptiveLinearModelSampler) recomputeLocked(now time.Time) {
 	incomingRate := float64(ms.windowTraceCount) / elapsed.Seconds()
 	keepRatio := ms.targetKeepRatioLocked(incomingRate)
 	baseKeepRatio := keepRatio
+	incident := false
 
 	// SLA incident boost.
 	incidentBoosted := false
@@ -268,7 +329,7 @@ func (ms *adaptiveLinearModelSampler) recomputeLocked(now time.Time) {
 			violationRate = float64(ms.windowViolationCount) / float64(ms.windowTraceCount)
 		}
 		thr := ms.violationRateThreshold
-		incident := false
+		incident = false
 		if thr <= 0 {
 			incident = ms.windowViolationCount > 0
 		} else {
@@ -295,9 +356,27 @@ func (ms *adaptiveLinearModelSampler) recomputeLocked(now time.Time) {
 		threshold = math.Inf(-1)
 	} else if keepRatio <= 0 {
 		threshold = math.Inf(1)
-	} else if len(ms.scores) > 0 {
+	} else {
 		q := 1.0 - keepRatio
-		threshold = quantile(ms.scores, q)
+		longScores, shortScores := ms.collectScoresLocked(now)
+		if len(longScores) > 0 {
+			if ms.dualWindowEnabled {
+				thrLong := quantile(longScores, q)
+				thrShort := thrLong
+				if len(shortScores) > 0 {
+					thrShort = quantile(shortScores, q)
+				}
+
+				alpha := ms.alphaNormal
+				if incident {
+					alpha = ms.alphaIncident
+				}
+				alpha = clamp01(alpha)
+				threshold = alpha*thrShort + (1.0-alpha)*thrLong
+			} else {
+				threshold = quantile(longScores, q)
+			}
+		}
 	}
 
 	ms.currentThreshold = threshold
@@ -315,8 +394,10 @@ func (ms *adaptiveLinearModelSampler) recomputeLocked(now time.Time) {
 			zap.Float64("base_keep_ratio", baseKeepRatio),
 			zap.Float64("keep_ratio", keepRatio),
 			zap.Bool("incident_boosted", incidentBoosted),
+			zap.Bool("incident_state", incident),
 			zap.Float64("threshold", threshold),
-			zap.Int("scores_len", len(ms.scores)),
+			zap.Bool("dual_window_enabled", ms.dualWindowEnabled),
+			zap.Int("scores_len", len(ms.samples)),
 			zap.Duration("window_elapsed", elapsed),
 		)
 	}
@@ -330,8 +411,10 @@ func (ms *adaptiveLinearModelSampler) recomputeLocked(now time.Time) {
 		zap.Float64("base_keep_ratio", baseKeepRatio),
 		zap.Float64("keep_ratio", keepRatio),
 		zap.Bool("incident_boosted", incidentBoosted),
+		zap.Bool("incident_state", incident),
 		zap.Float64("threshold", threshold),
-		zap.Int("scores_len", len(ms.scores)),
+		zap.Bool("dual_window_enabled", ms.dualWindowEnabled),
+		zap.Int("scores_len", len(ms.samples)),
 		zap.Duration("window_elapsed", elapsed),
 	)
 }

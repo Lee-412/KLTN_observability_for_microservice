@@ -64,6 +64,18 @@ func NewDefaultEvaluator(logger *zap.Logger, policyCfg BasePolicy, subpolicies [
 		} else {
 			if policyCfg.ModelCfg.Adaptive != nil {
 				ac := policyCfg.ModelCfg.Adaptive
+				dualWindowEnabled := false
+				shortWindowDuration := ac.WindowDuration
+				longWindowDuration := ac.WindowDuration
+				alphaNormal := 0.0
+				alphaIncident := 0.0
+				if ac.DualWindow != nil && ac.DualWindow.Enabled {
+					dualWindowEnabled = true
+					shortWindowDuration = ac.DualWindow.ShortWindowDuration
+					longWindowDuration = ac.DualWindow.LongWindowDuration
+					alphaNormal = ac.DualWindow.AlphaNormal
+					alphaIncident = ac.DualWindow.AlphaIncident
+				}
 				logger.Info(
 					"model tail-sampling policy using adaptive thresholding",
 					zap.String("policy", policyCfg.Name),
@@ -77,6 +89,11 @@ func NewDefaultEvaluator(logger *zap.Logger, policyCfg BasePolicy, subpolicies [
 					zap.Float64("min_keep_ratio", ac.MinKeepRatio),
 					zap.Float64("max_keep_ratio", ac.MaxKeepRatio),
 					zap.Bool("always_keep_errors", ac.AlwaysKeepErrors),
+					zap.Bool("dual_window_enabled", dualWindowEnabled),
+					zap.Duration("dual_short_window_duration", shortWindowDuration),
+					zap.Duration("dual_long_window_duration", longWindowDuration),
+					zap.Float64("dual_alpha_normal", alphaNormal),
+					zap.Float64("dual_alpha_incident", alphaIncident),
 				)
 			} else {
 				logger.Info(
@@ -89,11 +106,28 @@ func NewDefaultEvaluator(logger *zap.Logger, policyCfg BasePolicy, subpolicies [
 
 			if policyCfg.ModelCfg.Adaptive != nil {
 				ac := policyCfg.ModelCfg.Adaptive
+				dualWindowEnabled := false
+				shortWindowDuration := ac.WindowDuration
+				longWindowDuration := ac.WindowDuration
+				alphaNormal := 0.0
+				alphaIncident := 0.0
+				if ac.DualWindow != nil && ac.DualWindow.Enabled {
+					dualWindowEnabled = true
+					shortWindowDuration = ac.DualWindow.ShortWindowDuration
+					longWindowDuration = ac.DualWindow.LongWindowDuration
+					alphaNormal = ac.DualWindow.AlphaNormal
+					alphaIncident = ac.DualWindow.AlphaIncident
+				}
 				sampler = sampling.NewAdaptiveLinearModelSampler(logger, sampling.AdaptiveLinearModelSamplerConfig{
 					FallbackThreshold:      policyCfg.ModelCfg.Threshold,
 					Intercept:              policyCfg.ModelCfg.Intercept,
 					Weights:                policyCfg.ModelCfg.Weights,
 					WindowDuration:         ac.WindowDuration,
+					DualWindowEnabled:      dualWindowEnabled,
+					ShortWindowDuration:    shortWindowDuration,
+					LongWindowDuration:     longWindowDuration,
+					AlphaNormal:            alphaNormal,
+					AlphaIncident:          alphaIncident,
 					RecomputeInterval:      ac.RecomputeInterval,
 					MaxSamples:             ac.MaxSamples,
 					TargetTracesPerSec:     ac.TargetTracesPerSec,
