@@ -19,10 +19,10 @@ receivers:
       scrape_configs:
         - job_name: otel-collector
           static_configs:
-          - targets:
-              - localhost:8888
-            labels:
-              job_name: otel-collector
+            - targets:
+                - localhost:8888
+              labels:
+                job_name: otel-collector
 processors:
   batch:
     send_batch_size: 10000
@@ -38,7 +38,26 @@ processors:
   signozspanmetrics/delta:
     metrics_exporter: signozclickhousemetrics
     metrics_flush_interval: 60s
-    latency_histogram_buckets: [100us, 1ms, 2ms, 6ms, 10ms, 50ms, 100ms, 250ms, 500ms, 1000ms, 1400ms, 2000ms, 5s, 10s, 20s, 40s, 60s ]
+    latency_histogram_buckets:
+      [
+        100us,
+        1ms,
+        2ms,
+        6ms,
+        10ms,
+        50ms,
+        100ms,
+        250ms,
+        500ms,
+        1000ms,
+        1400ms,
+        2000ms,
+        5s,
+        10s,
+        20s,
+        40s,
+        60s,
+      ]
     dimensions_cache_size: 100000
     aggregation_temporality: AGGREGATION_TEMPORALITY_DELTA
     enable_exp_histogram: true
@@ -73,7 +92,7 @@ processors:
             - key: http.target
               values: ["/checkout", "/api/checkout", "/orders", "/api/orders"]
         sampling:
-          sampling_percentage: 20
+          sampling_percentage: 80
 
       - name: critical-endpoint-floor-payment
         type: policy_group
@@ -86,7 +105,7 @@ processors:
             - key: http.target
               values: ["/payment", "/api/payment", "/pay", "/api/pay"]
         sampling:
-          sampling_percentage: 15
+          sampling_percentage: 80
 
       - name: adaptive-model-policy
         type: model
@@ -116,7 +135,7 @@ processors:
               alpha_incident: 0.80
             sla_duration_ms: 2000
             violation_rate_threshold: 0.05
-            incident_keep_ratio: 0.7
+            incident_keep_ratio: 0.6
 extensions:
   health_check:
     endpoint: 0.0.0.0:13133
