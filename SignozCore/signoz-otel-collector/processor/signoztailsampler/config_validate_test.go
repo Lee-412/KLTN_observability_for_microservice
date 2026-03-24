@@ -72,6 +72,95 @@ func TestValidate_ModelPolicy_AdaptiveValid(t *testing.T) {
 	require.NoError(t, cfg.Validate())
 }
 
+func TestValidate_ModelPolicy_AdaptiveStateAwareValid(t *testing.T) {
+	t.Parallel()
+
+	cfg := &Config{
+		PolicyCfgs: []PolicyGroupCfg{
+			{
+				BasePolicy: BasePolicy{
+					Name:     "model-policy",
+					Type:     Model,
+					Priority: 1,
+					ModelCfg: &ModelCfg{
+						Type:      "linear",
+						Threshold: 0.0,
+						Intercept: 0.0,
+						Weights: map[string]float64{
+							"duration_ms": 1.0,
+						},
+						Adaptive: &ModelAdaptiveCfg{
+							Enabled:            true,
+							WindowDuration:     30 * time.Second,
+							RecomputeInterval:  5 * time.Second,
+							MaxSamples:         2048,
+							TargetTracesPerSec: 10,
+							AlwaysKeepErrors:   true,
+							StateAware: &ModelAdaptiveStateAwareCfg{
+								Enabled:                true,
+								ErrorBurstThreshold:    0.2,
+								ErrorBurstBoost:        0.15,
+								LatencyTailQuantile:    0.99,
+								LatencyTailThresholdMs: 300,
+								LatencyTailBoost:       0.1,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	require.NoError(t, cfg.Validate())
+}
+
+func TestValidate_ModelPolicy_AdaptiveStateAwareInvalid(t *testing.T) {
+	t.Parallel()
+
+	cfg := &Config{
+		PolicyCfgs: []PolicyGroupCfg{
+			{
+				BasePolicy: BasePolicy{
+					Name:     "model-policy",
+					Type:     Model,
+					Priority: 1,
+					ModelCfg: &ModelCfg{
+						Type:      "linear",
+						Threshold: 0.0,
+						Intercept: 0.0,
+						Weights: map[string]float64{
+							"duration_ms": 1.0,
+						},
+						Adaptive: &ModelAdaptiveCfg{
+							Enabled:            true,
+							WindowDuration:     30 * time.Second,
+							RecomputeInterval:  5 * time.Second,
+							MaxSamples:         2048,
+							TargetTracesPerSec: 10,
+							StateAware: &ModelAdaptiveStateAwareCfg{
+								Enabled:                true,
+								ErrorBurstThreshold:    1.2,
+								ErrorBurstBoost:        -0.1,
+								LatencyTailQuantile:    1.1,
+								LatencyTailThresholdMs: -1,
+								LatencyTailBoost:       1.5,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	err := cfg.Validate()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "model.adaptive.state_aware.error_burst_threshold")
+	assert.Contains(t, err.Error(), "model.adaptive.state_aware.error_burst_boost")
+	assert.Contains(t, err.Error(), "model.adaptive.state_aware.latency_tail_quantile")
+	assert.Contains(t, err.Error(), "model.adaptive.state_aware.latency_tail_threshold_ms")
+	assert.Contains(t, err.Error(), "model.adaptive.state_aware.latency_tail_boost")
+}
+
 func TestValidate_ModelPolicy_AdaptiveMissingTargets(t *testing.T) {
 	t.Parallel()
 

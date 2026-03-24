@@ -102,6 +102,25 @@ type ModelAdaptiveCfg struct {
 	SlaDurationMs          float64 `mapstructure:"sla_duration_ms"`
 	ViolationRateThreshold float64 `mapstructure:"violation_rate_threshold"`
 	IncidentKeepRatio      float64 `mapstructure:"incident_keep_ratio"`
+
+	// Optional runtime state-aware keep-ratio boost.
+	StateAware *ModelAdaptiveStateAwareCfg `mapstructure:"state_aware"`
+}
+
+// ModelAdaptiveStateAwareCfg controls optional keep-ratio boost based on runtime signals.
+//
+// Two supported indicators:
+// - error_burst: boosts keep ratio when short-window error rate exceeds threshold
+// - latency_tail: boosts keep ratio when tail latency quantile exceeds threshold
+type ModelAdaptiveStateAwareCfg struct {
+	Enabled bool `mapstructure:"enabled"`
+
+	ErrorBurstThreshold float64 `mapstructure:"error_burst_threshold"`
+	ErrorBurstBoost     float64 `mapstructure:"error_burst_boost"`
+
+	LatencyTailQuantile    float64 `mapstructure:"latency_tail_quantile"`
+	LatencyTailThresholdMs float64 `mapstructure:"latency_tail_threshold_ms"`
+	LatencyTailBoost       float64 `mapstructure:"latency_tail_boost"`
 }
 
 // ModelAdaptiveDualWindowCfg controls optional dual-window threshold blending.
@@ -321,6 +340,28 @@ func validateAndNormalizeBasePolicy(p *BasePolicy) error {
 			}
 			if ac.IncidentKeepRatio < 0 || ac.IncidentKeepRatio > 1 {
 				errs = append(errs, fmt.Errorf("model.adaptive.incident_keep_ratio must be within [0,1]"))
+			}
+			if ac.StateAware != nil {
+				sa := ac.StateAware
+				if !sa.Enabled {
+					ac.StateAware = nil
+				} else {
+					if sa.ErrorBurstThreshold < 0 || sa.ErrorBurstThreshold > 1 {
+						errs = append(errs, fmt.Errorf("model.adaptive.state_aware.error_burst_threshold must be within [0,1]"))
+					}
+					if sa.ErrorBurstBoost < 0 || sa.ErrorBurstBoost > 1 {
+						errs = append(errs, fmt.Errorf("model.adaptive.state_aware.error_burst_boost must be within [0,1]"))
+					}
+					if sa.LatencyTailQuantile < 0 || sa.LatencyTailQuantile > 1 {
+						errs = append(errs, fmt.Errorf("model.adaptive.state_aware.latency_tail_quantile must be within [0,1]"))
+					}
+					if sa.LatencyTailThresholdMs < 0 {
+						errs = append(errs, fmt.Errorf("model.adaptive.state_aware.latency_tail_threshold_ms must be >= 0"))
+					}
+					if sa.LatencyTailBoost < 0 || sa.LatencyTailBoost > 1 {
+						errs = append(errs, fmt.Errorf("model.adaptive.state_aware.latency_tail_boost must be within [0,1]"))
+					}
+				}
 			}
 
 			if ac.DualWindow != nil {

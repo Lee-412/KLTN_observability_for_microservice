@@ -64,6 +64,20 @@ func NewDefaultEvaluator(logger *zap.Logger, policyCfg BasePolicy, subpolicies [
 		} else {
 			if policyCfg.ModelCfg.Adaptive != nil {
 				ac := policyCfg.ModelCfg.Adaptive
+				stateAwareEnabled := false
+				errorBurstThreshold := 0.0
+				errorBurstBoost := 0.0
+				latencyTailQuantile := 0.0
+				latencyTailThresholdMs := 0.0
+				latencyTailBoost := 0.0
+				if ac.StateAware != nil && ac.StateAware.Enabled {
+					stateAwareEnabled = true
+					errorBurstThreshold = ac.StateAware.ErrorBurstThreshold
+					errorBurstBoost = ac.StateAware.ErrorBurstBoost
+					latencyTailQuantile = ac.StateAware.LatencyTailQuantile
+					latencyTailThresholdMs = ac.StateAware.LatencyTailThresholdMs
+					latencyTailBoost = ac.StateAware.LatencyTailBoost
+				}
 				dualWindowEnabled := false
 				shortWindowDuration := ac.WindowDuration
 				longWindowDuration := ac.WindowDuration
@@ -94,6 +108,12 @@ func NewDefaultEvaluator(logger *zap.Logger, policyCfg BasePolicy, subpolicies [
 					zap.Duration("dual_long_window_duration", longWindowDuration),
 					zap.Float64("dual_alpha_normal", alphaNormal),
 					zap.Float64("dual_alpha_incident", alphaIncident),
+					zap.Bool("state_aware_enabled", stateAwareEnabled),
+					zap.Float64("state_error_burst_threshold", errorBurstThreshold),
+					zap.Float64("state_error_burst_boost", errorBurstBoost),
+					zap.Float64("state_latency_tail_quantile", latencyTailQuantile),
+					zap.Float64("state_latency_tail_threshold_ms", latencyTailThresholdMs),
+					zap.Float64("state_latency_tail_boost", latencyTailBoost),
 				)
 			} else {
 				logger.Info(
@@ -106,6 +126,20 @@ func NewDefaultEvaluator(logger *zap.Logger, policyCfg BasePolicy, subpolicies [
 
 			if policyCfg.ModelCfg.Adaptive != nil {
 				ac := policyCfg.ModelCfg.Adaptive
+				stateAwareEnabled := false
+				errorBurstThreshold := 0.0
+				errorBurstBoost := 0.0
+				latencyTailQuantile := 0.0
+				latencyTailThresholdMs := 0.0
+				latencyTailBoost := 0.0
+				if ac.StateAware != nil && ac.StateAware.Enabled {
+					stateAwareEnabled = true
+					errorBurstThreshold = ac.StateAware.ErrorBurstThreshold
+					errorBurstBoost = ac.StateAware.ErrorBurstBoost
+					latencyTailQuantile = ac.StateAware.LatencyTailQuantile
+					latencyTailThresholdMs = ac.StateAware.LatencyTailThresholdMs
+					latencyTailBoost = ac.StateAware.LatencyTailBoost
+				}
 				dualWindowEnabled := false
 				shortWindowDuration := ac.WindowDuration
 				longWindowDuration := ac.WindowDuration
@@ -138,6 +172,12 @@ func NewDefaultEvaluator(logger *zap.Logger, policyCfg BasePolicy, subpolicies [
 					SlaDurationMs:          ac.SlaDurationMs,
 					ViolationRateThreshold: ac.ViolationRateThreshold,
 					IncidentKeepRatio:      ac.IncidentKeepRatio,
+					StateAwareEnabled:      stateAwareEnabled,
+					ErrorBurstThreshold:    errorBurstThreshold,
+					ErrorBurstBoost:        errorBurstBoost,
+					LatencyTailQuantile:    latencyTailQuantile,
+					LatencyTailThresholdMs: latencyTailThresholdMs,
+					LatencyTailBoost:       latencyTailBoost,
 				})
 			} else {
 				sampler = sampling.NewLinearModelSampler(logger, policyCfg.ModelCfg.Threshold, policyCfg.ModelCfg.Intercept, policyCfg.ModelCfg.Weights)

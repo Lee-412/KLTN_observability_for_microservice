@@ -46,12 +46,22 @@ type AdaptiveLinearModelSamplerConfig struct {
 	ViolationRateThreshold float64
 	IncidentKeepRatio      float64
 
+	StateAwareEnabled   bool
+	ErrorBurstThreshold float64
+	ErrorBurstBoost     float64
+
+	LatencyTailQuantile    float64
+	LatencyTailThresholdMs float64
+	LatencyTailBoost       float64
+
 	TimeNow func() time.Time
 }
 
-type scoredSample struct {
-	ts    time.Time
-	score float64
+type traceRuntimeSample struct {
+	ts         time.Time
+	score      float64
+	hasError   bool
+	durationMs float64
 }
 
 type adaptiveLinearModelSampler struct {
@@ -81,10 +91,18 @@ type adaptiveLinearModelSampler struct {
 	violationRateThreshold float64
 	incidentKeepRatio      float64
 
+	stateAwareEnabled   bool
+	errorBurstThreshold float64
+	errorBurstBoost     float64
+
+	latencyTailQuantile    float64
+	latencyTailThresholdMs float64
+	latencyTailBoost       float64
+
 	now func() time.Time
 
 	mu                   sync.Mutex
-	samples              []scoredSample
+	samples              []traceRuntimeSample
 	samplesFilled        bool
 	samplesNextIdx       int
 	windowStart          time.Time
@@ -112,6 +130,11 @@ func NewAdaptiveLinearModelSampler(logger *zap.Logger, cfg AdaptiveLinearModelSa
 	maxKeep := cfg.MaxKeepRatio
 	if maxKeep == 0 {
 		maxKeep = 1.0
+	}
+
+	latencyTailQuantile := cfg.LatencyTailQuantile
+	if latencyTailQuantile <= 0 {
+		latencyTailQuantile = 0.99
 	}
 
 	shortWindowDuration := cfg.ShortWindowDuration
@@ -144,6 +167,12 @@ func NewAdaptiveLinearModelSampler(logger *zap.Logger, cfg AdaptiveLinearModelSa
 		slaDurationMs:          cfg.SlaDurationMs,
 		violationRateThreshold: cfg.ViolationRateThreshold,
 		incidentKeepRatio:      cfg.IncidentKeepRatio,
+		stateAwareEnabled:      cfg.StateAwareEnabled,
+		errorBurstThreshold:    cfg.ErrorBurstThreshold,
+		errorBurstBoost:        cfg.ErrorBurstBoost,
+		latencyTailQuantile:    clamp01(latencyTailQuantile),
+		latencyTailThresholdMs: cfg.LatencyTailThresholdMs,
+		latencyTailBoost:       cfg.LatencyTailBoost,
 		now:                    nowFn,
 		currentThreshold:       cfg.FallbackThreshold,
 		currentKeepRatio:       1.0,
@@ -165,6 +194,12 @@ func NewAdaptiveLinearModelSampler(logger *zap.Logger, cfg AdaptiveLinearModelSa
 		zap.Float64("min_keep_ratio", cfg.MinKeepRatio),
 		zap.Float64("max_keep_ratio", maxKeep),
 		zap.Bool("always_keep_errors", cfg.AlwaysKeepErrors),
+		zap.Bool("state_aware_enabled", cfg.StateAwareEnabled),
+		zap.Float64("state_error_burst_threshold", cfg.ErrorBurstThreshold),
+		zap.Float64("state_error_burst_boost", cfg.ErrorBurstBoost),
+		zap.Float64("state_latency_tail_quantile", clamp01(latencyTailQuantile)),
+		zap.Float64("state_latency_tail_threshold_ms", cfg.LatencyTailThresholdMs),
+		zap.Float64("state_latency_tail_boost", cfg.LatencyTailBoost),
 	)
 
 	// Initialize the rate window on first observed trace. If we start the window at
@@ -173,7 +208,7 @@ func NewAdaptiveLinearModelSampler(logger *zap.Logger, cfg AdaptiveLinearModelSa
 	// until the next recompute interval.
 	ms.windowStart = time.Time{}
 	ms.lastRecompute = time.Time{}
-	ms.samples = make([]scoredSample, 0, cfg.MaxSamples)
+	ms.samples = make([]traceRuntimeSample, 0, cfg.MaxSamples)
 	return ms
 }
 
@@ -213,7 +248,7 @@ func (ms *adaptiveLinearModelSampler) Evaluate(traceID pcommon.TraceID, trace *T
 	if hasError || (ms.slaDurationMs > 0 && durationMs >= ms.slaDurationMs) {
 		ms.windowViolationCount++
 	}
-	ms.addScoreLocked(now, score)
+	ms.addTraceSampleLocked(now, score, hasError, durationMs)
 
 	// recompute threshold periodically.
 	if ms.lastRecompute.IsZero() || now.Sub(ms.lastRecompute) >= ms.recomputeInterval {
@@ -265,12 +300,12 @@ func shouldKeepOnTie(traceID pcommon.TraceID, keepRatio float64) bool {
 	return id <= cutoff
 }
 
-func (ms *adaptiveLinearModelSampler) addScoreLocked(now time.Time, score float64) {
+func (ms *adaptiveLinearModelSampler) addTraceSampleLocked(now time.Time, score float64, hasError bool, durationMs float64) {
 	if ms.maxSamples <= 0 {
 		return
 	}
 
-	entry := scoredSample{ts: now, score: score}
+	entry := traceRuntimeSample{ts: now, score: score, hasError: hasError, durationMs: durationMs}
 
 	if len(ms.samples) < ms.maxSamples {
 		ms.samples = append(ms.samples, entry)
@@ -310,6 +345,53 @@ func (ms *adaptiveLinearModelSampler) collectScoresLocked(now time.Time) ([]floa
 	return all, shortScores
 }
 
+func (ms *adaptiveLinearModelSampler) runtimeStateBoostLocked(now time.Time) (float64, float64, float64, float64, bool, bool) {
+	if !ms.stateAwareEnabled {
+		return 0, 0, 0, 0, false, false
+	}
+
+	cutoff := now.Add(-ms.windowDuration)
+	errorCount := 0
+	totalCount := 0
+	durations := make([]float64, 0, len(ms.samples))
+
+	for _, s := range ms.samples {
+		if ms.windowDuration > 0 && s.ts.Before(cutoff) {
+			continue
+		}
+		totalCount++
+		if s.hasError {
+			errorCount++
+		}
+		if s.durationMs > 0 {
+			durations = append(durations, s.durationMs)
+		}
+	}
+
+	errorRate := 0.0
+	if totalCount > 0 {
+		errorRate = float64(errorCount) / float64(totalCount)
+	}
+
+	latencyTailMs := 0.0
+	if len(durations) > 0 {
+		latencyTailMs = quantile(durations, clamp01(ms.latencyTailQuantile))
+	}
+
+	errorBurstActive := ms.errorBurstBoost > 0 && ms.errorBurstThreshold > 0 && errorRate >= ms.errorBurstThreshold
+	latencyTailActive := ms.latencyTailBoost > 0 && ms.latencyTailThresholdMs > 0 && latencyTailMs >= ms.latencyTailThresholdMs
+
+	boost := 0.0
+	if errorBurstActive {
+		boost += ms.errorBurstBoost
+	}
+	if latencyTailActive {
+		boost += ms.latencyTailBoost
+	}
+
+	return boost, errorRate, latencyTailMs, ms.latencyTailQuantile, errorBurstActive, latencyTailActive
+}
+
 func (ms *adaptiveLinearModelSampler) recomputeLocked(now time.Time) {
 	elapsed := now.Sub(ms.windowStart)
 	if elapsed <= 0 {
@@ -319,6 +401,10 @@ func (ms *adaptiveLinearModelSampler) recomputeLocked(now time.Time) {
 	incomingRate := float64(ms.windowTraceCount) / elapsed.Seconds()
 	keepRatio := ms.targetKeepRatioLocked(incomingRate)
 	baseKeepRatio := keepRatio
+	stateBoost, runtimeErrorRate, runtimeLatencyTailMs, runtimeLatencyQuantile, errorBurstActive, latencyTailActive := ms.runtimeStateBoostLocked(now)
+	if stateBoost > 0 {
+		keepRatio += stateBoost
+	}
 	incident := false
 
 	// SLA incident boost.
@@ -392,6 +478,12 @@ func (ms *adaptiveLinearModelSampler) recomputeLocked(now time.Time) {
 			zap.Int64("window_violation_count", ms.windowViolationCount),
 			zap.Float64("target_traces_per_sec", ms.targetTracesPerSec),
 			zap.Float64("base_keep_ratio", baseKeepRatio),
+			zap.Float64("state_boost", stateBoost),
+			zap.Float64("runtime_error_rate", runtimeErrorRate),
+			zap.Float64("runtime_latency_tail_ms", runtimeLatencyTailMs),
+			zap.Float64("runtime_latency_tail_quantile", runtimeLatencyQuantile),
+			zap.Bool("state_error_burst_active", errorBurstActive),
+			zap.Bool("state_latency_tail_active", latencyTailActive),
 			zap.Float64("keep_ratio", keepRatio),
 			zap.Bool("incident_boosted", incidentBoosted),
 			zap.Bool("incident_state", incident),
@@ -409,6 +501,12 @@ func (ms *adaptiveLinearModelSampler) recomputeLocked(now time.Time) {
 		zap.Int64("window_violation_count", ms.windowViolationCount),
 		zap.Float64("target_traces_per_sec", ms.targetTracesPerSec),
 		zap.Float64("base_keep_ratio", baseKeepRatio),
+		zap.Float64("state_boost", stateBoost),
+		zap.Float64("runtime_error_rate", runtimeErrorRate),
+		zap.Float64("runtime_latency_tail_ms", runtimeLatencyTailMs),
+		zap.Float64("runtime_latency_tail_quantile", runtimeLatencyQuantile),
+		zap.Bool("state_error_burst_active", errorBurstActive),
+		zap.Bool("state_latency_tail_active", latencyTailActive),
 		zap.Float64("keep_ratio", keepRatio),
 		zap.Bool("incident_boosted", incidentBoosted),
 		zap.Bool("incident_state", incident),

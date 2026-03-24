@@ -1,0 +1,73 @@
+command: /home/leeduc/miniconda3/bin/python3 /home/leeduc/Desktop/KLTN/SignozCore/scripts/compare_otlp_traces.py --base /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260324-211408-traces.json --test /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260324-211525-traces.model.json --details
+exit_code: 0
+base: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260324-211408-traces.json
+test: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260324-211525-traces.model.json
+
+---- stdout ----
+== BASE ==
+file: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260324-211408-traces.json
+records(lines): 60
+spans: 598210
+unique traceIds: 50000
+error spans: 50135 (8.38%)
+trace duration(ms): p50=87.00, p95=2191.00, p99=2517.00, min=8.00, max=2600.00
+-- trace duration buckets --
+<10ms     : 764 (1.53%)
+10-100ms  : 28031 (56.06%)
+100-500ms : 10789 (21.58%)
+>=500ms   : 10416 (20.83%)
+
+-- spans by service.name (top 10) --
+  598210  thesis-proof-gen
+
+-- top routes/methods (best-effort, top 10) --
+  111169  /product
+  110949  /catalog
+  108723  /search
+   75125  /payment
+   74826  /checkout
+   58829  /orders
+   58589  /pay
+
+== TEST ==
+file: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260324-211525-traces.model.json
+records(lines): 21
+spans: 210177
+unique traceIds: 17166
+error spans: 49675 (23.63%)
+trace duration(ms): p50=89.00, p95=2191.00, p99=2506.35, min=8.00, max=2600.00
+-- trace duration buckets --
+<10ms     : 238 (1.39%)
+10-100ms  : 9606 (55.96%)
+100-500ms : 3815 (22.22%)
+>=500ms   : 3507 (20.43%)
+
+-- spans by service.name (top 10) --
+  210177  thesis-proof-gen
+
+-- top routes/methods (best-effort, top 10) --
+   43467  /search
+   35526  /product
+   35302  /catalog
+   34960  /checkout
+   31983  /payment
+   15543  /orders
+   13396  /pay
+
+== DELTA (TEST vs BASE) ==
+records(lines)  : 60 -> 21 (-39), ratio=0.350x
+spans           : 598210 -> 210177 (-388033), ratio=0.351x
+unique traceIds : 50000 -> 17166 (-32834), ratio=0.343x
+error spans     : 50135 -> 49675 (-460), ratio=0.991x
+
+trace duration buckets delta (TEST vs BASE):
+<10ms     : 764 -> 238 (-526), ratio=0.312x
+10-100ms  : 28031 -> 9606 (-18425), ratio=0.343x
+100-500ms : 10789 -> 3815 (-6974), ratio=0.354x
+>=500ms   : 10416 -> 3507 (-6909), ratio=0.337x
+
+Approx kept spans rate: 210177/598210 = 35.13%
+
+---- stderr ----
+
+

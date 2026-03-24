@@ -106,3 +106,64 @@ func TestAdaptiveLinearModelSampler_AlwaysKeepErrors(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, Sampled, dec)
 }
+
+func TestAdaptiveLinearModelSampler_StateAwareBoostsKeepRatio(t *testing.T) {
+	weights := map[string]float64{
+		"duration_ms": 0.0,
+		"has_error":   0.0,
+		"span_count":  0.0,
+	}
+
+	now := time.Unix(0, 0)
+	sampler := NewAdaptiveLinearModelSampler(zap.NewNop(), AdaptiveLinearModelSamplerConfig{
+		FallbackThreshold:      0,
+		Intercept:              0,
+		Weights:                weights,
+		WindowDuration:         10 * time.Second,
+		RecomputeInterval:      time.Nanosecond,
+		MaxSamples:             512,
+		KeepRatio:              0.1,
+		StateAwareEnabled:      true,
+		ErrorBurstThreshold:    0.2,
+		ErrorBurstBoost:        0.3,
+		LatencyTailQuantile:    0.99,
+		LatencyTailThresholdMs: 200,
+		LatencyTailBoost:       0.25,
+		TimeNow: func() time.Time {
+			return now
+		},
+	})
+
+	impl, ok := sampler.(*adaptiveLinearModelSampler)
+	if !ok {
+		t.Fatalf("expected *adaptiveLinearModelSampler")
+	}
+
+	traceID := pcommon.TraceID([16]byte{1})
+	baseStart := time.Unix(1, 0)
+
+	mkTrace := func(status ptrace.StatusCode, httpCode int64, d time.Duration) *TraceData {
+		return newTraceWithSpansAndAttrs([]spanWithTimeAndDurationAndAttrs{
+			{StartTime: baseStart, Duration: d, Status: status, Attrs: map[string]any{"http.status_code": httpCode}},
+		})
+	}
+
+	// Build a short-window runtime state with both high error rate and high p99 latency.
+	for i := 0; i < 40; i++ {
+		now = now.Add(50 * time.Millisecond)
+		status := ptrace.StatusCodeOk
+		httpCode := int64(200)
+		if i%2 == 0 {
+			status = ptrace.StatusCodeError
+			httpCode = 500
+		}
+		_, _ = sampler.Evaluate(traceID, mkTrace(status, httpCode, 300*time.Millisecond))
+	}
+
+	impl.mu.Lock()
+	boosted := impl.currentKeepRatio
+	impl.mu.Unlock()
+
+	assert.GreaterOrEqual(t, boosted, 0.65)
+	assert.LessOrEqual(t, boosted, 1.0)
+}

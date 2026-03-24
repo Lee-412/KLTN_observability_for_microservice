@@ -66,6 +66,8 @@ def send_deterministic_traces(
     for i in range(trace_count):
         trace_id = gen_trace_id(rng)
         is_error = (i % 12 == 0)
+        http_status_code = 500 if is_error else 200
+        error_family = "none"
 
         if i % 4 == 0:
             duration_ms = rng.randint(900, 2600)
@@ -102,6 +104,48 @@ def send_deterministic_traces(
                 non_critical_pool = ["/search", "/catalog", "/product", "/home"]
                 endpoint_route = non_critical_pool[endpoint_slot % len(non_critical_pool)]
                 endpoint_tier = "non-critical"
+        elif endpoint_profile == "mixed-4xx":
+            # Keep route mix behavior similar to "mixed" so endpoint coverage is still comparable.
+            if test_case == "slow":
+                critical_pool = ["/checkout", "/orders", "/payment", "/pay"]
+                endpoint_route = critical_pool[(i // 4) % len(critical_pool)]
+                endpoint_tier = "critical"
+            else:
+                non_critical_pool = ["/home", "/search", "/catalog", "/product"]
+                endpoint_route = non_critical_pool[i % len(non_critical_pool)]
+                endpoint_tier = "non-critical"
+
+            # Inject realistic 4xx classes to validate error-priority policies.
+            slot = i % 24
+            if slot == 0:
+                http_status_code = 500
+                error_family = "5xx"
+            elif slot == 1:
+                http_status_code = 408
+                error_family = "4xx-critical"
+            elif slot == 2:
+                http_status_code = 429
+                error_family = "4xx-critical"
+            elif slot == 3:
+                http_status_code = 499
+                error_family = "4xx-critical"
+            elif slot == 4:
+                http_status_code = 409
+                error_family = "4xx-important"
+            elif slot == 5:
+                http_status_code = 423
+                error_family = "4xx-important"
+            else:
+                http_status_code = 200
+                error_family = "none"
+
+            is_error = http_status_code >= 500
+
+            # Keep 4xx mostly fast to resemble user/request-side failures.
+            if 400 <= http_status_code <= 499:
+                test_case = "fast"
+                duration_ms = rng.randint(8, 120)
+                span_count = rng.randint(4, 12)
 
         if is_error:
             errors += 1
@@ -119,9 +163,10 @@ def send_deterministic_traces(
                 {"key": "service.name", "value": {"stringValue": "thesis-proof-gen"}},
                 {"key": "test.run_id", "value": {"stringValue": run_id}},
                 {"key": "test.case", "value": {"stringValue": test_case}},
-                {"key": "http.status_code", "value": {"intValue": "500" if is_error else "200"}},
+                {"key": "http.status_code", "value": {"intValue": str(http_status_code)}},
                 {"key": "test.duration_ms", "value": {"intValue": str(duration_ms)}},
                 {"key": "test.span_count", "value": {"intValue": str(span_count)}},
+                {"key": "test.error_family", "value": {"stringValue": error_family}},
             ]
             if endpoint_route is not None:
                 attrs.append({"key": "http.route", "value": {"stringValue": endpoint_route}})
@@ -140,7 +185,7 @@ def send_deterministic_traces(
             }
             if j > 0:
                 span["parentSpanId"] = root_span_id
-            if is_error and j == 0:
+            if http_status_code >= 500 and j == 0:
                 span["status"] = {"code": 2, "message": "synthetic-error"}
             spans.append(span)
 
@@ -254,12 +299,13 @@ def main() -> int:
     parser.add_argument("--run-id", default="", help="Optional explicit run_id")
     parser.add_argument(
         "--endpoint-profile",
-        choices=["none", "mixed", "priority-proof"],
+        choices=["none", "mixed", "priority-proof", "mixed-4xx"],
         default="none",
         help=(
             "Inject endpoint attrs into traces. "
             "'mixed' adds basic critical/non-critical routes, "
-            "'priority-proof' makes critical endpoints low-score to test rescue by priority/floor policies."
+            "'priority-proof' makes critical endpoints low-score to test rescue by priority/floor policies, "
+            "'mixed-4xx' injects 408/429/499/409/423 for validating 4xx policies."
         ),
     )
 

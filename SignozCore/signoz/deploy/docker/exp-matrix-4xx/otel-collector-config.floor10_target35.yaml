@@ -118,7 +118,7 @@ processors:
             - key: http.target
               values: ["/checkout", "/api/checkout", "/orders", "/api/orders"]
         sampling:
-          sampling_percentage: 20
+          sampling_percentage: 10
 
       - name: critical-endpoint-floor-payment
         type: policy_group
@@ -131,7 +131,7 @@ processors:
             - key: http.target
               values: ["/payment", "/api/payment", "/pay", "/api/pay"]
         sampling:
-          sampling_percentage: 15
+          sampling_percentage: 8
 
       - name: adaptive-model-policy
         type: model
@@ -155,7 +155,7 @@ processors:
               alpha_incident: 0.75
             recompute_interval: 5s
             max_samples: 10000
-            target_traces_per_sec: 50
+            target_traces_per_sec: 35
             min_keep_ratio: 0.05
             max_keep_ratio: 1.0
             always_keep_errors: true
