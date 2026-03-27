@@ -1,0 +1,57 @@
+command: /home/leeduc/miniconda3/bin/python3 /home/leeduc/Desktop/KLTN/SignozCore/scripts/compare_otlp_traces.py --base /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260327-215021-traces.json --test /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260327-215133-traces.model.json --details
+exit_code: 0
+base: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260327-215021-traces.json
+test: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260327-215133-traces.model.json
+
+---- stdout ----
+== BASE ==
+file: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260327-215021-traces.json
+records(lines): 24
+spans: 238208
+unique traceIds: 20000
+error spans: 20066 (8.42%)
+trace duration(ms): p50=88.00, p95=2191.05, p99=2507.01, min=8.00, max=2600.00
+-- trace duration buckets --
+<10ms     : 308 (1.54%)
+10-100ms  : 11158 (55.79%)
+100-500ms : 4368 (21.84%)
+>=500ms   : 4166 (20.83%)
+
+-- spans by service.name (top 10) --
+  238208  thesis-proof-gen
+
+-- top routes/methods (best-effort, top 10) --
+   44280  /catalog
+   43866  /product
+   43260  /search
+   30103  /payment
+   29997  /checkout
+   23410  /pay
+   23292  /orders
+
+== TEST ==
+file: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260327-215133-traces.model.json
+records(lines): 0
+spans: 0
+unique traceIds: 0
+error spans: 0 (0%)
+
+-- spans by service.name (top 10) --
+
+== DELTA (TEST vs BASE) ==
+records(lines)  : 24 -> 0 (-24), ratio=0.000x
+spans           : 238208 -> 0 (-238208), ratio=0.000x
+unique traceIds : 20000 -> 0 (-20000), ratio=0.000x
+error spans     : 20066 -> 0 (-20066), ratio=0.000x
+
+trace duration buckets delta (TEST vs BASE):
+<10ms     : 308 -> 0 (-308), ratio=0.000x
+10-100ms  : 11158 -> 0 (-11158), ratio=0.000x
+100-500ms : 4368 -> 0 (-4368), ratio=0.000x
+>=500ms   : 4166 -> 0 (-4166), ratio=0.000x
+
+Approx kept spans rate: 0/238208 = 0.00%
+
+---- stderr ----
+
+

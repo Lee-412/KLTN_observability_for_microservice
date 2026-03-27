@@ -19,10 +19,10 @@ receivers:
       scrape_configs:
         - job_name: otel-collector
           static_configs:
-          - targets:
-              - localhost:8888
-            labels:
-              job_name: otel-collector
+            - targets:
+                - localhost:8888
+              labels:
+                job_name: otel-collector
 processors:
   batch:
     send_batch_size: 10000
@@ -38,7 +38,26 @@ processors:
   signozspanmetrics/delta:
     metrics_exporter: signozclickhousemetrics
     metrics_flush_interval: 60s
-    latency_histogram_buckets: [100us, 1ms, 2ms, 6ms, 10ms, 50ms, 100ms, 250ms, 500ms, 1000ms, 1400ms, 2000ms, 5s, 10s, 20s, 40s, 60s ]
+    latency_histogram_buckets:
+      [
+        100us,
+        1ms,
+        2ms,
+        6ms,
+        10ms,
+        50ms,
+        100ms,
+        250ms,
+        500ms,
+        1000ms,
+        1400ms,
+        2000ms,
+        5s,
+        10s,
+        20s,
+        40s,
+        60s,
+      ]
     dimensions_cache_size: 100000
     aggregation_temporality: AGGREGATION_TEMPORALITY_DELTA
     enable_exp_histogram: true
@@ -62,76 +81,31 @@ processors:
     num_traces: 50000
     expected_new_traces_per_sec: 100
     policies:
-      - name: error-first-override
+      - name: critical-endpoint-floor-checkout
         type: policy_group
         priority: 1
         policy_filter:
           filter_op: or
-          numeric_attributes:
-            - key: http.status_code
-              min_value: 500
-              max_value: 999
+          string_attributes:
+            - key: http.route
+              values: ["/checkout", "/api/checkout", "/orders", "/api/orders"]
+            - key: http.target
+              values: ["/checkout", "/api/checkout", "/orders", "/api/orders"]
         sampling:
-          sampling_percentage: 100
+          sampling_percentage: 50
 
-      - name: error-critical-4xx-override
+      - name: critical-endpoint-floor-payment
         type: policy_group
         priority: 2
         policy_filter:
           filter_op: or
-          numeric_attributes:
-            - key: http.status_code
-              min_value: 408
-              max_value: 408
-            - key: http.status_code
-              min_value: 429
-              max_value: 429
-            - key: http.status_code
-              min_value: 499
-              max_value: 499
-        sampling:
-          sampling_percentage: 100
-
-      - name: error-important-4xx-floor
-        type: policy_group
-        priority: 3
-        policy_filter:
-          filter_op: or
-          numeric_attributes:
-            - key: http.status_code
-              min_value: 409
-              max_value: 409
-            - key: http.status_code
-              min_value: 423
-              max_value: 423
-        sampling:
-          sampling_percentage: 70
-
-      - name: critical-endpoint-floor-checkout
-        type: policy_group
-        priority: 4
-        policy_filter:
-          filter_op: or
-          string_attributes:
-            - key: http.route
-              values: ["/checkout", "/api/checkout", "/orders", "/api/orders"]
-            - key: http.target
-              values: ["/checkout", "/api/checkout", "/orders", "/api/orders"]
-        sampling:
-          sampling_percentage: 20
-
-      - name: critical-endpoint-floor-payment
-        type: policy_group
-        priority: 5
-        policy_filter:
-          filter_op: or
           string_attributes:
             - key: http.route
               values: ["/payment", "/api/payment", "/pay", "/api/pay"]
             - key: http.target
               values: ["/payment", "/api/payment", "/pay", "/api/pay"]
         sampling:
-          sampling_percentage: 15
+          sampling_percentage: 50
 
       - name: adaptive-model-policy
         type: model
@@ -147,28 +121,21 @@ processors:
           adaptive:
             enabled: true
             window_duration: 30s
-            dual_window:
-              enabled: true
-              short_window_duration: 5s
-              long_window_duration: 30s
-              alpha_normal: 0.35
-              alpha_incident: 0.75
             recompute_interval: 5s
             max_samples: 10000
             target_traces_per_sec: 50
             min_keep_ratio: 0.05
             max_keep_ratio: 1.0
             always_keep_errors: true
+            dual_window:
+              enabled: true
+              short_window_duration: 10s
+              long_window_duration: 60s
+              alpha_normal: 0.35
+              alpha_incident: 0.80
             sla_duration_ms: 2000
             violation_rate_threshold: 0.05
-            incident_keep_ratio: 0.7
-            state_aware:
-              enabled: true
-              error_burst_threshold: 0.20
-              error_burst_boost: 0.20
-              latency_tail_quantile: 0.99
-              latency_tail_threshold_ms: 300
-              latency_tail_boost: 0.10
+            incident_keep_ratio: 0.6
 extensions:
   health_check:
     endpoint: 0.0.0.0:13133

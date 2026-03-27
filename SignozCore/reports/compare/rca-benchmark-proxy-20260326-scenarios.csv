@@ -1,0 +1,3 @@
+scenario_id,ground_truth_root_cause,ranking_file,rank,hit_at_1,hit_at_3,reciprocal_rank,inference_time_ms,status
+scn-001,svc-payment,/home/leeduc/Desktop/KLTN/SignozCore/reports/compare/rca-scenario-scn-001-proxy-20260326.json,5,0,0,0.2,0.0,ok
+scn-002,svc-orders,/home/leeduc/Desktop/KLTN/SignozCore/reports/compare/rca-scenario-scn-002-proxy-20260326.json,6,0,0,0.16666666666666666,0.0,ok

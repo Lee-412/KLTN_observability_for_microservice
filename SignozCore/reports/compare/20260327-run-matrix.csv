@@ -1,0 +1,28 @@
+run_order,run_id,profile,model_config,seed,trace_count,endpoint_profile,notes
+1,thesis-proof-20260327-coverage-first-s20260327-t20000,coverage-first,signoz/deploy/docker/otel-collector-config.model.yaml,20260327,20000,mixed-4xx,baseline coverage profile
+2,thesis-proof-20260327-coverage-first-s20260327-t50000,coverage-first,signoz/deploy/docker/otel-collector-config.model.yaml,20260327,50000,mixed-4xx,baseline coverage profile
+3,thesis-proof-20260327-coverage-first-s20260327-t80000,coverage-first,signoz/deploy/docker/otel-collector-config.model.yaml,20260327,80000,mixed-4xx,baseline coverage profile
+4,thesis-proof-20260327-coverage-first-s20260328-t20000,coverage-first,signoz/deploy/docker/otel-collector-config.model.yaml,20260328,20000,mixed-4xx,baseline coverage profile
+5,thesis-proof-20260327-coverage-first-s20260328-t50000,coverage-first,signoz/deploy/docker/otel-collector-config.model.yaml,20260328,50000,mixed-4xx,baseline coverage profile
+6,thesis-proof-20260327-coverage-first-s20260328-t80000,coverage-first,signoz/deploy/docker/otel-collector-config.model.yaml,20260328,80000,mixed-4xx,baseline coverage profile
+7,thesis-proof-20260327-coverage-first-s20260329-t20000,coverage-first,signoz/deploy/docker/otel-collector-config.model.yaml,20260329,20000,mixed-4xx,baseline coverage profile
+8,thesis-proof-20260327-coverage-first-s20260329-t50000,coverage-first,signoz/deploy/docker/otel-collector-config.model.yaml,20260329,50000,mixed-4xx,baseline coverage profile
+9,thesis-proof-20260327-coverage-first-s20260329-t80000,coverage-first,signoz/deploy/docker/otel-collector-config.model.yaml,20260329,80000,mixed-4xx,baseline coverage profile
+10,thesis-proof-20260327-cost-first-s20260327-t20000,cost-first,signoz/deploy/docker/otel-collector-config.model.floor50.yaml,20260327,20000,mixed-4xx,lower floor for cost focus
+11,thesis-proof-20260327-cost-first-s20260327-t50000,cost-first,signoz/deploy/docker/otel-collector-config.model.floor50.yaml,20260327,50000,mixed-4xx,lower floor for cost focus
+12,thesis-proof-20260327-cost-first-s20260327-t80000,cost-first,signoz/deploy/docker/otel-collector-config.model.floor50.yaml,20260327,80000,mixed-4xx,lower floor for cost focus
+13,thesis-proof-20260327-cost-first-s20260328-t20000,cost-first,signoz/deploy/docker/otel-collector-config.model.floor50.yaml,20260328,20000,mixed-4xx,lower floor for cost focus
+14,thesis-proof-20260327-cost-first-s20260328-t50000,cost-first,signoz/deploy/docker/otel-collector-config.model.floor50.yaml,20260328,50000,mixed-4xx,lower floor for cost focus
+15,thesis-proof-20260327-cost-first-s20260328-t80000,cost-first,signoz/deploy/docker/otel-collector-config.model.floor50.yaml,20260328,80000,mixed-4xx,lower floor for cost focus
+16,thesis-proof-20260327-cost-first-s20260329-t20000,cost-first,signoz/deploy/docker/otel-collector-config.model.floor50.yaml,20260329,20000,mixed-4xx,lower floor for cost focus
+17,thesis-proof-20260327-cost-first-s20260329-t50000,cost-first,signoz/deploy/docker/otel-collector-config.model.floor50.yaml,20260329,50000,mixed-4xx,lower floor for cost focus
+18,thesis-proof-20260327-cost-first-s20260329-t80000,cost-first,signoz/deploy/docker/otel-collector-config.model.floor50.yaml,20260329,80000,mixed-4xx,lower floor for cost focus
+19,thesis-proof-20260327-hybrid-s20260327-t20000,hybrid,signoz/deploy/docker/otel-collector-config.model.hybrid.yaml,20260327,20000,mixed-4xx,dual mode policy
+20,thesis-proof-20260327-hybrid-s20260327-t50000,hybrid,signoz/deploy/docker/otel-collector-config.model.hybrid.yaml,20260327,50000,mixed-4xx,dual mode policy
+21,thesis-proof-20260327-hybrid-s20260327-t80000,hybrid,signoz/deploy/docker/otel-collector-config.model.hybrid.yaml,20260327,80000,mixed-4xx,dual mode policy
+22,thesis-proof-20260327-hybrid-s20260328-t20000,hybrid,signoz/deploy/docker/otel-collector-config.model.hybrid.yaml,20260328,20000,mixed-4xx,dual mode policy
+23,thesis-proof-20260327-hybrid-s20260328-t50000,hybrid,signoz/deploy/docker/otel-collector-config.model.hybrid.yaml,20260328,50000,mixed-4xx,dual mode policy
+24,thesis-proof-20260327-hybrid-s20260328-t80000,hybrid,signoz/deploy/docker/otel-collector-config.model.hybrid.yaml,20260328,80000,mixed-4xx,dual mode policy
+25,thesis-proof-20260327-hybrid-s20260329-t20000,hybrid,signoz/deploy/docker/otel-collector-config.model.hybrid.yaml,20260329,20000,mixed-4xx,dual mode policy
+26,thesis-proof-20260327-hybrid-s20260329-t50000,hybrid,signoz/deploy/docker/otel-collector-config.model.hybrid.yaml,20260329,50000,mixed-4xx,dual mode policy
+27,thesis-proof-20260327-hybrid-s20260329-t80000,hybrid,signoz/deploy/docker/otel-collector-config.model.hybrid.yaml,20260329,80000,mixed-4xx,dual mode policy

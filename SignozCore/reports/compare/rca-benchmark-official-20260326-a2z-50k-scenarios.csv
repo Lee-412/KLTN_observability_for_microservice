@@ -1,0 +1,3 @@
+scenario_id,ground_truth_root_cause,ranking_file,rank,hit_at_1,hit_at_3,reciprocal_rank,inference_time_ms,status
+scn-a2z50k-001,/payment,/home/leeduc/Desktop/KLTN/SignozCore/reports/compare/rca-ranking-official-endpoint-20260326-a2z-50k.json,3,0,1,0.3333333333333333,,ok
+scn-a2z50k-002,/orders,/home/leeduc/Desktop/KLTN/SignozCore/reports/compare/rca-ranking-official-endpoint-20260326-a2z-50k.json,2,0,1,0.5,,ok

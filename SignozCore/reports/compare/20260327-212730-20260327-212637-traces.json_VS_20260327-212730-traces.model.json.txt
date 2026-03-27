@@ -1,0 +1,27 @@
+command: /home/leeduc/miniconda3/bin/python3 /home/leeduc/Desktop/KLTN/SignozCore/scripts/compare_otlp_traces.py --base /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260327-212637-traces.json --test /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260327-212730-traces.model.json --details
+exit_code: 1
+base: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260327-212637-traces.json
+test: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260327-212730-traces.model.json
+
+---- stdout ----
+
+
+---- stderr ----
+Traceback (most recent call last):
+  File "/home/leeduc/Desktop/KLTN/SignozCore/scripts/compare_otlp_traces.py", line 308, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/home/leeduc/Desktop/KLTN/SignozCore/scripts/compare_otlp_traces.py", line 269, in main
+    base = summarize(args.base)
+  File "/home/leeduc/Desktop/KLTN/SignozCore/scripts/compare_otlp_traces.py", line 174, in summarize
+    obj = json.loads(line)
+  File "/home/leeduc/miniconda3/lib/python3.13/json/__init__.py", line 352, in loads
+    return _default_decoder.decode(s)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/leeduc/miniconda3/lib/python3.13/json/decoder.py", line 345, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/leeduc/miniconda3/lib/python3.13/json/decoder.py", line 363, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
