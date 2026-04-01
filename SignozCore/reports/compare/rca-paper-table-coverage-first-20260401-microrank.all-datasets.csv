@@ -1,0 +1,4 @@
+dataset,profile,scenario_count,A@1,A@3,MRR,A@1_CI95,A@3_CI95,MRR_CI95,summary_file
+train-ticket,coverage-first,17,0.11764705882352941,0.5294117647058824,0.31720939415576094,"[0.0000,0.2941]","[0.2941,0.7647]","[0.1812,0.4718]",/home/leeduc/Desktop/KLTN/SignozCore/reports/compare/rca-benchmark-train-ticket-coverage-first-20260401-microrank-summary.json
+hipster-batch1,coverage-first,24,0.125,0.3333333333333333,0.32255291005291004,"[0.0000,0.2917]","[0.1667,0.5417]","[0.2202,0.4481]",/home/leeduc/Desktop/KLTN/SignozCore/reports/compare/rca-benchmark-hipster-batch1-coverage-first-20260401-microrank-summary.json
+hipster-batch2,coverage-first,32,0.15625,0.4375,0.37668650793650793,"[0.0312,0.2812]","[0.2812,0.5938]","[0.2755,0.4832]",/home/leeduc/Desktop/KLTN/SignozCore/reports/compare/rca-benchmark-hipster-batch2-coverage-first-20260401-microrank-summary.json

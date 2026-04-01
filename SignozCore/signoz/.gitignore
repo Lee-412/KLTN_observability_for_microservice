@@ -238,3 +238,4 @@ otel-export/
 *.model.json
 
 SignozCore/signoz/deploy/docker/otel-export/
+SignozCore/reports/sampler-proof/
