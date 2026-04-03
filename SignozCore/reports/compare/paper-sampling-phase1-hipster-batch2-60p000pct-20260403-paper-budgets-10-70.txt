@@ -1,0 +1,40 @@
+=== PHASE 1 SAMPLING REPORT ===
+dataset: hipster-batch2
+budget_pct: 60.0
+calibrated_target_tps: 1.934114
+sampled_trace_dir: /home/leeduc/Desktop/KLTN/SignozCore/reports/analysis/paper-sampled-traces/20260403-paper-budgets-10-70/hipster-batch2/60p000pct/trace
+kept_trace_ids_file: /home/leeduc/Desktop/KLTN/SignozCore/reports/analysis/paper-sampled-traces/20260403-paper-budgets-10-70/hipster-batch2/60p000pct/kept_trace_ids.txt
+
+=== QUICK SUMMARY (KEEP + ERROR + COVERAGE) ===
+kept traces    : 106766/177945 (60.00%)
+dropped traces : 71179/177945 (40.00%)
+kept spans rate: 5655635/8059526 (70.17%)
+sampled csv rows: 5655635/8059526 (70.17%)
+kept error traces    : 83120/83120 (100.00%)
+incident_capture_latency_ms: 0.0
+early_incident_retention_pct: 69.74
+critical_endpoint_coverage_pct: 60.00 (106766/177945)
+threshold_volatility_pct: 37.83
+max_step_change_pct: 38754.01
+
+== KEPT TRACE ENDPOINTS (TOP, SAMPLED/BASELINE) ==
+endpoint,kept,baseline,kept_pct
+hipstershop.CheckoutService/PrepOrderItems,6204,6454,96.13
+hipstershop.CheckoutService/ConvertCurrency,6142,6392,96.09
+hipstershop.CheckoutService/ChargeCard,6140,6390,96.09
+hipstershop.CheckoutService/QuoteShipping,6140,6390,96.09
+hipstershop.CheckoutService/GetUserCart,6204,6458,96.07
+hipstershop.CheckoutService/PrepareOrderItemsAndShippingQuoteFromCart,6204,6458,96.07
+hipstershop.PaymentService/Charge,6088,6338,96.06
+grpc.hipstershop.PaymentService/Charge,6087,6337,96.05
+hipstershop.CheckoutService/PlaceOrder,6204,6459,96.05
+/hipstershop.EmailService/SendOrderConfirmation,6034,6284,96.02
+hipstershop.CartService/EmptyCart,6034,6284,96.02
+hipstershop.CheckoutService/EmptyUserCart,6034,6284,96.02
+
+== BUDGET ENFORCEMENT ==
+budget_mode: strict
+target_trace_count: 106767
+pre_cap_kept_trace_count: 106766
+pre_cap_keep_pct: 59.9994
+post_cap_keep_pct: 59.9994

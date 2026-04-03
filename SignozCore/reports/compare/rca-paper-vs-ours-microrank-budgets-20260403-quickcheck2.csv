@@ -1,0 +1,2 @@
+dataset,budget_pct,budget_slug,paper_A@1_pct,paper_A@3_pct,paper_MRR,ours_A@1_pct,ours_A@3_pct,ours_MRR,delta_A@1_pct,delta_A@3_pct,delta_MRR
+train-ticket,1.0,1p000pct,45.16,78.52,0.5889,17.647058823529413,41.17647058823529,0.34374057315233786,-27.512941176470584,-37.343529411764706,-0.24515942684766212

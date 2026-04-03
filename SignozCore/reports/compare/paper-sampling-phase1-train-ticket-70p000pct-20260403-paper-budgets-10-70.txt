@@ -1,0 +1,40 @@
+=== PHASE 1 SAMPLING REPORT ===
+dataset: train-ticket
+budget_pct: 70.0
+calibrated_target_tps: 0.454090
+sampled_trace_dir: /home/leeduc/Desktop/KLTN/SignozCore/reports/analysis/paper-sampled-traces/20260403-paper-budgets-10-70/train-ticket/70p000pct/trace
+kept_trace_ids_file: /home/leeduc/Desktop/KLTN/SignozCore/reports/analysis/paper-sampled-traces/20260403-paper-budgets-10-70/train-ticket/70p000pct/kept_trace_ids.txt
+
+=== QUICK SUMMARY (KEEP + ERROR + COVERAGE) ===
+kept traces    : 19155/27364 (70.00%)
+dropped traces : 8209/27364 (30.00%)
+kept spans rate: 872505/1044580 (83.53%)
+sampled csv rows: 872505/1044580 (83.53%)
+kept error traces    : 2536/2536 (100.00%)
+incident_capture_latency_ms: 0.0
+early_incident_retention_pct: 68.33
+critical_endpoint_coverage_pct: NA
+threshold_volatility_pct: 105.29
+max_step_change_pct: 507.23
+
+== KEPT TRACE ENDPOINTS (TOP, SAMPLED/BASELINE) ==
+endpoint,kept,baseline,kept_pct
+/api/v1/basicservice/basic/travel,1381,1381,100.00
+/api/v1/stationservice/stations/id/{stationNameForId},1381,1381,100.00
+BasicController.queryForTravel,1381,1381,100.00
+SELECT Station,1381,1381,100.00
+StationController.queryForStationId,1381,1381,100.00
+StationRepository.findByName,1381,1381,100.00
+/api/v1/priceservice/prices/{routeId}/{trainType},1380,1380,100.00
+/api/v1/trainservice/trains/byName/{name},1380,1380,100.00
+PriceConfigRepository.findByRouteIdAndTrainType,1380,1380,100.00
+SELECT PriceConfig,1380,1380,100.00
+SELECT TrainType,1380,1380,100.00
+TrainTypeRepository.findByName,1380,1380,100.00
+
+== BUDGET ENFORCEMENT ==
+budget_mode: strict
+target_trace_count: 19155
+pre_cap_kept_trace_count: 19155
+pre_cap_keep_pct: 70.0007
+post_cap_keep_pct: 70.0007

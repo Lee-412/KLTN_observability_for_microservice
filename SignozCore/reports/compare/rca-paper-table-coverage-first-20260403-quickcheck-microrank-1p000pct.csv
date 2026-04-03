@@ -1,0 +1,2 @@
+dataset,profile,scenario_count,A@1,A@3,MRR,A@1_CI95,A@3_CI95,MRR_CI95,summary_file
+train-ticket-sampled-1p000pct,coverage-first,17,0.11764705882352941,0.35294117647058826,0.2758451215107562,"[0.0000,0.2941]","[0.1176,0.5882]","[0.1426,0.4217]",/home/leeduc/Desktop/KLTN/SignozCore/reports/compare/rca-benchmark-train-ticket-sampled-1p000pct-coverage-first-20260403-quickcheck-microrank-1p000pct-summary.json

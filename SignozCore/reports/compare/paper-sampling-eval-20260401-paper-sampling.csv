@@ -1,0 +1,4 @@
+dataset,total_traces,kept_traces,kept_traces_pct,total_spans,kept_spans,kept_spans_rate_pct,error_traces,kept_error_traces,kept_error_traces_pct,early_incident_retention_pct
+train-ticket,27364,27362,99.99269112702821,1044580,1044544,99.99655363878304,2536,2536,100.0,100.0
+hipster-batch1,121449,121449,100.0,5474387,5474387,100.0,61663,61663,100.0,100.0
+hipster-batch2,177945,177945,100.0,8059526,8059526,100.0,83120,83120,100.0,100.0

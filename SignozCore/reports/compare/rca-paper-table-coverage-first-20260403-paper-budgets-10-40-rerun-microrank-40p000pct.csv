@@ -1,0 +1,2 @@
+dataset,profile,scenario_count,A@1,A@3,MRR,A@1_CI95,A@3_CI95,MRR_CI95,summary_file
+hipster-batch2-sampled-40p000pct,coverage-first,32,0.1875,0.4375,0.39482886904761905,"[0.0625,0.3125]","[0.2500,0.6250]","[0.2907,0.5094]",/home/leeduc/Desktop/KLTN/SignozCore/reports/compare/rca-benchmark-hipster-batch2-sampled-40p000pct-coverage-first-20260403-paper-budgets-10-40-rerun-microrank-40p000pct-summary.json

@@ -1,0 +1,37 @@
+=== PHASE 1 SAMPLING REPORT ===
+dataset: hipster-batch2
+budget_pct: 1.0
+calibrated_target_tps: 0.080331
+sampled_trace_dir: /home/leeduc/Desktop/KLTN/SignozCore/reports/analysis/paper-sampled-traces/20260403-paper-budgets/hipster-batch2/1p000pct/trace
+kept_trace_ids_file: /home/leeduc/Desktop/KLTN/SignozCore/reports/analysis/paper-sampled-traces/20260403-paper-budgets/hipster-batch2/1p000pct/kept_trace_ids.txt
+
+=== QUICK SUMMARY (KEEP + ERROR + COVERAGE) ===
+kept traces    : 1779/177945 (1.00%)
+dropped traces : 176166/177945 (99.00%)
+kept spans rate: 109294/8059526 (1.36%)
+sampled csv rows: 109294/8059526 (1.36%)
+kept error traces: 1779/83120 (2.14%)
+early_incident_retention_pct: 65.77
+critical_endpoint_coverage_pct: 1.00 (1779/177945)
+
+== KEPT TRACE ENDPOINTS (TOP, SAMPLED/BASELINE) ==
+endpoint,kept,baseline,kept_pct
+hipstershop.AdService/getRandomAds,289,18723,1.54
+hipstershop.CurrencyService/Convert,1711,136840,1.25
+grpc.hipstershop.CurrencyService/Convert,1702,136831,1.24
+hipstershop.CurrencyService/Carry,1702,136831,1.24
+hipstershop.ShippingService/CreateQuoteFromCount,543,43687,1.24
+hipstershop.ShippingService/CreateQuoteFromFloat,543,43687,1.24
+hipstershop.ShippingService/GetQuote,543,43687,1.24
+hipstershop.ShippingService/QuoteByCountFloat,543,43687,1.24
+grpc.hipstershop.CurrencyService/GetSupportedCurrencies,1777,143517,1.24
+hipstershop.CurrencyService/GetCurrencyData,1777,143517,1.24
+hipstershop.CurrencyService/GetSupportedCurrencies,1777,143562,1.24
+hipstershop.CartService/GetCart,1777,143737,1.24
+
+== BUDGET ENFORCEMENT ==
+budget_mode: strict
+target_trace_count: 1779
+pre_cap_kept_trace_count: 95188
+pre_cap_keep_pct: 53.4929
+post_cap_keep_pct: 0.9997

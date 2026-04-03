@@ -1,0 +1,37 @@
+=== PHASE 1 SAMPLING REPORT ===
+dataset: train-ticket
+budget_pct: 2.5
+calibrated_target_tps: 0.012121
+sampled_trace_dir: /home/leeduc/Desktop/KLTN/SignozCore/reports/analysis/paper-sampled-traces/20260403-paper-budgets/train-ticket/2p500pct/trace
+kept_trace_ids_file: /home/leeduc/Desktop/KLTN/SignozCore/reports/analysis/paper-sampled-traces/20260403-paper-budgets/train-ticket/2p500pct/kept_trace_ids.txt
+
+=== QUICK SUMMARY (KEEP + ERROR + COVERAGE) ===
+kept traces    : 684/27364 (2.50%)
+dropped traces : 26680/27364 (97.50%)
+kept spans rate: 79968/1044580 (7.66%)
+sampled csv rows: 79968/1044580 (7.66%)
+kept error traces: 684/2536 (26.97%)
+early_incident_retention_pct: 60.00
+critical_endpoint_coverage_pct: NA
+
+== KEPT TRACE ENDPOINTS (TOP, SAMPLED/BASELINE) ==
+endpoint,kept,baseline,kept_pct
+/api/v1/foodservice/orders,114,514,22.18
+<default> send,114,514,22.18
+DeliveryRepository.save,114,514,22.18
+FoodController.createFoodOrder,114,514,22.18
+FoodOrderRepository.findByOrderId,114,514,22.18
+FoodOrderRepository.save,114,514,22.18
+INSERT ts.delivery,114,514,22.18
+INSERT ts.food_order,114,514,22.18
+SELECT FoodOrder,114,514,22.18
+SELECT ts.delivery,114,514,22.18
+SELECT ts.food_order,114,514,22.18
+Session.merge delivery.entity.Delivery,114,514,22.18
+
+== BUDGET ENFORCEMENT ==
+budget_mode: strict
+target_trace_count: 684
+pre_cap_kept_trace_count: 6860
+pre_cap_keep_pct: 25.0694
+post_cap_keep_pct: 2.4996
