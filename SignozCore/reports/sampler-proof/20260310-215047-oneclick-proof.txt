@@ -1,6 +1,0 @@
-run_id: tracka2d-run1
-trace_count: 2500
-seed: 20260302
-baseline_file: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260310-215022-traces.json
-model_file: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260310-215047-traces.model.json
-retention_file: /home/leeduc/Desktop/KLTN/SignozCore/reports/compare/20260310-215047-combined-proof-tracka2d-run1.txt

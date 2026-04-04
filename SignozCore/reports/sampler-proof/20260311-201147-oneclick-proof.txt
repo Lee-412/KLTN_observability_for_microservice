@@ -1,7 +1,0 @@
-run_id: format-check-1
-trace_count: 50000
-seed: 20260302
-endpoint_profile: priority-proof
-baseline_file: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260311-201009-traces.json
-model_file: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260311-201122-traces.model.json
-retention_file: /home/leeduc/Desktop/KLTN/SignozCore/reports/compare/20260311-201147-combined-proof-format-check-1.txt

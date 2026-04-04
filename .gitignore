@@ -7,3 +7,5 @@ SignozCore/signoz/deploy/docker/otel-export/
 
 SignozCore/reports/analysis/
 SignozCore/reports/sampler-proof/
+SignozCore/reports/compare/*.csv
+SignozCore/reports/compare/*.txt

@@ -23,7 +23,9 @@ import argparse
 import csv
 import json
 import math
+import random
 import subprocess
+from collections import defaultdict, deque
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -106,11 +108,17 @@ def _incident_services_from_labels(label_file: Path) -> set[str]:
     return {svc for _ts, svc in labels}
 
 
+def _trace_has_incident_service(p: eps.TracePoint, incident_services: set[str]) -> bool:
+    if not incident_services:
+        return False
+    return bool(set(p.services) & incident_services)
+
+
 def _incident_service_coverage(points: list[eps.TracePoint], kept_ids: set[str], incident_services: set[str]) -> tuple[int, int, float | None]:
     if not incident_services:
         return 0, 0, None
 
-    base_ids = {p.trace_id for p in points if p.root_service in incident_services}
+    base_ids = {p.trace_id for p in points if _trace_has_incident_service(p, incident_services)}
     if not base_ids:
         return 0, 0, None
 
@@ -261,6 +269,877 @@ def _avg_trace_rate(points: list[eps.TracePoint]) -> float:
     return len(points) / span_s
 
 
+def _clamp(v: float, lo: float, hi: float) -> float:
+    return max(lo, min(hi, v))
+
+
+def _ranked_select_ids(
+    points: list[eps.TracePoint],
+    budget_pct: float,
+    error_budget_ratio: float,
+    incident_services: set[str],
+    incident_anchor_sec: int | None,
+) -> set[str]:
+    """Select kept trace IDs by ranked error/context split.
+
+    Policy:
+    - Keep exactly budget trace count.
+    - Reserve error_budget_ratio of kept slots for ranked error traces.
+    - Fill the remaining slots with ranked non-error related traces.
+    """
+    total = len(points)
+    if total == 0:
+        return set()
+
+    target_count = int(round(total * (budget_pct / 100.0)))
+    target_count = max(1, min(total, target_count))
+
+    error_quota = int(round(target_count * max(0.0, min(1.0, error_budget_ratio))))
+    error_quota = max(0, min(target_count, error_quota))
+    context_quota = target_count - error_quota
+
+    dur_lo = min(p.duration_ms for p in points)
+    dur_hi = max(p.duration_ms for p in points)
+    span_lo = min(p.span_count for p in points)
+    span_hi = max(p.span_count for p in points)
+    t0_sec = min(p.start_ns for p in points) // 1_000_000_000
+
+    def _norm(v: float, lo: float, hi: float) -> float:
+        if hi <= lo:
+            return 0.0
+        x = (v - lo) / (hi - lo)
+        return max(0.0, min(1.0, x))
+
+    def _time_score(p: eps.TracePoint) -> float:
+        if incident_anchor_sec is None:
+            return 0.5
+        sec = p.start_ns // 1_000_000_000 - t0_sec
+        return math.exp(-abs(sec - incident_anchor_sec) / 60.0)
+
+    def _severity_score(p: eps.TracePoint) -> float:
+        d = _norm(float(p.duration_ms), float(dur_lo), float(dur_hi))
+        s = _norm(float(p.span_count), float(span_lo), float(span_hi))
+        return 0.5 * d + 0.5 * s
+
+    def _service_score(p: eps.TracePoint) -> float:
+        return 1.0 if _trace_has_incident_service(p, incident_services) else 0.4
+
+    def _context_score(p: eps.TracePoint) -> float:
+        return _norm(float(p.span_count), float(span_lo), float(span_hi))
+
+    errors = [p for p in points if p.has_error]
+    non_errors = [p for p in points if not p.has_error]
+
+    ranked_errors = sorted(
+        errors,
+        key=lambda p: (
+            0.35 * _time_score(p)
+            + 0.30 * _severity_score(p)
+            + 0.20 * _service_score(p)
+            + 0.15 * _context_score(p),
+            p.duration_ms,
+            p.span_count,
+            p.trace_id,
+        ),
+        reverse=True,
+    )
+    selected_errors = ranked_errors[: min(error_quota, len(ranked_errors))]
+
+    ranked_context = sorted(
+        non_errors,
+        key=lambda p: (
+            0.50 * _time_score(p)
+            + 0.30 * _service_score(p)
+            + 0.20 * _severity_score(p),
+            p.duration_ms,
+            p.span_count,
+            p.trace_id,
+        ),
+        reverse=True,
+    )
+    selected_context = ranked_context[: min(context_quota, len(ranked_context))]
+
+    kept_ids = {p.trace_id for p in selected_errors}
+    kept_ids.update(p.trace_id for p in selected_context)
+
+    if len(kept_ids) < target_count:
+        fillers = ranked_errors[min(error_quota, len(ranked_errors)) :] + ranked_context[min(context_quota, len(ranked_context)) :]
+        for p in fillers:
+            if p.trace_id in kept_ids:
+                continue
+            kept_ids.add(p.trace_id)
+            if len(kept_ids) >= target_count:
+                break
+
+    return kept_ids
+
+
+def _ranked_v11_select_ids(
+    points: list[eps.TracePoint],
+    budget_pct: float,
+    incident_services: set[str],
+    incident_anchor_sec: int | None,
+    error_quota_ratio: float | None = None,
+) -> set[str]:
+    """Select kept trace IDs by V1.1 formula.
+
+    Final = Base * System_Multiplier * Novelty_Penalty * incident_modifier
+
+    where:
+    - Base = 0.40*severity + 0.30*time + 0.30*context
+    - System_Multiplier = clamp(1 + 2*service_relevance*resource_pressure, 1, 3)
+    - Novelty_Penalty = max(0.2, 1/sqrt(count_signature_60s))
+    - incident_modifier = 1.0 (normal) or 0.7 (recovery)
+    """
+    total = len(points)
+    if total == 0:
+        return set()
+
+    target_count = int(round(total * (budget_pct / 100.0)))
+    target_count = max(1, min(total, target_count))
+
+    dur_lo = min(p.duration_ms for p in points)
+    dur_hi = max(p.duration_ms for p in points)
+    span_lo = min(p.span_count for p in points)
+    span_hi = max(p.span_count for p in points)
+    t0_sec = min(p.start_ns for p in points) // 1_000_000_000
+
+    def _norm(v: float, lo: float, hi: float) -> float:
+        if hi <= lo:
+            return 0.0
+        x = (v - lo) / (hi - lo)
+        return max(0.0, min(1.0, x))
+
+    def _time_score(p: eps.TracePoint) -> float:
+        if incident_anchor_sec is None:
+            return 0.5
+        sec = p.start_ns // 1_000_000_000 - t0_sec
+        return math.exp(-abs(sec - incident_anchor_sec) / 60.0)
+
+    def _severity_score(p: eps.TracePoint) -> float:
+        d = _norm(float(p.duration_ms), float(dur_lo), float(dur_hi))
+        s = _norm(float(p.span_count), float(span_lo), float(span_hi))
+        return 0.5 * d + 0.5 * s
+
+    def _context_completeness(p: eps.TracePoint) -> float:
+        return _norm(float(p.span_count), float(span_lo), float(span_hi))
+
+    def _service_relevance(p: eps.TracePoint) -> float:
+        return 1.0 if _trace_has_incident_service(p, incident_services) else 0.0
+
+    # Approximate resource pressure by recent service-local error intensity and latency pressure.
+    by_sec: dict[int, list[eps.TracePoint]] = defaultdict(list)
+    service_durations: dict[str, list[float]] = defaultdict(list)
+    for p in points:
+        sec = p.start_ns // 1_000_000_000 - t0_sec
+        by_sec[int(sec)].append(p)
+        for svc in p.services:
+            service_durations[svc].append(float(p.duration_ms))
+
+    sec_lo = min(by_sec.keys())
+    sec_hi = max(by_sec.keys())
+
+    service_p95: dict[str, float] = {}
+    for svc, vals in service_durations.items():
+        if not vals:
+            service_p95[svc] = 0.0
+            continue
+        xs = sorted(vals)
+        idx = int(round((len(xs) - 1) * 0.95))
+        idx = max(0, min(len(xs) - 1, idx))
+        service_p95[svc] = float(xs[idx])
+
+    pressure_map: dict[tuple[int, str], float] = {}
+    window: deque[tuple[int, frozenset[str], bool, float]] = deque()
+
+    for sec in range(sec_lo, sec_hi + 1):
+        for p in by_sec.get(sec, []):
+            window.append((sec, p.services, p.has_error, float(p.duration_ms)))
+
+        while window and window[0][0] < sec - 60 + 1:
+            window.popleft()
+
+        service_stats: dict[str, tuple[int, int, float]] = defaultdict(lambda: (0, 0, 0.0))
+        for _s, svcs, has_err, dur in window:
+            for svc in svcs:
+                n, e, dsum = service_stats[svc]
+                service_stats[svc] = (n + 1, e + (1 if has_err else 0), dsum + dur)
+
+        for svc, (n, e, dsum) in service_stats.items():
+            if n <= 0:
+                pressure_map[(sec, svc)] = 0.0
+                continue
+            err_rate = e / n
+            avg_dur = dsum / n
+            p95 = max(1.0, service_p95.get(svc, 1.0))
+            latency_pressure = _clamp(avg_dur / p95, 0.0, 1.0)
+            pressure_map[(sec, svc)] = _clamp(0.7 * err_rate + 0.3 * latency_pressure, 0.0, 1.0)
+
+    def _resource_pressure(p: eps.TracePoint) -> float:
+        sec = int(p.start_ns // 1_000_000_000 - t0_sec)
+        if not p.services:
+            return 0.0
+        return max(pressure_map.get((sec, svc), 0.0) for svc in p.services)
+
+    # Novelty signature count in a 60s recent window.
+    by_sec_local: dict[int, list[eps.TracePoint]] = defaultdict(list)
+    for p in points:
+        sec = int(p.start_ns // 1_000_000_000 - t0_sec)
+        by_sec_local[sec].append(p)
+
+    def _dur_bucket(d_ms: float) -> str:
+        if d_ms < 100:
+            return "lt100"
+        if d_ms < 500:
+            return "100_500"
+        if d_ms < 2000:
+            return "500_2000"
+        return "ge2000"
+
+    def _span_bucket(sc: int) -> str:
+        if sc <= 3:
+            return "s1"
+        if sc <= 8:
+            return "s2"
+        if sc <= 20:
+            return "s3"
+        return "s4"
+
+    sec_hist: deque[tuple[int, str]] = deque()
+    sec_counts: dict[str, int] = defaultdict(int)
+    novelty_count_by_id: dict[str, int] = {}
+    sec_states: dict[int, str] = {}
+
+    in_incident = False
+    last_incident_sec: int | None = None
+    for sec in range(sec_lo, sec_hi + 1):
+        traces_sec = by_sec_local.get(sec, [])
+        if traces_sec:
+            err_rate = sum(1 for p in traces_sec if p.has_error) / len(traces_sec)
+            if err_rate > 0.10:
+                in_incident = True
+                last_incident_sec = sec
+            elif in_incident and last_incident_sec is not None and (sec - last_incident_sec) >= 20:
+                in_incident = False
+
+        if in_incident:
+            state = "incident"
+        elif last_incident_sec is not None and (sec - last_incident_sec) <= 30:
+            state = "recovery"
+        else:
+            state = "normal"
+        sec_states[sec] = state
+
+        while sec_hist and sec_hist[0][0] < sec - 60 + 1:
+            _old_sec, old_sig = sec_hist.popleft()
+            sec_counts[old_sig] -= 1
+            if sec_counts[old_sig] <= 0:
+                sec_counts.pop(old_sig, None)
+
+        for p in traces_sec:
+            status_class = "error" if p.has_error else "ok"
+            focus_services = sorted(set(p.services) & incident_services)
+            if focus_services:
+                focus_service = focus_services[0]
+            elif p.root_service:
+                focus_service = p.root_service
+            elif p.services:
+                focus_service = sorted(p.services)[0]
+            else:
+                focus_service = "unknown"
+            sig = f"{focus_service}|{status_class}|{_dur_bucket(p.duration_ms)}|{_span_bucket(p.span_count)}"
+            cnt = sec_counts.get(sig, 0) + 1
+            novelty_count_by_id[p.trace_id] = cnt
+            sec_hist.append((sec, sig))
+            sec_counts[sig] = cnt
+
+    ranked: list[tuple[float, eps.TracePoint]] = []
+    for p in points:
+        sev = _severity_score(p)
+        tsc = _time_score(p)
+        ctx = _context_completeness(p)
+        base = 0.40 * sev + 0.30 * tsc + 0.30 * ctx
+
+        svc_rel = _service_relevance(p)
+        press = _resource_pressure(p)
+        sys_mul = _clamp(1.0 + 2.0 * svc_rel * press, 1.0, 3.0)
+
+        cnt = max(1, novelty_count_by_id.get(p.trace_id, 1))
+        novelty_penalty = max(0.2, 1.0 / math.sqrt(float(cnt)))
+
+        sec = int(p.start_ns // 1_000_000_000 - t0_sec)
+        state = sec_states.get(sec, "normal")
+        incident_modifier = 0.7 if state == "recovery" else 1.0
+
+        final_score = base * sys_mul * novelty_penalty * incident_modifier
+        ranked.append((final_score, p))
+
+    ranked.sort(
+        key=lambda x: (x[0], x[1].has_error, x[1].duration_ms, x[1].span_count, x[1].trace_id),
+        reverse=True,
+    )
+
+    if error_quota_ratio is None:
+        return {p.trace_id for _sc, p in ranked[:target_count]}
+
+    ratio = _clamp(float(error_quota_ratio), 0.0, 1.0)
+    error_quota = int(round(target_count * ratio))
+    error_quota = max(0, min(target_count, error_quota))
+    normal_quota = target_count - error_quota
+
+    ranked_errors = [p for _sc, p in ranked if p.has_error]
+    ranked_normals = [p for _sc, p in ranked if not p.has_error]
+
+    kept_ids: set[str] = set()
+
+    for p in ranked_errors[:error_quota]:
+        kept_ids.add(p.trace_id)
+    for p in ranked_normals[:normal_quota]:
+        kept_ids.add(p.trace_id)
+
+    if len(ranked_errors) < error_quota:
+        extra = error_quota - len(ranked_errors)
+        for p in ranked_normals[normal_quota: normal_quota + extra]:
+            kept_ids.add(p.trace_id)
+
+    if len(ranked_normals) < normal_quota:
+        extra = normal_quota - len(ranked_normals)
+        for p in ranked_errors[error_quota: error_quota + extra]:
+            kept_ids.add(p.trace_id)
+
+    if len(kept_ids) < target_count:
+        for _sc, p in ranked:
+            if p.trace_id in kept_ids:
+                continue
+            kept_ids.add(p.trace_id)
+            if len(kept_ids) >= target_count:
+                break
+
+    return kept_ids
+
+
+def _ranked_v11_stochastic_select_ids(
+    points: list[eps.TracePoint],
+    budget_pct: float,
+    incident_services: set[str],
+    incident_anchor_sec: int | None,
+    seed: int,
+) -> set[str]:
+    """Select kept trace IDs via calibrated stochastic Bernoulli sampling.
+
+    Steps:
+    1) Reuse V1.1 final score as base sampling score.
+    2) Normalize to [0, 1] by max score.
+    3) Calibrate probabilities so expected kept count ~= target budget.
+    4) Draw random number per trace and keep if rand < calibrated_prob.
+    """
+    total = len(points)
+    if total == 0:
+        return set()
+
+    target_count = int(round(total * (budget_pct / 100.0)))
+    target_count = max(1, min(total, target_count))
+
+    dur_lo = min(p.duration_ms for p in points)
+    dur_hi = max(p.duration_ms for p in points)
+    span_lo = min(p.span_count for p in points)
+    span_hi = max(p.span_count for p in points)
+    t0_sec = min(p.start_ns for p in points) // 1_000_000_000
+
+    def _norm(v: float, lo: float, hi: float) -> float:
+        if hi <= lo:
+            return 0.0
+        x = (v - lo) / (hi - lo)
+        return max(0.0, min(1.0, x))
+
+    def _time_score(p: eps.TracePoint) -> float:
+        if incident_anchor_sec is None:
+            return 0.5
+        sec = p.start_ns // 1_000_000_000 - t0_sec
+        return math.exp(-abs(sec - incident_anchor_sec) / 60.0)
+
+    def _severity_score(p: eps.TracePoint) -> float:
+        d = _norm(float(p.duration_ms), float(dur_lo), float(dur_hi))
+        s = _norm(float(p.span_count), float(span_lo), float(span_hi))
+        return 0.5 * d + 0.5 * s
+
+    def _context_completeness(p: eps.TracePoint) -> float:
+        return _norm(float(p.span_count), float(span_lo), float(span_hi))
+
+    def _service_relevance(p: eps.TracePoint) -> float:
+        return 1.0 if _trace_has_incident_service(p, incident_services) else 0.0
+
+    by_sec: dict[int, list[eps.TracePoint]] = defaultdict(list)
+    service_durations: dict[str, list[float]] = defaultdict(list)
+    for p in points:
+        sec = p.start_ns // 1_000_000_000 - t0_sec
+        by_sec[int(sec)].append(p)
+        for svc in p.services:
+            service_durations[svc].append(float(p.duration_ms))
+
+    sec_lo = min(by_sec.keys())
+    sec_hi = max(by_sec.keys())
+
+    service_p95: dict[str, float] = {}
+    for svc, vals in service_durations.items():
+        if not vals:
+            service_p95[svc] = 0.0
+            continue
+        xs = sorted(vals)
+        idx = int(round((len(xs) - 1) * 0.95))
+        idx = max(0, min(len(xs) - 1, idx))
+        service_p95[svc] = float(xs[idx])
+
+    pressure_map: dict[tuple[int, str], float] = {}
+    window: deque[tuple[int, frozenset[str], bool, float]] = deque()
+
+    for sec in range(sec_lo, sec_hi + 1):
+        for p in by_sec.get(sec, []):
+            window.append((sec, p.services, p.has_error, float(p.duration_ms)))
+
+        while window and window[0][0] < sec - 60 + 1:
+            window.popleft()
+
+        service_stats: dict[str, tuple[int, int, float]] = defaultdict(lambda: (0, 0, 0.0))
+        for _s, svcs, has_err, dur in window:
+            for svc in svcs:
+                n, e, dsum = service_stats[svc]
+                service_stats[svc] = (n + 1, e + (1 if has_err else 0), dsum + dur)
+
+        for svc, (n, e, dsum) in service_stats.items():
+            if n <= 0:
+                pressure_map[(sec, svc)] = 0.0
+                continue
+            err_rate = e / n
+            avg_dur = dsum / n
+            p95 = max(1.0, service_p95.get(svc, 1.0))
+            latency_pressure = _clamp(avg_dur / p95, 0.0, 1.0)
+            pressure_map[(sec, svc)] = _clamp(0.7 * err_rate + 0.3 * latency_pressure, 0.0, 1.0)
+
+    def _resource_pressure(p: eps.TracePoint) -> float:
+        sec = int(p.start_ns // 1_000_000_000 - t0_sec)
+        if not p.services:
+            return 0.0
+        return max(pressure_map.get((sec, svc), 0.0) for svc in p.services)
+
+    by_sec_local: dict[int, list[eps.TracePoint]] = defaultdict(list)
+    for p in points:
+        sec = int(p.start_ns // 1_000_000_000 - t0_sec)
+        by_sec_local[sec].append(p)
+
+    def _dur_bucket(d_ms: float) -> str:
+        if d_ms < 100:
+            return "lt100"
+        if d_ms < 500:
+            return "100_500"
+        if d_ms < 2000:
+            return "500_2000"
+        return "ge2000"
+
+    def _span_bucket(sc: int) -> str:
+        if sc <= 3:
+            return "s1"
+        if sc <= 8:
+            return "s2"
+        if sc <= 20:
+            return "s3"
+        return "s4"
+
+    sec_hist: deque[tuple[int, str]] = deque()
+    sec_counts: dict[str, int] = defaultdict(int)
+    novelty_count_by_id: dict[str, int] = {}
+    sec_states: dict[int, str] = {}
+
+    in_incident = False
+    last_incident_sec: int | None = None
+    for sec in range(sec_lo, sec_hi + 1):
+        traces_sec = by_sec_local.get(sec, [])
+        if traces_sec:
+            err_rate = sum(1 for p in traces_sec if p.has_error) / len(traces_sec)
+            if err_rate > 0.10:
+                in_incident = True
+                last_incident_sec = sec
+            elif in_incident and last_incident_sec is not None and (sec - last_incident_sec) >= 20:
+                in_incident = False
+
+        if in_incident:
+            state = "incident"
+        elif last_incident_sec is not None and (sec - last_incident_sec) <= 30:
+            state = "recovery"
+        else:
+            state = "normal"
+        sec_states[sec] = state
+
+        while sec_hist and sec_hist[0][0] < sec - 60 + 1:
+            _old_sec, old_sig = sec_hist.popleft()
+            sec_counts[old_sig] -= 1
+            if sec_counts[old_sig] <= 0:
+                sec_counts.pop(old_sig, None)
+
+        for p in traces_sec:
+            status_class = "error" if p.has_error else "ok"
+            focus_services = sorted(set(p.services) & incident_services)
+            if focus_services:
+                focus_service = focus_services[0]
+            elif p.root_service:
+                focus_service = p.root_service
+            elif p.services:
+                focus_service = sorted(p.services)[0]
+            else:
+                focus_service = "unknown"
+            sig = f"{focus_service}|{status_class}|{_dur_bucket(p.duration_ms)}|{_span_bucket(p.span_count)}"
+            cnt = sec_counts.get(sig, 0) + 1
+            novelty_count_by_id[p.trace_id] = cnt
+            sec_hist.append((sec, sig))
+            sec_counts[sig] = cnt
+
+    scored: list[tuple[str, float]] = []
+    for p in points:
+        sev = _severity_score(p)
+        tsc = _time_score(p)
+        ctx = _context_completeness(p)
+        base = 0.40 * sev + 0.30 * tsc + 0.30 * ctx
+
+        svc_rel = _service_relevance(p)
+        press = _resource_pressure(p)
+        sys_mul = _clamp(1.0 + 2.0 * svc_rel * press, 1.0, 3.0)
+
+        cnt = max(1, novelty_count_by_id.get(p.trace_id, 1))
+        novelty_penalty = max(0.2, 1.0 / math.sqrt(float(cnt)))
+
+        sec = int(p.start_ns // 1_000_000_000 - t0_sec)
+        state = sec_states.get(sec, "normal")
+        incident_modifier = 0.7 if state == "recovery" else 1.0
+
+        final_score = base * sys_mul * novelty_penalty * incident_modifier
+        scored.append((p.trace_id, final_score))
+
+    max_score = max(sc for _tid, sc in scored) if scored else 0.0
+    if max_score <= 0.0:
+        return set()
+
+    probs = {tid: (sc / max_score) for tid, sc in scored}
+    expected_sum = sum(probs.values())
+    if expected_sum <= 0.0:
+        return set()
+
+    factor = target_count / expected_sum
+    calibrated = {tid: min(1.0, probs[tid] * factor) for tid in probs}
+
+    rng = random.Random(seed)
+    kept_ids: set[str] = set()
+    for p in points:
+        if rng.random() < calibrated.get(p.trace_id, 0.0):
+            kept_ids.add(p.trace_id)
+
+    return kept_ids
+
+
+def _ranked_v11_hybrid_select_ids(
+    points: list[eps.TracePoint],
+    budget_pct: float,
+    incident_services: set[str],
+    incident_anchor_sec: int | None,
+    core_ratio: float,
+    edge_pool_multiplier: float,
+    seed: int,
+) -> set[str]:
+    """Hybrid selector: deterministic core + stochastic edge exploration.
+
+    - Core: top-ranked v11 traces for stable signal.
+    - Edge: stochastic sampling from a near-threshold pool for diversity.
+    - Always top-up/trim to hit exact target_count.
+    """
+    total = len(points)
+    if total == 0:
+        return set()
+
+    target_count = int(round(total * (budget_pct / 100.0)))
+    target_count = max(1, min(total, target_count))
+
+    core_ratio = _clamp(float(core_ratio), 0.0, 1.0)
+    edge_pool_multiplier = max(1.0, float(edge_pool_multiplier))
+
+    core_count = int(round(target_count * core_ratio))
+    core_count = max(0, min(target_count, core_count))
+
+    core_ids: set[str] = set()
+    if core_count > 0:
+        core_budget_pct = (core_count / total) * 100.0
+        core_ids = _ranked_v11_select_ids(
+            points=points,
+            budget_pct=core_budget_pct,
+            incident_services=incident_services,
+            incident_anchor_sec=incident_anchor_sec,
+            error_quota_ratio=None,
+        )
+
+    if len(core_ids) > core_count:
+        core_points = [p for p in points if p.trace_id in core_ids]
+        trim_budget_pct = (core_count / len(core_points) * 100.0) if core_points else 0.0
+        core_ids = _ranked_v11_select_ids(
+            points=core_points,
+            budget_pct=trim_budget_pct,
+            incident_services=incident_services,
+            incident_anchor_sec=incident_anchor_sec,
+            error_quota_ratio=None,
+        )
+
+    kept_ids = set(core_ids)
+    remaining_target = target_count - len(kept_ids)
+    if remaining_target <= 0:
+        return kept_ids
+
+    remaining_points = [p for p in points if p.trace_id not in kept_ids]
+    if not remaining_points:
+        return kept_ids
+
+    edge_pool_count = int(round(target_count * edge_pool_multiplier))
+    edge_pool_count = max(remaining_target, min(len(remaining_points), edge_pool_count))
+
+    edge_pool_budget_pct = (edge_pool_count / len(remaining_points)) * 100.0
+    edge_pool_ids = _ranked_v11_select_ids(
+        points=remaining_points,
+        budget_pct=edge_pool_budget_pct,
+        incident_services=incident_services,
+        incident_anchor_sec=incident_anchor_sec,
+        error_quota_ratio=None,
+    )
+    edge_pool_points = [p for p in remaining_points if p.trace_id in edge_pool_ids]
+    if not edge_pool_points:
+        edge_pool_points = remaining_points
+
+    edge_budget_pct = (remaining_target / len(edge_pool_points)) * 100.0
+    edge_ids = _ranked_v11_stochastic_select_ids(
+        points=edge_pool_points,
+        budget_pct=edge_budget_pct,
+        incident_services=incident_services,
+        incident_anchor_sec=incident_anchor_sec,
+        seed=seed,
+    )
+    kept_ids.update(edge_ids)
+
+    if len(kept_ids) < target_count:
+        needed = target_count - len(kept_ids)
+        fill_points = [p for p in edge_pool_points if p.trace_id not in kept_ids]
+        if fill_points and needed > 0:
+            fill_budget_pct = (needed / len(fill_points)) * 100.0
+            kept_ids.update(
+                _ranked_v11_select_ids(
+                    points=fill_points,
+                    budget_pct=fill_budget_pct,
+                    incident_services=incident_services,
+                    incident_anchor_sec=incident_anchor_sec,
+                    error_quota_ratio=None,
+                )
+            )
+
+    if len(kept_ids) < target_count:
+        needed = target_count - len(kept_ids)
+        fill_points = [p for p in points if p.trace_id not in kept_ids]
+        if fill_points and needed > 0:
+            fill_budget_pct = (needed / len(fill_points)) * 100.0
+            kept_ids.update(
+                _ranked_v11_select_ids(
+                    points=fill_points,
+                    budget_pct=fill_budget_pct,
+                    incident_services=incident_services,
+                    incident_anchor_sec=incident_anchor_sec,
+                    error_quota_ratio=None,
+                )
+            )
+
+    if len(kept_ids) > target_count:
+        kept_points = [p for p in points if p.trace_id in kept_ids]
+        trim_budget_pct = (target_count / len(kept_points)) * 100.0 if kept_points else 0.0
+        kept_ids = _ranked_v11_select_ids(
+            points=kept_points,
+            budget_pct=trim_budget_pct,
+            incident_services=incident_services,
+            incident_anchor_sec=incident_anchor_sec,
+            error_quota_ratio=None,
+        )
+
+    return kept_ids
+
+
+def _stream_v1_select_ids(
+    points: list[eps.TracePoint],
+    budget_pct: float,
+    incident_services: set[str],
+    incident_anchor_sec: int | None,
+    seed: int,
+) -> set[str]:
+    """Online-style dynamic voting selector inspired by TraStrainer.
+
+    For each trace in chronological order:
+    - Compute p_s (system probability) from service relevance + pressure + time proximity.
+    - Compute p_d (diversity probability) from inverse recent signature frequency.
+    - Let theta = kept/seen and beta = budget ratio.
+      - If theta > beta: keep when (u < p_s) AND (u < p_d)
+      - Else: keep when (u < p_s) OR (u < p_d)
+    """
+    total = len(points)
+    if total == 0:
+        return set()
+
+    beta = _clamp(budget_pct / 100.0, 0.0, 1.0)
+    if beta <= 0.0:
+        return set()
+
+    traces = sorted(points, key=lambda p: (p.start_ns, p.trace_id))
+
+    dur_lo = min(p.duration_ms for p in traces)
+    dur_hi = max(p.duration_ms for p in traces)
+    span_lo = min(p.span_count for p in traces)
+    span_hi = max(p.span_count for p in traces)
+    t0_sec = min(p.start_ns for p in traces) // 1_000_000_000
+
+    def _norm(v: float, lo: float, hi: float) -> float:
+        if hi <= lo:
+            return 0.0
+        x = (v - lo) / (hi - lo)
+        return max(0.0, min(1.0, x))
+
+    def _time_score(p: eps.TracePoint) -> float:
+        if incident_anchor_sec is None:
+            return 0.5
+        sec = p.start_ns // 1_000_000_000 - t0_sec
+        return math.exp(-abs(sec - incident_anchor_sec) / 60.0)
+
+    def _service_relevance(p: eps.TracePoint) -> float:
+        return 1.0 if _trace_has_incident_service(p, incident_services) else 0.0
+
+    # Build service pressure map from recent error intensity + latency pressure.
+    by_sec: dict[int, list[eps.TracePoint]] = defaultdict(list)
+    service_durations: dict[str, list[float]] = defaultdict(list)
+    for p in traces:
+        sec = int(p.start_ns // 1_000_000_000 - t0_sec)
+        by_sec[sec].append(p)
+        for svc in p.services:
+            service_durations[svc].append(float(p.duration_ms))
+
+    sec_lo = min(by_sec.keys())
+    sec_hi = max(by_sec.keys())
+
+    service_p95: dict[str, float] = {}
+    for svc, vals in service_durations.items():
+        if not vals:
+            service_p95[svc] = 0.0
+            continue
+        xs = sorted(vals)
+        idx = int(round((len(xs) - 1) * 0.95))
+        idx = max(0, min(len(xs) - 1, idx))
+        service_p95[svc] = float(xs[idx])
+
+    pressure_map: dict[tuple[int, str], float] = {}
+    window: deque[tuple[int, frozenset[str], bool, float]] = deque()
+
+    for sec in range(sec_lo, sec_hi + 1):
+        for p in by_sec.get(sec, []):
+            window.append((sec, p.services, p.has_error, float(p.duration_ms)))
+
+        while window and window[0][0] < sec - 60 + 1:
+            window.popleft()
+
+        service_stats: dict[str, tuple[int, int, float]] = defaultdict(lambda: (0, 0, 0.0))
+        for _s, svcs, has_err, dur in window:
+            for svc in svcs:
+                n, e, dsum = service_stats[svc]
+                service_stats[svc] = (n + 1, e + (1 if has_err else 0), dsum + dur)
+
+        for svc, (n, e, dsum) in service_stats.items():
+            if n <= 0:
+                pressure_map[(sec, svc)] = 0.0
+                continue
+            err_rate = e / n
+            avg_dur = dsum / n
+            p95 = max(1.0, service_p95.get(svc, 1.0))
+            latency_pressure = _clamp(avg_dur / p95, 0.0, 1.0)
+            pressure_map[(sec, svc)] = _clamp(0.7 * err_rate + 0.3 * latency_pressure, 0.0, 1.0)
+
+    def _resource_pressure(p: eps.TracePoint) -> float:
+        sec = int(p.start_ns // 1_000_000_000 - t0_sec)
+        if not p.services:
+            return 0.0
+        return max(pressure_map.get((sec, svc), 0.0) for svc in p.services)
+
+    def _dur_bucket(d_ms: float) -> str:
+        if d_ms < 100:
+            return "lt100"
+        if d_ms < 500:
+            return "100_500"
+        if d_ms < 2000:
+            return "500_2000"
+        return "ge2000"
+
+    def _span_bucket(sc: int) -> str:
+        if sc <= 3:
+            return "s1"
+        if sc <= 8:
+            return "s2"
+        if sc <= 20:
+            return "s3"
+        return "s4"
+
+    rng = random.Random(seed)
+    kept_ids: set[str] = set()
+    seen = 0
+
+    sig_window: deque[tuple[int, str]] = deque()
+    sig_count: dict[str, int] = defaultdict(int)
+
+    for p in traces:
+        seen += 1
+        sec = int(p.start_ns // 1_000_000_000 - t0_sec)
+
+        while sig_window and sig_window[0][0] < sec - 60 + 1:
+            _old_sec, old_sig = sig_window.popleft()
+            sig_count[old_sig] -= 1
+            if sig_count[old_sig] <= 0:
+                sig_count.pop(old_sig, None)
+
+        # Diversity signature and inverse-frequency probability.
+        focus_services = sorted(set(p.services) & incident_services)
+        if focus_services:
+            focus_service = focus_services[0]
+        elif p.root_service:
+            focus_service = p.root_service
+        elif p.services:
+            focus_service = sorted(p.services)[0]
+        else:
+            focus_service = "unknown"
+
+        status_class = "error" if p.has_error else "ok"
+        sig = f"{focus_service}|{status_class}|{_dur_bucket(p.duration_ms)}|{_span_bucket(p.span_count)}"
+        cnt = sig_count.get(sig, 0) + 1
+
+        # p_d: higher when rare, lower when repeated.
+        p_d = _clamp(1.0 / math.sqrt(float(max(1, cnt))), 0.05, 1.0)
+
+        # p_s: system condition probability.
+        svc_rel = _service_relevance(p)
+        press = _resource_pressure(p)
+        tsc = _time_score(p)
+        sev = 0.5 * _norm(float(p.duration_ms), float(dur_lo), float(dur_hi)) + 0.5 * _norm(float(p.span_count), float(span_lo), float(span_hi))
+        p_s = _clamp(0.45 * svc_rel + 0.35 * press + 0.15 * tsc + 0.05 * sev, 0.0, 1.0)
+
+        theta = (len(kept_ids) / seen) if seen > 0 else 0.0
+        u = rng.random()
+        if theta > beta:
+            keep = (u < p_s) and (u < p_d)
+        else:
+            keep = (u < p_s) or (u < p_d)
+
+        if keep:
+            kept_ids.add(p.trace_id)
+
+        sig_window.append((sec, sig))
+        sig_count[sig] = cnt
+
+    return kept_ids
+
+
 def _enforce_budget_cap(points: list[eps.TracePoint], kept_ids: set[str], budget_pct: float) -> tuple[set[str], int, int]:
     """Enforce exact trace-count budget by capping kept set with priority ordering.
 
@@ -388,6 +1267,42 @@ def main() -> int:
         default="train-ticket,hipster-batch1,hipster-batch2",
         help="Datasets to run, comma-separated",
     )
+    ap.add_argument(
+        "--selection-mode",
+        choices=["adaptive", "ranked", "ranked-v11", "ranked-v11-quota", "ranked-v11-stochastic", "ranked-v11-hybrid", "stream-v1"],
+        default="adaptive",
+        help="adaptive: existing target_tps simulator; ranked: error/context split ranking; ranked-v11: formula-based global ranking; ranked-v11-quota: formula ranking with hard error/normal partition; ranked-v11-stochastic: calibrated probabilistic sampling; ranked-v11-hybrid: deterministic core + stochastic edge exploration; stream-v1: online dynamic voting with AND/OR gate",
+    )
+    ap.add_argument(
+        "--error-budget-ratio",
+        type=float,
+        default=0.30,
+        help="When selection-mode=ranked, fraction of kept traces reserved for error traces",
+    )
+    ap.add_argument(
+        "--error-quota-ratio",
+        type=float,
+        default=0.30,
+        help="When selection-mode=ranked-v11-quota, fraction of kept traces reserved for error traces",
+    )
+    ap.add_argument(
+        "--stochastic-seed",
+        type=int,
+        default=42,
+        help="When selection-mode=ranked-v11-stochastic, RNG seed for calibrated Bernoulli sampling",
+    )
+    ap.add_argument(
+        "--hybrid-core-ratio",
+        type=float,
+        default=0.75,
+        help="When selection-mode=ranked-v11-hybrid, fraction of budget allocated to deterministic top-ranked core",
+    )
+    ap.add_argument(
+        "--hybrid-edge-pool-multiplier",
+        type=float,
+        default=3.0,
+        help="When selection-mode=ranked-v11-hybrid, edge exploration pool size as multiplier of total budget",
+    )
     args = ap.parse_args()
 
     root = Path(args.root).resolve()
@@ -415,20 +1330,124 @@ def main() -> int:
             print(f"  -- budget={budget}%")
 
             # Phase 1: calibrate simulator to requested budget and materialize sampled traces.
-            target_tps, kept_ids, achieved_keep_pct = _calibrate_target_tps(points, budget)
-            pre_cap_keep_pct = achieved_keep_pct
             target_trace_count = None
             pre_cap_trace_count = None
 
-            if args.budget_mode == "strict":
+            if args.selection_mode == "ranked":
+                target_tps = 0.0
+                kept_ids = _ranked_select_ids(
+                    points=points,
+                    budget_pct=budget,
+                    error_budget_ratio=args.error_budget_ratio,
+                    incident_services=incident_services,
+                    incident_anchor_sec=incident_anchor_sec,
+                )
+                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
+                pre_cap_keep_pct = achieved_keep_pct
+                sim_metrics = {
+                    "incident_capture_latency_ms": None,
+                    "threshold_volatility_pct": None,
+                    "max_step_change_pct": None,
+                }
+            elif args.selection_mode == "ranked-v11":
+                target_tps = 0.0
+                kept_ids = _ranked_v11_select_ids(
+                    points=points,
+                    budget_pct=budget,
+                    incident_services=incident_services,
+                    incident_anchor_sec=incident_anchor_sec,
+                )
+                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
+                pre_cap_keep_pct = achieved_keep_pct
+                sim_metrics = {
+                    "incident_capture_latency_ms": None,
+                    "threshold_volatility_pct": None,
+                    "max_step_change_pct": None,
+                }
+            elif args.selection_mode == "ranked-v11-quota":
+                target_tps = 0.0
+                kept_ids = _ranked_v11_select_ids(
+                    points=points,
+                    budget_pct=budget,
+                    incident_services=incident_services,
+                    incident_anchor_sec=incident_anchor_sec,
+                    error_quota_ratio=args.error_quota_ratio,
+                )
+                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
+                pre_cap_keep_pct = achieved_keep_pct
+                sim_metrics = {
+                    "incident_capture_latency_ms": None,
+                    "threshold_volatility_pct": None,
+                    "max_step_change_pct": None,
+                }
+            elif args.selection_mode == "ranked-v11-stochastic":
+                target_tps = 0.0
+                kept_ids = _ranked_v11_stochastic_select_ids(
+                    points=points,
+                    budget_pct=budget,
+                    incident_services=incident_services,
+                    incident_anchor_sec=incident_anchor_sec,
+                    seed=args.stochastic_seed,
+                )
+                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
+                pre_cap_keep_pct = achieved_keep_pct
+                sim_metrics = {
+                    "incident_capture_latency_ms": None,
+                    "threshold_volatility_pct": None,
+                    "max_step_change_pct": None,
+                }
+            elif args.selection_mode == "ranked-v11-hybrid":
+                target_tps = 0.0
+                kept_ids = _ranked_v11_hybrid_select_ids(
+                    points=points,
+                    budget_pct=budget,
+                    incident_services=incident_services,
+                    incident_anchor_sec=incident_anchor_sec,
+                    core_ratio=args.hybrid_core_ratio,
+                    edge_pool_multiplier=args.hybrid_edge_pool_multiplier,
+                    seed=args.stochastic_seed,
+                )
+                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
+                pre_cap_keep_pct = achieved_keep_pct
+                sim_metrics = {
+                    "incident_capture_latency_ms": None,
+                    "threshold_volatility_pct": None,
+                    "max_step_change_pct": None,
+                }
+            elif args.selection_mode == "stream-v1":
+                target_tps = 0.0
+                kept_ids = _stream_v1_select_ids(
+                    points=points,
+                    budget_pct=budget,
+                    incident_services=incident_services,
+                    incident_anchor_sec=incident_anchor_sec,
+                    seed=args.stochastic_seed,
+                )
+                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
+                pre_cap_keep_pct = achieved_keep_pct
+                sim_metrics = {
+                    "incident_capture_latency_ms": None,
+                    "threshold_volatility_pct": None,
+                    "max_step_change_pct": None,
+                }
+            else:
+                target_tps, kept_ids, achieved_keep_pct = _calibrate_target_tps(points, budget)
+                pre_cap_keep_pct = achieved_keep_pct
+
+                if args.budget_mode == "strict":
+                    kept_ids, target_trace_count, pre_cap_trace_count = _enforce_budget_cap(points, kept_ids, budget)
+                    achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
+
+                _, sim_metrics = eps.simulate_with_metrics(
+                    points,
+                    target_tps=target_tps,
+                    incident_anchor_sec=incident_anchor_sec,
+                )
+
+            # For non-adaptive modes, enforce strict budget cap here as well.
+            if args.budget_mode == "strict" and target_trace_count is None:
                 kept_ids, target_trace_count, pre_cap_trace_count = _enforce_budget_cap(points, kept_ids, budget)
                 achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
-
-            _, sim_metrics = eps.simulate_with_metrics(
-                points,
-                target_tps=target_tps,
-                incident_anchor_sec=incident_anchor_sec,
-            )
 
             sampled_trace_dir = root / "reports/analysis/paper-sampled-traces" / args.tag / spec.name / budget_slug / "trace"
             total_rows, kept_rows = _materialize_sampled_trace_dir(spec.trace_dir, sampled_trace_dir, kept_ids)
@@ -440,14 +1459,30 @@ def main() -> int:
             err_kept = sum(1 for p in points if p.has_error and p.trace_id in kept_ids)
 
             # Reuse evaluation helper for early-incident retention.
-            phase1_eval = eps.evaluate_dataset(
-                spec.name,
-                spec.trace_dir,
-                spec.label_file,
-                args.before_sec,
-                args.after_sec,
-                target_tps,
-            )
+            if args.selection_mode == "ranked":
+                # Recompute early retention directly from selected IDs for ranked mode.
+                labels_local = eps.load_labels(spec.label_file)
+                _pts_local, early_windows = eps.build_trace_points(spec.trace_dir, labels_local, args.before_sec, args.after_sec)
+                early_total = 0
+                early_kept = 0
+                for p in _pts_local:
+                    sec = p.start_ns // 1_000_000_000
+                    if any(s <= sec <= e for s, e in early_windows):
+                        early_total += 1
+                        if p.trace_id in kept_ids:
+                            early_kept += 1
+                phase1_eval = {
+                    "early_incident_retention_pct": (early_kept / early_total * 100.0) if early_total else None
+                }
+            else:
+                phase1_eval = eps.evaluate_dataset(
+                    spec.name,
+                    spec.trace_dir,
+                    spec.label_file,
+                    args.before_sec,
+                    args.after_sec,
+                    target_tps,
+                )
 
             cov_kept, cov_total, cov_pct = _incident_service_coverage(points, kept_ids, incident_services)
             endpoint_rows = _endpoint_retention(spec.trace_dir, kept_ids)

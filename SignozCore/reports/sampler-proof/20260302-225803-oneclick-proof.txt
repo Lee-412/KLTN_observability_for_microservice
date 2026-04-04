@@ -1,6 +1,0 @@
-run_id: thesis-proof-20260302-225500
-trace_count: 50000
-seed: 20260302
-baseline_file: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260302-225619-traces.json
-model_file: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260302-225735-traces.model.json
-retention_file: /home/leeduc/Desktop/KLTN/SignozCore/reports/compare/20260302-225741-retention-thesis-proof-20260302-225500.txt
