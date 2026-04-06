@@ -58,6 +58,32 @@ def _safe_slug(text: str) -> str:
     )
 
 
+def _parse_iso_utc_to_s(value: str) -> int:
+    v = str(value).strip()
+    if not v:
+        return 0
+    if v.endswith("Z"):
+        v = v[:-1] + "+00:00"
+    dt = datetime.fromisoformat(v)
+    return int(dt.timestamp())
+
+
+def _scenario_windows(base_scenarios: list[dict[str, Any]]) -> list[tuple[str, int, int]]:
+    out: list[tuple[str, int, int]] = []
+    for row in base_scenarios:
+        sid = str(row.get("scenario_id") or "").strip()
+        if not sid:
+            continue
+        st = _parse_iso_utc_to_s(str(row.get("incident_start_ts") or ""))
+        ed = _parse_iso_utc_to_s(str(row.get("incident_end_ts") or ""))
+        if st <= 0:
+            continue
+        if ed < st:
+            ed = st
+        out.append((sid, st, ed))
+    return out
+
+
 def _load_jsonl(path: Path) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     for line in path.read_text(encoding="utf-8").splitlines():
@@ -65,6 +91,125 @@ def _load_jsonl(path: Path) -> list[dict[str, Any]]:
         if line:
             out.append(json.loads(line))
     return out
+
+
+def _enforce_budget_cap_per_scenario(
+    points: list[eps.TracePoint],
+    kept_ids: set[str],
+    budget_pct: float,
+    scenario_windows: list[tuple[str, int, int]],
+    min_incident_traces_per_scenario: int = 1,
+) -> tuple[set[str], int, int, int]:
+    """Strict-cap with per-scenario floor to avoid global top-up distortion.
+
+    Returns (final_ids, target_count, pre_cap_count, scenario_floor_fail_count).
+    """
+    total = len(points)
+    if total == 0:
+        return set(), 0, 0, 0
+
+    target_count = int(round(total * (budget_pct / 100.0)))
+    target_count = max(1, min(total, target_count))
+    pre_cap_count = len(kept_ids)
+
+    if not scenario_windows or min_incident_traces_per_scenario <= 0:
+        capped, target_count2, pre_cap_count2 = _enforce_budget_cap(points, kept_ids, budget_pct)
+        return capped, target_count2, pre_cap_count2, 0
+
+    by_id: dict[str, eps.TracePoint] = {p.trace_id: p for p in points}
+    start_s_by_id: dict[str, int] = {p.trace_id: int(p.start_ns // 1_000_000_000) for p in points}
+
+    scenario_ids_by_idx: list[set[str]] = []
+    scenario_membership: dict[str, set[int]] = defaultdict(set)
+    non_empty_scenarios = 0
+
+    for idx, (_sid, st, ed) in enumerate(scenario_windows):
+        ids = {tid for tid, sec in start_s_by_id.items() if st <= sec <= ed}
+        scenario_ids_by_idx.append(ids)
+        if ids:
+            non_empty_scenarios += 1
+            for tid in ids:
+                scenario_membership[tid].add(idx)
+
+    if non_empty_scenarios == 0:
+        capped, target_count2, pre_cap_count2 = _enforce_budget_cap(points, kept_ids, budget_pct)
+        return capped, target_count2, pre_cap_count2, len(scenario_windows)
+
+    # Relax floor automatically if target budget is too small for all scenarios.
+    floor_each = min_incident_traces_per_scenario
+    if target_count < non_empty_scenarios * floor_each:
+        floor_each = 0
+
+    def _priority(tid: str) -> tuple[float, float, float, int, str]:
+        p = by_id.get(tid)
+        if p is None:
+            return (0.0, 0.0, 0.0, 0, tid)
+        return (
+            1.0 if p.has_error else 0.0,
+            float(p.duration_ms),
+            float(p.span_count),
+            len(scenario_membership.get(tid, set())),
+            tid,
+        )
+
+    final_ids: set[str] = set(kept_ids)
+    scenario_floor_fail_count = 0
+
+    if floor_each > 0:
+        for idx, ids in enumerate(scenario_ids_by_idx):
+            if not ids:
+                scenario_floor_fail_count += 1
+                continue
+            present = [tid for tid in final_ids if tid in ids]
+            if len(present) >= floor_each:
+                continue
+            need = floor_each - len(present)
+            candidates = [tid for tid in ids if tid not in final_ids]
+            candidates.sort(key=_priority, reverse=True)
+            if not candidates:
+                scenario_floor_fail_count += 1
+                continue
+            for tid in candidates[:need]:
+                final_ids.add(tid)
+            if len([tid for tid in final_ids if tid in ids]) < floor_each:
+                scenario_floor_fail_count += 1
+
+    if len(final_ids) <= target_count:
+        return final_ids, target_count, pre_cap_count, scenario_floor_fail_count
+
+    # Trim to target while preserving per-scenario floor when possible.
+    scenario_counts = [0] * len(scenario_ids_by_idx)
+    for tid in final_ids:
+        for idx in scenario_membership.get(tid, set()):
+            scenario_counts[idx] += 1
+
+    def _can_remove(tid: str) -> bool:
+        if floor_each <= 0:
+            return True
+        for idx in scenario_membership.get(tid, set()):
+            if scenario_counts[idx] <= floor_each:
+                return False
+        return True
+
+    removable = sorted(final_ids, key=_priority)
+    for tid in removable:
+        if len(final_ids) <= target_count:
+            break
+        if not _can_remove(tid):
+            continue
+        final_ids.remove(tid)
+        for idx in scenario_membership.get(tid, set()):
+            scenario_counts[idx] -= 1
+
+    # If still above target, force trim lowest-priority leftovers.
+    if len(final_ids) > target_count:
+        force = sorted(final_ids, key=_priority)
+        for tid in force:
+            if len(final_ids) <= target_count:
+                break
+            final_ids.remove(tid)
+
+    return final_ids, target_count, pre_cap_count, scenario_floor_fail_count
 
 
 def _write_jsonl(path: Path, rows: list[dict[str, Any]]) -> None:
@@ -1140,13 +1285,983 @@ def _stream_v1_select_ids(
     return kept_ids
 
 
+def _stream_v2_select_ids(
+    points: list[eps.TracePoint],
+    budget_pct: float,
+    incident_services: set[str],
+    incident_anchor_sec: int | None,
+    seed: int,
+    lookback_sec: int = 60,
+    alpha: float = 1.2,
+    gamma: float = 0.8,
+    metric_weight: float = 0.0,
+) -> set[str]:
+    """Streaming selector v2.7: robust system score + guarded diversity + OR quota valve.
+
+        - p_s: robust z-score over recent window features (error, latency pressure, incident-service hit),
+            optionally fused with metric-pressure when metric_weight>0.
+    - p_d: inverse cluster mass with online Jaccard-nearest clustering approximation.
+    - Gate: theta>beta => AND, else OR.
+    - OR guard: block diversity-only rare traces when p_s is weak.
+    - OR quota valve: low-p_s normal traces pass only while recent kept normal-ratio is below target.
+    - Guardrail: keep recent kept error-ratio close to recent seen error-ratio.
+    """
+    total = len(points)
+    if total == 0:
+        return set()
+
+    beta = _clamp(budget_pct / 100.0, 0.0, 1.0)
+    if beta <= 0.0:
+        return set()
+
+    traces = sorted(points, key=lambda p: (p.start_ns, p.trace_id))
+    target_count = max(1, min(total, int(round(total * beta))))
+    t0_sec = min(p.start_ns for p in traces) // 1_000_000_000
+    dur_lo = min(p.duration_ms for p in traces)
+    dur_hi = max(p.duration_ms for p in traces)
+    span_lo = min(p.span_count for p in traces)
+    span_hi = max(p.span_count for p in traces)
+    metric_weight = _clamp(float(metric_weight), 0.0, 0.60)
+    use_metric_fusion = metric_weight > 0.0
+
+    def _norm(v: float, lo: float, hi: float) -> float:
+        if hi <= lo:
+            return 0.0
+        return _clamp((v - lo) / (hi - lo), 0.0, 1.0)
+
+    def _dur_bucket(d_ms: float) -> str:
+        if d_ms < 100:
+            return "lt100"
+        if d_ms < 500:
+            return "100_500"
+        if d_ms < 2000:
+            return "500_2000"
+        return "ge2000"
+
+    def _span_bucket(sc: int) -> str:
+        if sc <= 3:
+            return "s1"
+        if sc <= 8:
+            return "s2"
+        if sc <= 20:
+            return "s3"
+        return "s4"
+
+    def _trace_tokens(p: eps.TracePoint) -> frozenset[str]:
+        toks = {f"svc:{s}" for s in p.services}
+        toks.add(f"dur:{_dur_bucket(p.duration_ms)}")
+        toks.add(f"span:{_span_bucket(p.span_count)}")
+        return frozenset(toks)
+
+    def _jaccard(a: frozenset[str], b: frozenset[str]) -> float:
+        if not a and not b:
+            return 1.0
+        u = len(a | b)
+        if u <= 0:
+            return 0.0
+        return len(a & b) / u
+
+    def _robust_sigma(xs: list[float]) -> float:
+        if len(xs) <= 1:
+            return 0.0
+        mu = sum(xs) / len(xs)
+        var = sum((x - mu) * (x - mu) for x in xs) / max(1, len(xs) - 1)
+        std = math.sqrt(max(0.0, var))
+        sxs = sorted(xs)
+        med = sxs[len(sxs) // 2]
+        abs_dev = sorted(abs(x - med) for x in xs)
+        mad = abs_dev[len(abs_dev) // 2]
+        robust = 1.4826 * mad
+        return max(std, robust)
+
+    # Build service-level pressure map (error-rate + latency pressure) in a sliding window.
+    by_sec: dict[int, list[eps.TracePoint]] = defaultdict(list)
+    service_durations: dict[str, list[float]] = defaultdict(list)
+    for p in traces:
+        sec = int(p.start_ns // 1_000_000_000 - t0_sec)
+        by_sec[sec].append(p)
+        for svc in p.services:
+            service_durations[svc].append(float(p.duration_ms))
+
+    sec_lo = min(by_sec.keys())
+    sec_hi = max(by_sec.keys())
+    service_p95: dict[str, float] = {}
+    for svc, vals in service_durations.items():
+        if not vals:
+            service_p95[svc] = 1.0
+            continue
+        xs = sorted(vals)
+        idx = int(round((len(xs) - 1) * 0.95))
+        idx = max(0, min(len(xs) - 1, idx))
+        service_p95[svc] = max(1.0, float(xs[idx]))
+
+    pressure_map: dict[tuple[int, str], float] = {}
+    window: deque[tuple[int, frozenset[str], bool, float]] = deque()
+    for sec in range(sec_lo, sec_hi + 1):
+        for p in by_sec.get(sec, []):
+            window.append((sec, p.services, p.has_error, float(p.duration_ms)))
+
+        while window and window[0][0] < sec - lookback_sec + 1:
+            window.popleft()
+
+        service_stats: dict[str, tuple[int, int, float]] = defaultdict(lambda: (0, 0, 0.0))
+        for _s, svcs, has_err, dur in window:
+            for svc in svcs:
+                n, e, dsum = service_stats[svc]
+                service_stats[svc] = (n + 1, e + (1 if has_err else 0), dsum + dur)
+
+        for svc, (n, e, dsum) in service_stats.items():
+            if n <= 0:
+                pressure_map[(sec, svc)] = 0.0
+                continue
+            err_rate = e / n
+            avg_dur = dsum / n
+            latency_pressure = _clamp(avg_dur / max(1.0, service_p95.get(svc, 1.0)), 0.0, 1.0)
+            pressure_map[(sec, svc)] = _clamp(0.70 * err_rate + 0.30 * latency_pressure, 0.0, 1.0)
+
+    def _metric_pressure(p: eps.TracePoint) -> float:
+        if not p.services:
+            return 0.0
+        sec = int(p.start_ns // 1_000_000_000 - t0_sec)
+        return max(pressure_map.get((sec, svc), 0.0) for svc in p.services)
+
+    rng = random.Random(seed)
+    kept_ids: set[str] = set()
+
+    # Recent seen features for p_s.
+    seen_win: deque[tuple[int, float, float, float, float]] = deque()
+    # Recent kept class for spectrum guardrail.
+    kept_win: deque[tuple[int, bool]] = deque()
+
+    # Online cluster mass in lookback window.
+    cluster_templates: dict[tuple[str, ...], frozenset[str]] = {}
+    cluster_counts: dict[tuple[str, ...], int] = defaultdict(int)
+    cluster_win: deque[tuple[int, tuple[str, ...]]] = deque()
+
+    seen = 0
+    eps0 = 1e-6
+    guardrail_tol = 0.12
+    cluster_merge_threshold = 0.5
+    warmup_seen = max(100, min(800, int(total * 0.15)))
+    score_by_id: dict[str, float] = {}
+    time_prox_by_id: dict[str, float] = {}
+    lat_by_id: dict[str, float] = {}
+    incident_hit_by_id: dict[str, float] = {}
+    by_id: dict[str, eps.TracePoint] = {p.trace_id: p for p in traces}
+    normal_ratio_target = 0.30
+    normal_ratio_low = 0.22
+    normal_ratio_high = 0.32
+
+    for p in traces:
+        seen += 1
+        sec = int(p.start_ns // 1_000_000_000 - t0_sec)
+
+        # Slide seen/kept/cluster windows.
+        while seen_win and seen_win[0][0] < sec - lookback_sec + 1:
+            seen_win.popleft()
+
+        while kept_win and kept_win[0][0] < sec - lookback_sec + 1:
+            kept_win.popleft()
+
+        while cluster_win and cluster_win[0][0] < sec - lookback_sec + 1:
+            _old_sec, old_key = cluster_win.popleft()
+            cluster_counts[old_key] -= 1
+            if cluster_counts[old_key] <= 0:
+                cluster_counts.pop(old_key, None)
+                cluster_templates.pop(old_key, None)
+
+        has_incident_service = 1.0 if _trace_has_incident_service(p, incident_services) else 0.0
+        lat_pressure = 0.7 * _norm(float(p.duration_ms), float(dur_lo), float(dur_hi)) + 0.3 * _norm(float(p.span_count), float(span_lo), float(span_hi))
+        metric_pressure = _metric_pressure(p)
+        err_flag = 1.0 if p.has_error else 0.0
+        if incident_anchor_sec is None:
+            time_prox = 0.5
+        else:
+            time_prox = math.exp(-abs(sec - incident_anchor_sec) / 60.0)
+
+        hist_err = [x[1] for x in seen_win]
+        hist_lat = [x[2] for x in seen_win]
+        hist_inc = [x[3] for x in seen_win]
+        hist_met = [x[4] for x in seen_win]
+
+        mu_err = (sum(hist_err) / len(hist_err)) if hist_err else 0.0
+        mu_lat = (sum(hist_lat) / len(hist_lat)) if hist_lat else 0.0
+        mu_inc = (sum(hist_inc) / len(hist_inc)) if hist_inc else 0.0
+        mu_met = (sum(hist_met) / len(hist_met)) if hist_met else 0.0
+
+        sg_err = _robust_sigma(hist_err)
+        sg_lat = _robust_sigma(hist_lat)
+        sg_inc = _robust_sigma(hist_inc)
+        sg_met = _robust_sigma(hist_met)
+
+        z_err = abs(err_flag - mu_err) / (sg_err + eps0)
+        z_lat = abs(lat_pressure - mu_lat) / (sg_lat + eps0)
+        z_inc = abs(has_incident_service - mu_inc) / (sg_inc + eps0)
+        if use_metric_fusion:
+            z_met = abs(metric_pressure - mu_met) / (sg_met + eps0)
+            z_mix = 0.34 * z_err + 0.28 * z_lat + 0.18 * z_inc + 0.20 * z_met
+        else:
+            z_mix = 0.40 * z_err + 0.35 * z_lat + 0.25 * z_inc
+        # Lower effective alpha at higher budget to avoid p_s saturating too close to 1.0.
+        alpha_eff = alpha * (0.90 if beta >= 0.01 else 1.00)
+        shock = math.tanh(alpha_eff * z_mix)
+        if use_metric_fusion:
+            base_sys = 0.36 * has_incident_service + 0.20 * lat_pressure + 0.14 * err_flag + 0.10 * time_prox + 0.20 * metric_pressure
+            trace_ps = _clamp(0.55 * base_sys + 0.45 * shock, 0.02, 0.98)
+            # Metrics fusion: blend trace-driven signal with service-metric pressure.
+            p_s = _clamp((1.0 - metric_weight) * trace_ps + metric_weight * metric_pressure, 0.02, 0.98)
+        else:
+            base_sys = 0.45 * has_incident_service + 0.25 * lat_pressure + 0.15 * err_flag + 0.15 * time_prox
+            p_s = _clamp(0.55 * base_sys + 0.45 * shock, 0.02, 0.98)
+
+        # Tightened incident floor: only boost traces that are truly in the incident region.
+        incident_floor = 0.0
+        if has_incident_service > 0.0:
+            if (err_flag > 0.0) and (time_prox >= 0.55):
+                incident_floor = 0.62
+            elif (time_prox >= 0.78) and (lat_pressure >= 0.58):
+                incident_floor = 0.56
+            elif (time_prox >= 0.88) and (lat_pressure >= 0.50):
+                incident_floor = 0.50
+        p_s = max(p_s, incident_floor)
+
+        # p_d from nearest-cluster mass with Jaccard similarity.
+        toks = _trace_tokens(p)
+        best_key: tuple[str, ...] | None = None
+        best_sim = 0.0
+        for k, ktoks in cluster_templates.items():
+            sim = _jaccard(toks, ktoks)
+            if sim > best_sim:
+                best_sim = sim
+                best_key = k
+
+        if best_key is not None and best_sim >= cluster_merge_threshold:
+            assigned_key = best_key
+            mass = cluster_counts.get(assigned_key, 0)
+            effective_mass = mass * best_sim
+        else:
+            assigned_key = tuple(sorted(toks))
+            mass = 0
+            effective_mass = 0.0
+
+        # V2.1: be more tolerant to repetition for incident-related traces.
+        if has_incident_service > 0.0:
+            effective_mass *= 0.35
+            gamma_eff = max(0.35, gamma * 0.55)
+            pd_floor = 0.20
+        else:
+            gamma_eff = gamma
+            pd_floor = 0.05
+        p_d = _clamp((1.0 + effective_mass) ** (-gamma_eff), pd_floor, 1.0)
+
+        theta = (len(kept_ids) / seen) if seen > 0 else 0.0
+
+        # Budget-aware OR threshold and normal baseline probability.
+        if beta <= 0.0015:
+            ps_or_floor = 0.12
+            normal_floor_target = 0.18
+        elif beta <= 0.01:
+            ps_or_floor = 0.20
+            normal_floor_target = 0.24
+        else:
+            ps_or_floor = 0.30
+            normal_floor_target = 0.30
+
+        if has_incident_service > 0.0 and time_prox >= 0.55:
+            ps_or_floor = max(0.08, ps_or_floor - 0.06)
+
+        # Baseline keep chance is only used when OR quota valve is open.
+        normal_baseline_prob = _clamp(max(beta, 0.02), 0.0, 0.20)
+        is_normal_common = (not p.has_error) and (has_incident_service <= 0.0) and (p_d <= 0.45)
+        kept_hist_or = [1.0 if e else 0.0 for _s, e in kept_win]
+        kept_err_ratio_or = (sum(kept_hist_or) / len(kept_hist_or)) if kept_hist_or else 0.0
+        kept_norm_ratio_or = 1.0 - kept_err_ratio_or
+        is_low_ps_normal = (not p.has_error) and (has_incident_service <= 0.0) and (p_s < ps_or_floor)
+
+        u = rng.random()
+        if theta > beta:
+            # In over-budget phase, keep incident/error traces less sensitive to diversity penalty.
+            if has_incident_service > 0.0 and (time_prox >= 0.60 or err_flag > 0.0 or lat_pressure >= 0.60):
+                keep = (u < max(p_s, 0.70))
+            else:
+                keep = (u < p_s) and (u < p_d)
+        else:
+            # Block rare diversity noise when system signal is weak.
+            rare_noise = (p_d >= 0.72) and (p_s < ps_or_floor)
+            if rare_noise:
+                keep = (u < p_s)
+            else:
+                keep = (u < p_s) or (u < p_d)
+
+            # OR quota valve: allow low-p_s normal traces only if normal ratio is below target.
+            if is_low_ps_normal:
+                valve_open = kept_norm_ratio_or < normal_ratio_target
+                if not valve_open:
+                    keep = False
+                elif (not keep) and is_normal_common and (u < normal_baseline_prob):
+                    keep = True
+
+            # Trace-only dynamic spectrum valve:
+            # - if normal ratio is already high, suppress weak normal traces
+            # - if normal ratio is too low, top-up normal background with tiny random chance
+            if (not p.has_error) and (has_incident_service <= 0.0):
+                if (kept_norm_ratio_or >= normal_ratio_high) and (p_s < max(ps_or_floor, 0.45)):
+                    keep = False
+                elif (kept_norm_ratio_or < normal_ratio_low) and (not keep):
+                    p_normal_topup = _clamp(max(beta * 0.8, 0.015), 0.0, 0.12)
+                    if rng.random() < p_normal_topup:
+                        keep = True
+
+        # Spectrum guardrail: keep kept-error ratio close to recent seen-error ratio.
+        hist_seen_err_ratio = (sum(hist_err) / len(hist_err)) if hist_err else 0.0
+        kept_hist = [1.0 if e else 0.0 for _s, e in kept_win]
+        kept_err_ratio = (sum(kept_hist) / len(kept_hist)) if kept_hist else hist_seen_err_ratio
+        kept_norm_ratio = 1.0 - kept_err_ratio
+        drift = kept_err_ratio - hist_seen_err_ratio
+        strong_signal = max(p_s, p_d) >= 0.85
+
+        # V2.1: reduce guardrail pressure in early stage; let AND/OR gate dominate first.
+        if seen >= warmup_seen:
+            if drift > guardrail_tol:
+                # Too error-heavy in kept set: prefer normal traces, avoid weak error traces.
+                if p.has_error and keep and (not strong_signal):
+                    keep = False
+                elif (not p.has_error) and (not keep) and (max(p_s, p_d) >= 0.60):
+                    keep = True
+            elif drift < -guardrail_tol:
+                # Too normal-heavy in kept set: prefer error traces.
+                if (not p.has_error) and keep and (not strong_signal):
+                    keep = False
+                elif p.has_error and (not keep) and (max(p_s, p_d) >= 0.50):
+                    keep = True
+
+            # OR quota valve reinforcement after warmup.
+            if theta <= beta and is_low_ps_normal and kept_norm_ratio >= normal_ratio_target:
+                keep = False
+            if theta <= beta and (not p.has_error) and (has_incident_service <= 0.0):
+                if (kept_norm_ratio >= normal_ratio_high) and (p_s < max(ps_or_floor, 0.45)):
+                    keep = False
+
+        if keep:
+            kept_ids.add(p.trace_id)
+            kept_win.append((sec, p.has_error))
+
+        score_by_id[p.trace_id] = 0.75 * p_s + 0.25 * p_d
+        time_prox_by_id[p.trace_id] = time_prox
+        lat_by_id[p.trace_id] = lat_pressure
+        incident_hit_by_id[p.trace_id] = has_incident_service
+
+        # Update seen/cluster windows after decision.
+        seen_win.append((sec, err_flag, lat_pressure, has_incident_service, metric_pressure))
+
+        cluster_templates[assigned_key] = toks if best_key is None else cluster_templates.get(assigned_key, toks)
+        cluster_counts[assigned_key] += 1
+        cluster_win.append((sec, assigned_key))
+
+    # Ultra-low budget booster: reserve a deterministic incident-focused core before final return.
+    if beta <= 0.0015 and target_count > 0:
+        reserve_n = max(1, int(round(target_count * 0.45)))
+        incident_pool = [
+            tid
+            for tid in by_id
+            if incident_hit_by_id.get(tid, 0.0) > 0.0
+        ]
+        incident_pool.sort(
+            key=lambda tid: (
+                time_prox_by_id.get(tid, 0.0),
+                lat_by_id.get(tid, 0.0),
+                1.0 if by_id[tid].has_error else 0.0,
+                score_by_id.get(tid, 0.0),
+            ),
+            reverse=True,
+        )
+        reserve_ids = incident_pool[:reserve_n]
+        if reserve_ids:
+            drop_candidates = [tid for tid in kept_ids if tid not in reserve_ids]
+            drop_candidates.sort(key=lambda tid: score_by_id.get(tid, 0.0))
+            need = [tid for tid in reserve_ids if tid not in kept_ids]
+            swap_n = min(len(need), len(drop_candidates))
+            for tid in drop_candidates[:swap_n]:
+                kept_ids.discard(tid)
+            for tid in need[:swap_n]:
+                kept_ids.add(tid)
+
+    # V2.2 reinforcement: ensure minimum error density for spectrum-based RCA.
+    if kept_ids:
+        base_err_ratio = sum(1 for p in traces if p.has_error) / total
+        min_err_ratio = _clamp(max(0.08, base_err_ratio * 1.2), 0.08, 0.40)
+        needed_err = int(round(target_count * min_err_ratio))
+        kept_err = [tid for tid in kept_ids if by_id.get(tid) and by_id[tid].has_error]
+
+        if len(kept_err) < needed_err:
+            deficit = needed_err - len(kept_err)
+            cand_add = [
+                tid
+                for tid, p in by_id.items()
+                if (tid not in kept_ids) and p.has_error
+            ]
+            cand_add.sort(key=lambda tid: score_by_id.get(tid, 0.0), reverse=True)
+            add_ids = cand_add[:deficit]
+
+            if add_ids:
+                # Remove weakest non-error traces first to keep set size stable.
+                cand_drop = [
+                    tid
+                    for tid in kept_ids
+                    if by_id.get(tid) and (not by_id[tid].has_error)
+                ]
+                cand_drop.sort(key=lambda tid: score_by_id.get(tid, 0.0))
+                drop_n = min(len(add_ids), len(cand_drop))
+                for tid in cand_drop[:drop_n]:
+                    kept_ids.discard(tid)
+                for tid in add_ids[:drop_n]:
+                    kept_ids.add(tid)
+
+    return kept_ids
+
+
+def _stream_v2_fusion_select_ids(
+    points: list[eps.TracePoint],
+    budget_pct: float,
+    incident_services: set[str],
+    incident_anchor_sec: int | None,
+    core_ratio: float,
+    edge_pool_multiplier: float,
+    seed: int,
+    metric_weight: float = 0.30,
+) -> set[str]:
+    """Fusion selector: V2 core (A@1 signal) + hybrid context (A@3/MRR stability).
+
+    Strategy:
+    - Build candidate core from stream-v2 selector.
+    - Build candidate context from ranked-v11-hybrid selector.
+    - Fill target budget by quota: core first, then context, then fallback.
+    """
+    total = len(points)
+    if total == 0:
+        return set()
+
+    target_count = int(round(total * (budget_pct / 100.0)))
+    target_count = max(1, min(total, target_count))
+
+    v2_ids = _stream_v2_select_ids(
+        points=points,
+        budget_pct=budget_pct,
+        incident_services=incident_services,
+        incident_anchor_sec=incident_anchor_sec,
+        seed=seed,
+        metric_weight=metric_weight,
+    )
+    hybrid_ids = _ranked_v11_hybrid_select_ids(
+        points=points,
+        budget_pct=budget_pct,
+        incident_services=incident_services,
+        incident_anchor_sec=incident_anchor_sec,
+        core_ratio=core_ratio,
+        edge_pool_multiplier=edge_pool_multiplier,
+        seed=seed,
+    )
+
+    by_id = {p.trace_id: p for p in points}
+    dur_lo = min(p.duration_ms for p in points)
+    dur_hi = max(p.duration_ms for p in points)
+    span_lo = min(p.span_count for p in points)
+    span_hi = max(p.span_count for p in points)
+    t0_sec = min(p.start_ns for p in points) // 1_000_000_000
+
+    def _norm(v: float, lo: float, hi: float) -> float:
+        if hi <= lo:
+            return 0.0
+        return _clamp((v - lo) / (hi - lo), 0.0, 1.0)
+
+    def _time_prox(p: eps.TracePoint) -> float:
+        if incident_anchor_sec is None:
+            return 0.5
+        sec = int(p.start_ns // 1_000_000_000 - t0_sec)
+        return math.exp(-abs(sec - incident_anchor_sec) / 60.0)
+
+    def _core_score(p: eps.TracePoint) -> float:
+        inc = 1.0 if _trace_has_incident_service(p, incident_services) else 0.0
+        err = 1.0 if p.has_error else 0.0
+        sev = 0.5 * _norm(float(p.duration_ms), float(dur_lo), float(dur_hi)) + 0.5 * _norm(float(p.span_count), float(span_lo), float(span_hi))
+        tsc = _time_prox(p)
+        return 0.45 * inc + 0.25 * err + 0.20 * tsc + 0.10 * sev
+
+    def _ctx_score(p: eps.TracePoint) -> float:
+        inc = 1.0 if _trace_has_incident_service(p, incident_services) else 0.0
+        sev = 0.5 * _norm(float(p.duration_ms), float(dur_lo), float(dur_hi)) + 0.5 * _norm(float(p.span_count), float(span_lo), float(span_hi))
+        tsc = _time_prox(p)
+        norm_bonus = 0.08 if not p.has_error else 0.0
+        return 0.35 * inc + 0.25 * tsc + 0.32 * sev + norm_bonus
+
+    # Budget-aware core quota: keep stronger V2 core at lower budgets.
+    cr = _clamp(float(core_ratio), 0.0, 1.0)
+    if budget_pct <= 0.15:
+        core_share = max(cr, 0.78)
+    elif budget_pct <= 1.0:
+        core_share = max(cr, 0.60)
+    else:
+        core_share = min(max(cr, 0.45), 0.58)
+
+    core_quota = int(round(target_count * core_share))
+    core_quota = max(0, min(target_count, core_quota))
+
+    v2_ranked = sorted((by_id[tid] for tid in v2_ids if tid in by_id), key=_core_score, reverse=True)
+    hy_ranked = sorted((by_id[tid] for tid in hybrid_ids if tid in by_id), key=_ctx_score, reverse=True)
+    all_ranked = sorted(points, key=_core_score, reverse=True)
+
+    selected: set[str] = set()
+    for p in v2_ranked:
+        if len(selected) >= core_quota:
+            break
+        selected.add(p.trace_id)
+
+    for p in hy_ranked:
+        if len(selected) >= target_count:
+            break
+        selected.add(p.trace_id)
+
+    for p in v2_ranked:
+        if len(selected) >= target_count:
+            break
+        selected.add(p.trace_id)
+
+    for p in all_ranked:
+        if len(selected) >= target_count:
+            break
+        selected.add(p.trace_id)
+
+    return selected
+
+
+def _stream_v3_select_ids(
+    points: list[eps.TracePoint],
+    budget_pct: float,
+    incident_services: set[str],
+    incident_anchor_sec: int | None,
+    seed: int,
+    online_soft_cap: bool = False,
+    lookback_sec: int = 60,
+    alpha: float = 1.2,
+    gamma: float = 0.8,
+) -> set[str]:
+    """Stream-Hybrid V3: V2 core + OR soft quota 70/30 + no hard strict-cap.
+
+    - Keep V2 core for p_s and p_d.
+    - Keep AND gate when theta > beta.
+    - Simplify OR gate when theta <= beta:
+      - Block rare diversity noise (high p_d, low p_s).
+      - For clean normal traces, allow pass only when kept-normal ratio < 30%, with prob=beta.
+        - Keep only minimum-error-density reinforcement post selection.
+        - Optional online soft-cap controller: when theta < beta, open a random
+            normal-trace valve with probability proportional to gap=(beta-theta).
+    """
+    total = len(points)
+    if total == 0:
+        return set()
+
+    beta = _clamp(budget_pct / 100.0, 0.0, 1.0)
+    if beta <= 0.0:
+        return set()
+
+    traces = sorted(points, key=lambda p: (p.start_ns, p.trace_id))
+    target_count = max(1, min(total, int(round(total * beta))))
+    t0_sec = min(p.start_ns for p in traces) // 1_000_000_000
+    dur_lo = min(p.duration_ms for p in traces)
+    dur_hi = max(p.duration_ms for p in traces)
+    span_lo = min(p.span_count for p in traces)
+    span_hi = max(p.span_count for p in traces)
+
+    def _norm(v: float, lo: float, hi: float) -> float:
+        if hi <= lo:
+            return 0.0
+        return _clamp((v - lo) / (hi - lo), 0.0, 1.0)
+
+    def _dur_bucket(d_ms: float) -> str:
+        if d_ms < 100:
+            return "lt100"
+        if d_ms < 500:
+            return "100_500"
+        if d_ms < 2000:
+            return "500_2000"
+        return "ge2000"
+
+    def _span_bucket(sc: int) -> str:
+        if sc <= 3:
+            return "s1"
+        if sc <= 8:
+            return "s2"
+        if sc <= 20:
+            return "s3"
+        return "s4"
+
+    def _trace_tokens(p: eps.TracePoint) -> frozenset[str]:
+        toks = {f"svc:{s}" for s in p.services}
+        toks.add(f"dur:{_dur_bucket(p.duration_ms)}")
+        toks.add(f"span:{_span_bucket(p.span_count)}")
+        return frozenset(toks)
+
+    def _jaccard(a: frozenset[str], b: frozenset[str]) -> float:
+        if not a and not b:
+            return 1.0
+        u = len(a | b)
+        if u <= 0:
+            return 0.0
+        return len(a & b) / u
+
+    def _robust_sigma(xs: list[float]) -> float:
+        if len(xs) <= 1:
+            return 0.0
+        mu = sum(xs) / len(xs)
+        var = sum((x - mu) * (x - mu) for x in xs) / max(1, len(xs) - 1)
+        std = math.sqrt(max(0.0, var))
+        sxs = sorted(xs)
+        med = sxs[len(sxs) // 2]
+        abs_dev = sorted(abs(x - med) for x in xs)
+        mad = abs_dev[len(abs_dev) // 2]
+        robust = 1.4826 * mad
+        return max(std, robust)
+
+    rng = random.Random(seed)
+    kept_ids: set[str] = set()
+
+    seen_win: deque[tuple[int, float, float, float]] = deque()
+    kept_win: deque[tuple[int, bool]] = deque()
+
+    cluster_templates: dict[tuple[str, ...], frozenset[str]] = {}
+    cluster_counts: dict[tuple[str, ...], int] = defaultdict(int)
+    cluster_win: deque[tuple[int, tuple[str, ...]]] = deque()
+
+    seen = 0
+    eps0 = 1e-6
+    cluster_merge_threshold = 0.5
+
+    normal_ratio_target = 0.30
+
+    score_by_id: dict[str, float] = {}
+    by_id: dict[str, eps.TracePoint] = {p.trace_id: p for p in traces}
+
+    for p in traces:
+        seen += 1
+        sec = int(p.start_ns // 1_000_000_000 - t0_sec)
+
+        while seen_win and seen_win[0][0] < sec - lookback_sec + 1:
+            seen_win.popleft()
+        while kept_win and kept_win[0][0] < sec - lookback_sec + 1:
+            kept_win.popleft()
+        while cluster_win and cluster_win[0][0] < sec - lookback_sec + 1:
+            _old_sec, old_key = cluster_win.popleft()
+            cluster_counts[old_key] -= 1
+            if cluster_counts[old_key] <= 0:
+                cluster_counts.pop(old_key, None)
+                cluster_templates.pop(old_key, None)
+
+        has_incident_service = 1.0 if _trace_has_incident_service(p, incident_services) else 0.0
+        lat_pressure = 0.7 * _norm(float(p.duration_ms), float(dur_lo), float(dur_hi)) + 0.3 * _norm(float(p.span_count), float(span_lo), float(span_hi))
+        err_flag = 1.0 if p.has_error else 0.0
+        if incident_anchor_sec is None:
+            time_prox = 0.5
+        else:
+            time_prox = math.exp(-abs(sec - incident_anchor_sec) / 60.0)
+
+        hist_err = [x[1] for x in seen_win]
+        hist_lat = [x[2] for x in seen_win]
+        hist_inc = [x[3] for x in seen_win]
+
+        mu_err = (sum(hist_err) / len(hist_err)) if hist_err else 0.0
+        mu_lat = (sum(hist_lat) / len(hist_lat)) if hist_lat else 0.0
+        mu_inc = (sum(hist_inc) / len(hist_inc)) if hist_inc else 0.0
+
+        sg_err = _robust_sigma(hist_err)
+        sg_lat = _robust_sigma(hist_lat)
+        sg_inc = _robust_sigma(hist_inc)
+
+        z_err = abs(err_flag - mu_err) / (sg_err + eps0)
+        z_lat = abs(lat_pressure - mu_lat) / (sg_lat + eps0)
+        z_inc = abs(has_incident_service - mu_inc) / (sg_inc + eps0)
+        z_mix = 0.40 * z_err + 0.35 * z_lat + 0.25 * z_inc
+
+        alpha_eff = alpha * (0.90 if beta >= 0.01 else 1.00)
+        shock = math.tanh(alpha_eff * z_mix)
+        base_sys = 0.45 * has_incident_service + 0.25 * lat_pressure + 0.15 * err_flag + 0.15 * time_prox
+        p_s = _clamp(0.55 * base_sys + 0.45 * shock, 0.02, 0.98)
+
+        incident_floor = 0.0
+        if has_incident_service > 0.0:
+            if (err_flag > 0.0) and (time_prox >= 0.55):
+                incident_floor = 0.62
+            elif (time_prox >= 0.78) and (lat_pressure >= 0.58):
+                incident_floor = 0.56
+            elif (time_prox >= 0.88) and (lat_pressure >= 0.50):
+                incident_floor = 0.50
+        p_s = max(p_s, incident_floor)
+
+        toks = _trace_tokens(p)
+        best_key: tuple[str, ...] | None = None
+        best_sim = 0.0
+        for k, ktoks in cluster_templates.items():
+            sim = _jaccard(toks, ktoks)
+            if sim > best_sim:
+                best_sim = sim
+                best_key = k
+
+        if best_key is not None and best_sim >= cluster_merge_threshold:
+            assigned_key = best_key
+            mass = cluster_counts.get(assigned_key, 0)
+            effective_mass = mass * best_sim
+        else:
+            assigned_key = tuple(sorted(toks))
+            effective_mass = 0.0
+
+        if has_incident_service > 0.0:
+            effective_mass *= 0.35
+            gamma_eff = max(0.35, gamma * 0.55)
+            pd_floor = 0.20
+        else:
+            gamma_eff = gamma
+            pd_floor = 0.05
+        p_d = _clamp((1.0 + effective_mass) ** (-gamma_eff), pd_floor, 1.0)
+
+        theta = (len(kept_ids) / seen) if seen > 0 else 0.0
+        if beta <= 0.0015:
+            ps_or_floor = 0.12
+        elif beta <= 0.01:
+            ps_or_floor = 0.20
+        else:
+            ps_or_floor = 0.30
+        if has_incident_service > 0.0 and time_prox >= 0.55:
+            ps_or_floor = max(0.08, ps_or_floor - 0.06)
+
+        kept_hist = [1.0 if e else 0.0 for _s, e in kept_win]
+        kept_err_ratio = (sum(kept_hist) / len(kept_hist)) if kept_hist else 0.0
+        kept_norm_ratio = 1.0 - kept_err_ratio
+
+        u = rng.random()
+        if theta > beta:
+            keep = (u < p_s) and (u < p_d)
+        else:
+            rare_noise = (p_d >= 0.72) and (p_s < ps_or_floor)
+            if rare_noise:
+                keep = False
+            else:
+                keep = (u < p_s)
+
+            is_clean_normal = (not p.has_error) and (has_incident_service <= 0.0) and (p_s < ps_or_floor) and (p_d <= 0.45)
+            if (not keep) and is_clean_normal and (kept_norm_ratio < normal_ratio_target):
+                if rng.random() < beta:
+                    keep = True
+
+            if (not keep) and online_soft_cap and is_clean_normal:
+                gap = max(0.0, beta - theta)
+                # Soft-cap padding for online mode to separate budgets smoothly.
+                p_gap = _clamp(gap, 0.0, 0.20)
+                if rng.random() < p_gap:
+                    keep = True
+
+        if keep:
+            kept_ids.add(p.trace_id)
+            kept_win.append((sec, p.has_error))
+
+        score_by_id[p.trace_id] = 0.75 * p_s + 0.25 * p_d
+        seen_win.append((sec, err_flag, lat_pressure, has_incident_service))
+        cluster_templates[assigned_key] = toks if best_key is None else cluster_templates.get(assigned_key, toks)
+        cluster_counts[assigned_key] += 1
+        cluster_win.append((sec, assigned_key))
+
+    # Keep minimum error density protection (same spirit as v2).
+    if kept_ids:
+        base_err_ratio = sum(1 for p in traces if p.has_error) / total
+        min_err_ratio = _clamp(max(0.08, base_err_ratio * 1.2), 0.08, 0.40)
+        needed_err = int(round(target_count * min_err_ratio))
+        kept_err = [tid for tid in kept_ids if by_id.get(tid) and by_id[tid].has_error]
+
+        if len(kept_err) < needed_err:
+            deficit = needed_err - len(kept_err)
+            cand_add = [tid for tid, p in by_id.items() if (tid not in kept_ids) and p.has_error]
+            cand_add.sort(key=lambda tid: score_by_id.get(tid, 0.0), reverse=True)
+            add_ids = cand_add[:deficit]
+            if add_ids:
+                cand_drop = [tid for tid in kept_ids if by_id.get(tid) and (not by_id[tid].has_error)]
+                cand_drop.sort(key=lambda tid: score_by_id.get(tid, 0.0))
+                drop_n = min(len(add_ids), len(cand_drop))
+                for tid in cand_drop[:drop_n]:
+                    kept_ids.discard(tid)
+                for tid in add_ids[:drop_n]:
+                    kept_ids.add(tid)
+
+    return kept_ids
+
+
+def _stream_v2_lite_select_ids(
+    points: list[eps.TracePoint],
+    budget_pct: float,
+    incident_services: set[str],
+    incident_anchor_sec: int | None,
+    seed: int,
+    lookback_sec: int = 60,
+    alpha: float = 1.2,
+) -> set[str]:
+    """Stream-Lite: p_s only + tiny random normal background, no p_d/clustering.
+
+    Decision rule:
+    - If theta > beta: keep when rand < p_s
+    - Else: keep when (rand < p_s) OR (rand < p_normal)
+    where p_normal ~= beta (tiny breathing hole for baseline traces).
+    """
+    total = len(points)
+    if total == 0:
+        return set()
+
+    beta = _clamp(budget_pct / 100.0, 0.0, 1.0)
+    if beta <= 0.0:
+        return set()
+
+    traces = sorted(points, key=lambda p: (p.start_ns, p.trace_id))
+    t0_sec = min(p.start_ns for p in traces) // 1_000_000_000
+    dur_lo = min(p.duration_ms for p in traces)
+    dur_hi = max(p.duration_ms for p in traces)
+    span_lo = min(p.span_count for p in traces)
+    span_hi = max(p.span_count for p in traces)
+
+    def _norm(v: float, lo: float, hi: float) -> float:
+        if hi <= lo:
+            return 0.0
+        return _clamp((v - lo) / (hi - lo), 0.0, 1.0)
+
+    def _robust_sigma(xs: list[float]) -> float:
+        if len(xs) <= 1:
+            return 0.0
+        mu = sum(xs) / len(xs)
+        var = sum((x - mu) * (x - mu) for x in xs) / max(1, len(xs) - 1)
+        std = math.sqrt(max(0.0, var))
+        sxs = sorted(xs)
+        med = sxs[len(sxs) // 2]
+        abs_dev = sorted(abs(x - med) for x in xs)
+        mad = abs_dev[len(abs_dev) // 2]
+        robust = 1.4826 * mad
+        return max(std, robust)
+
+    # Lightweight metric-pressure map per service/time window.
+    by_sec: dict[int, list[eps.TracePoint]] = defaultdict(list)
+    service_durations: dict[str, list[float]] = defaultdict(list)
+    for p in traces:
+        sec = int(p.start_ns // 1_000_000_000 - t0_sec)
+        by_sec[sec].append(p)
+        for svc in p.services:
+            service_durations[svc].append(float(p.duration_ms))
+
+    sec_lo = min(by_sec.keys())
+    sec_hi = max(by_sec.keys())
+    service_p95: dict[str, float] = {}
+    for svc, vals in service_durations.items():
+        if not vals:
+            service_p95[svc] = 1.0
+            continue
+        xs = sorted(vals)
+        idx = int(round((len(xs) - 1) * 0.95))
+        idx = max(0, min(len(xs) - 1, idx))
+        service_p95[svc] = max(1.0, float(xs[idx]))
+
+    pressure_map: dict[tuple[int, str], float] = {}
+    window: deque[tuple[int, frozenset[str], bool, float]] = deque()
+    for sec in range(sec_lo, sec_hi + 1):
+        for p in by_sec.get(sec, []):
+            window.append((sec, p.services, p.has_error, float(p.duration_ms)))
+        while window and window[0][0] < sec - lookback_sec + 1:
+            window.popleft()
+
+        service_stats: dict[str, tuple[int, int, float]] = defaultdict(lambda: (0, 0, 0.0))
+        for _s, svcs, has_err, dur in window:
+            for svc in svcs:
+                n, e, dsum = service_stats[svc]
+                service_stats[svc] = (n + 1, e + (1 if has_err else 0), dsum + dur)
+
+        for svc, (n, e, dsum) in service_stats.items():
+            if n <= 0:
+                pressure_map[(sec, svc)] = 0.0
+                continue
+            err_rate = e / n
+            avg_dur = dsum / n
+            latency_pressure = _clamp(avg_dur / max(1.0, service_p95.get(svc, 1.0)), 0.0, 1.0)
+            pressure_map[(sec, svc)] = _clamp(0.70 * err_rate + 0.30 * latency_pressure, 0.0, 1.0)
+
+    def _metric_pressure(p: eps.TracePoint) -> float:
+        if not p.services:
+            return 0.0
+        sec = int(p.start_ns // 1_000_000_000 - t0_sec)
+        return max(pressure_map.get((sec, svc), 0.0) for svc in p.services)
+
+    rng = random.Random(seed)
+    kept_ids: set[str] = set()
+    seen = 0
+    eps0 = 1e-6
+    seen_win: deque[tuple[int, float, float, float, float]] = deque()
+
+    p_normal = _clamp(beta, 0.0, 0.10)
+
+    for p in traces:
+        seen += 1
+        sec = int(p.start_ns // 1_000_000_000 - t0_sec)
+
+        while seen_win and seen_win[0][0] < sec - lookback_sec + 1:
+            seen_win.popleft()
+
+        has_incident_service = 1.0 if _trace_has_incident_service(p, incident_services) else 0.0
+        lat_pressure = 0.7 * _norm(float(p.duration_ms), float(dur_lo), float(dur_hi)) + 0.3 * _norm(float(p.span_count), float(span_lo), float(span_hi))
+        metric_pressure = _metric_pressure(p)
+        err_flag = 1.0 if p.has_error else 0.0
+        if incident_anchor_sec is None:
+            time_prox = 0.5
+        else:
+            time_prox = math.exp(-abs(sec - incident_anchor_sec) / 60.0)
+
+        hist_err = [x[1] for x in seen_win]
+        hist_lat = [x[2] for x in seen_win]
+        hist_inc = [x[3] for x in seen_win]
+        hist_met = [x[4] for x in seen_win]
+
+        mu_err = (sum(hist_err) / len(hist_err)) if hist_err else 0.0
+        mu_lat = (sum(hist_lat) / len(hist_lat)) if hist_lat else 0.0
+        mu_inc = (sum(hist_inc) / len(hist_inc)) if hist_inc else 0.0
+        mu_met = (sum(hist_met) / len(hist_met)) if hist_met else 0.0
+
+        sg_err = _robust_sigma(hist_err)
+        sg_lat = _robust_sigma(hist_lat)
+        sg_inc = _robust_sigma(hist_inc)
+        sg_met = _robust_sigma(hist_met)
+
+        z_err = abs(err_flag - mu_err) / (sg_err + eps0)
+        z_lat = abs(lat_pressure - mu_lat) / (sg_lat + eps0)
+        z_inc = abs(has_incident_service - mu_inc) / (sg_inc + eps0)
+        z_met = abs(metric_pressure - mu_met) / (sg_met + eps0)
+        z_mix = 0.32 * z_err + 0.24 * z_lat + 0.20 * z_inc + 0.24 * z_met
+
+        shock = math.tanh(alpha * z_mix)
+        base_sys = 0.32 * has_incident_service + 0.18 * lat_pressure + 0.16 * err_flag + 0.10 * time_prox + 0.24 * metric_pressure
+        p_s = _clamp(0.52 * base_sys + 0.48 * shock, 0.01, 0.98)
+
+        theta = (len(kept_ids) / seen) if seen > 0 else 0.0
+        u = rng.random()
+        if theta > beta:
+            keep = (u < p_s)
+        else:
+            keep = (u < p_s) or (u < p_normal)
+
+        if keep:
+            kept_ids.add(p.trace_id)
+
+        seen_win.append((sec, err_flag, lat_pressure, has_incident_service, metric_pressure))
+
+    return kept_ids
+
+
 def _enforce_budget_cap(points: list[eps.TracePoint], kept_ids: set[str], budget_pct: float) -> tuple[set[str], int, int]:
-    """Enforce exact trace-count budget by capping kept set with priority ordering.
+    """Enforce exact trace-count budget by capping kept set with spectrum-aware ordering.
 
     Priority order when trimming:
-    1) error traces first
-    2) longer duration first
-    3) higher span count first
+    1) preserve error/normal mix close to dataset baseline ratio
+    2) within each class: longer duration first
+    3) then higher span count first
     4) deterministic tie-break by trace_id
     """
     total = len(points)
@@ -1160,18 +2275,30 @@ def _enforce_budget_cap(points: list[eps.TracePoint], kept_ids: set[str], budget
         return set(kept_ids), target_count, len(kept_ids)
 
     by_id = {p.trace_id: p for p in points}
-    present = [tid for tid in kept_ids if tid in by_id]
-    present.sort(
-        key=lambda tid: (
-            1 if by_id[tid].has_error else 0,
-            by_id[tid].duration_ms,
-            by_id[tid].span_count,
-            tid,
-        ),
-        reverse=True,
-    )
+    present_ids = [tid for tid in kept_ids if tid in by_id]
+    present_errors = [tid for tid in present_ids if by_id[tid].has_error]
+    present_normals = [tid for tid in present_ids if not by_id[tid].has_error]
 
-    capped = set(present[:target_count])
+    present_errors.sort(key=lambda tid: (by_id[tid].duration_ms, by_id[tid].span_count, tid), reverse=True)
+    present_normals.sort(key=lambda tid: (by_id[tid].duration_ms, by_id[tid].span_count, tid), reverse=True)
+
+    # Preserve the selected-set spectrum first (pre-cap), not the global dataset baseline.
+    target_err_ratio = (len(present_errors) / len(present_ids)) if present_ids else 0.0
+    wanted_errors = int(round(target_count * target_err_ratio))
+    wanted_errors = max(0, min(wanted_errors, target_count, len(present_errors)))
+    wanted_normals = target_count - wanted_errors
+    if wanted_normals > len(present_normals):
+        deficit = wanted_normals - len(present_normals)
+        wanted_normals = len(present_normals)
+        wanted_errors = min(len(present_errors), wanted_errors + deficit)
+
+    capped_list = present_errors[:wanted_errors] + present_normals[:wanted_normals]
+    if len(capped_list) < target_count:
+        leftovers = present_errors[wanted_errors:] + present_normals[wanted_normals:]
+        leftovers.sort(key=lambda tid: (by_id[tid].duration_ms, by_id[tid].span_count, tid), reverse=True)
+        capped_list.extend(leftovers[: target_count - len(capped_list)])
+
+    capped = set(capped_list)
     return capped, target_count, len(kept_ids)
 
 
@@ -1249,6 +2376,67 @@ def _paper_microrank_reference() -> dict[float, dict[str, float]]:
     }
 
 
+def _paper_table3_reference_rows() -> list[dict[str, float | str]]:
+    # Copied from paper Table 3 snapshot used throughout this workspace.
+    return [
+        {"model": "Random", "a1_0p1": 5.56, "a1_1p0": 16.67, "a1_2p5": 27.78, "a3_0p1": 20.37, "a3_1p0": 50.00, "a3_2p5": 61.11, "mrr_0p1": 0.1571, "mrr_1p0": 0.3423, "mrr_2p5": 0.4352},
+        {"model": "HC", "a1_0p1": 7.41, "a1_1p0": 18.52, "a1_2p5": 22.22, "a3_0p1": 27.78, "a3_1p0": 46.30, "a3_2p5": 51.85, "mrr_0p1": 0.1954, "mrr_1p0": 0.3398, "mrr_2p5": 0.3731},
+        {"model": "Sifter", "a1_0p1": 5.56, "a1_1p0": 18.52, "a1_2p5": 27.78, "a3_0p1": 23.42, "a3_1p0": 46.30, "a3_2p5": 61.11, "mrr_0p1": 0.1605, "mrr_1p0": 0.3414, "mrr_2p5": 0.4358},
+        {"model": "Sieve", "a1_0p1": 9.26, "a1_1p0": 25.83, "a1_2p5": 35.19, "a3_0p1": 20.37, "a3_1p0": 58.15, "a3_2p5": 62.96, "mrr_0p1": 0.1657, "mrr_1p0": 0.4246, "mrr_2p5": 0.4963},
+        {"model": "TraStrainer w/o M", "a1_0p1": 12.96, "a1_1p0": 16.67, "a1_2p5": 24.07, "a3_0p1": 42.59, "a3_1p0": 42.59, "a3_2p5": 55.56, "mrr_0p1": 0.2994, "mrr_1p0": 0.3241, "mrr_2p5": 0.4012},
+        {"model": "TraStrainer w/o D", "a1_0p1": 29.63, "a1_1p0": 42.59, "a1_2p5": 46.30, "a3_0p1": 74.04, "a3_1p0": 68.52, "a3_2p5": 72.22, "mrr_0p1": 0.5228, "mrr_1p0": 0.5463, "mrr_2p5": 0.5509},
+        {"model": "TraStrainer", "a1_0p1": 42.59, "a1_1p0": 45.16, "a1_2p5": 50.00, "a3_0p1": 77.74, "a3_1p0": 78.52, "a3_2p5": 82.26, "mrr_0p1": 0.5509, "mrr_1p0": 0.5889, "mrr_2p5": 0.6556},
+    ]
+
+
+def _known_ours_reference_rows() -> list[dict[str, float | str]]:
+    # Preserved rows from prior verified comparison files.
+    return [
+        {"model": "Ours (MicroRank + Hybrid c0.7 m2)", "a1_0p1": 9.25, "a1_1p0": 20.00, "a1_2p5": 17.69, "a3_0p1": 39.18, "a3_1p0": 40.81, "a3_2p5": 37.36, "mrr_0p1": 0.2981, "mrr_1p0": 0.3736, "mrr_2p5": 0.3502},
+        {"model": "Ours (MicroRank + Stream v1 strictfix)", "a1_0p1": 10.04, "a1_1p0": 15.26, "a1_2p5": 17.34, "a3_0p1": 43.99, "a3_1p0": 48.90, "a3_2p5": 48.90, "mrr_0p1": 0.3255, "mrr_1p0": 0.3655, "mrr_2p5": 0.3823},
+        {"model": "Ours (MicroRank + stream-v2)", "a1_0p1": 15.87, "a1_1p0": 9.80, "a1_2p5": 11.81, "a3_0p1": 57.94, "a3_1p0": 21.41, "a3_2p5": 25.57, "mrr_0p1": 0.3944, "mrr_1p0": 0.2180, "mrr_2p5": 0.2613},
+    ]
+
+
+def _current_ours_table3_row(compare_avg_rows: list[dict[str, Any]], selection_mode: str, tag: str) -> dict[str, float | str]:
+    by_budget = {float(r["budget_pct"]): r for r in compare_avg_rows}
+
+    def _val(budget: float, key: str, scale: float = 1.0) -> float:
+        r = by_budget.get(budget)
+        if not r or r.get(key) is None:
+            return 0.0
+        return float(r[key]) * scale
+
+    mode_label = selection_mode
+    tag_lc = str(tag).lower().replace("-", "_")
+    if selection_mode == "stream-v2":
+        v2_minor: str | None = None
+        pivot = tag_lc.find("v2_")
+        if pivot >= 0:
+            i = pivot + 3
+            digits = []
+            while i < len(tag_lc) and tag_lc[i].isdigit():
+                digits.append(tag_lc[i])
+                i += 1
+            if digits:
+                v2_minor = "".join(digits)
+        if v2_minor is not None:
+            mode_label = f"stream-v2.{v2_minor}"
+
+    return {
+        "model": f"Ours (MicroRank + {mode_label})",
+        "a1_0p1": _val(0.1, "ours_avg_A@1_pct"),
+        "a1_1p0": _val(1.0, "ours_avg_A@1_pct"),
+        "a1_2p5": _val(2.5, "ours_avg_A@1_pct"),
+        "a3_0p1": _val(0.1, "ours_avg_A@3_pct"),
+        "a3_1p0": _val(1.0, "ours_avg_A@3_pct"),
+        "a3_2p5": _val(2.5, "ours_avg_A@3_pct"),
+        "mrr_0p1": _val(0.1, "ours_avg_MRR"),
+        "mrr_1p0": _val(1.0, "ours_avg_MRR"),
+        "mrr_2p5": _val(2.5, "ours_avg_MRR"),
+    }
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Run paper datasets through 2-phase sampling->RCA pipeline for multiple budgets")
     ap.add_argument("--root", default=".", help="Path to SignozCore root")
@@ -1269,9 +2457,9 @@ def main() -> int:
     )
     ap.add_argument(
         "--selection-mode",
-        choices=["adaptive", "ranked", "ranked-v11", "ranked-v11-quota", "ranked-v11-stochastic", "ranked-v11-hybrid", "stream-v1"],
+        choices=["adaptive", "ranked", "ranked-v11", "ranked-v11-quota", "ranked-v11-stochastic", "ranked-v11-hybrid", "stream-v1", "stream-v2", "stream-v2-lite", "stream-v2-fusion", "stream-v3"],
         default="adaptive",
-        help="adaptive: existing target_tps simulator; ranked: error/context split ranking; ranked-v11: formula-based global ranking; ranked-v11-quota: formula ranking with hard error/normal partition; ranked-v11-stochastic: calibrated probabilistic sampling; ranked-v11-hybrid: deterministic core + stochastic edge exploration; stream-v1: online dynamic voting with AND/OR gate",
+        help="adaptive: existing target_tps simulator; ranked: error/context split ranking; ranked-v11: formula-based global ranking; ranked-v11-quota: formula ranking with hard error/normal partition; ranked-v11-stochastic: calibrated probabilistic sampling; ranked-v11-hybrid: deterministic core + stochastic edge exploration; stream-v1: online dynamic voting with AND/OR gate; stream-v2: robust trace-only v2.7 baseline; stream-v2-lite: p_s-only + tiny random normal breathing hole (no p_d/clustering); stream-v2-fusion: v2 core + hybrid context fusion; stream-v3: V2 core + OR soft-quota 70/30 (no hard strict-cap)",
     )
     ap.add_argument(
         "--error-budget-ratio",
@@ -1303,7 +2491,17 @@ def main() -> int:
         default=3.0,
         help="When selection-mode=ranked-v11-hybrid, edge exploration pool size as multiplier of total budget",
     )
+    ap.add_argument(
+        "--stream-v2-metric-weight",
+        type=float,
+        default=0.0,
+        help="When selection-mode=stream-v2/stream-v2-fusion, blend weight for service-metric pressure in p_s (0.0-0.6)",
+    )
     args = ap.parse_args()
+
+    # Always append an execution timestamp so all outputs are uniquely trackable.
+    run_stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    args.tag = f"{args.tag}-{run_stamp}"
 
     root = Path(args.root).resolve()
     budgets = [float(x.strip()) for x in args.budgets.split(",") if x.strip()]
@@ -1316,11 +2514,14 @@ def main() -> int:
     benchmark_rows: list[dict[str, Any]] = []
     compare_rows: list[dict[str, Any]] = []
     sampling_quality_rows: list[dict[str, Any]] = []
+    invalid_run_reasons: list[str] = []
 
     for spec in specs:
         print(f"\\n== DATASET: {spec.name} ==")
         labels = eps.load_labels(spec.label_file)
         points, _ = eps.build_trace_points(spec.trace_dir, labels, args.before_sec, args.after_sec)
+        base_scenarios = _load_jsonl(spec.base_scenario_file)
+        scenario_windows = _scenario_windows(base_scenarios)
         incident_services = _incident_services_from_labels(spec.label_file)
         t0_sec = min(p.start_ns for p in points) // 1_000_000_000 if points else 0
         incident_anchor_sec = (min(ts for ts, _svc in labels) - t0_sec) if labels else None
@@ -1430,6 +2631,75 @@ def main() -> int:
                     "threshold_volatility_pct": None,
                     "max_step_change_pct": None,
                 }
+            elif args.selection_mode == "stream-v2":
+                target_tps = 0.0
+                kept_ids = _stream_v2_select_ids(
+                    points=points,
+                    budget_pct=budget,
+                    incident_services=incident_services,
+                    incident_anchor_sec=incident_anchor_sec,
+                    seed=args.stochastic_seed,
+                    metric_weight=args.stream_v2_metric_weight,
+                )
+                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
+                pre_cap_keep_pct = achieved_keep_pct
+                sim_metrics = {
+                    "incident_capture_latency_ms": None,
+                    "threshold_volatility_pct": None,
+                    "max_step_change_pct": None,
+                }
+            elif args.selection_mode == "stream-v2-lite":
+                target_tps = 0.0
+                kept_ids = _stream_v2_lite_select_ids(
+                    points=points,
+                    budget_pct=budget,
+                    incident_services=incident_services,
+                    incident_anchor_sec=incident_anchor_sec,
+                    seed=args.stochastic_seed,
+                )
+                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
+                pre_cap_keep_pct = achieved_keep_pct
+                sim_metrics = {
+                    "incident_capture_latency_ms": None,
+                    "threshold_volatility_pct": None,
+                    "max_step_change_pct": None,
+                }
+            elif args.selection_mode == "stream-v2-fusion":
+                target_tps = 0.0
+                kept_ids = _stream_v2_fusion_select_ids(
+                    points=points,
+                    budget_pct=budget,
+                    incident_services=incident_services,
+                    incident_anchor_sec=incident_anchor_sec,
+                    core_ratio=args.hybrid_core_ratio,
+                    edge_pool_multiplier=args.hybrid_edge_pool_multiplier,
+                    seed=args.stochastic_seed,
+                    metric_weight=args.stream_v2_metric_weight,
+                )
+                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
+                pre_cap_keep_pct = achieved_keep_pct
+                sim_metrics = {
+                    "incident_capture_latency_ms": None,
+                    "threshold_volatility_pct": None,
+                    "max_step_change_pct": None,
+                }
+            elif args.selection_mode == "stream-v3":
+                target_tps = 0.0
+                kept_ids = _stream_v3_select_ids(
+                    points=points,
+                    budget_pct=budget,
+                    incident_services=incident_services,
+                    incident_anchor_sec=incident_anchor_sec,
+                    seed=args.stochastic_seed,
+                    online_soft_cap=(args.budget_mode != "strict"),
+                )
+                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
+                pre_cap_keep_pct = achieved_keep_pct
+                sim_metrics = {
+                    "incident_capture_latency_ms": None,
+                    "threshold_volatility_pct": None,
+                    "max_step_change_pct": None,
+                }
             else:
                 target_tps, kept_ids, achieved_keep_pct = _calibrate_target_tps(points, budget)
                 pre_cap_keep_pct = achieved_keep_pct
@@ -1446,8 +2716,20 @@ def main() -> int:
 
             # For non-adaptive modes, enforce strict budget cap here as well.
             if args.budget_mode == "strict" and target_trace_count is None:
-                kept_ids, target_trace_count, pre_cap_trace_count = _enforce_budget_cap(points, kept_ids, budget)
+                if args.selection_mode == "stream-v3":
+                    kept_ids, target_trace_count, pre_cap_trace_count, scenario_floor_fail_count = _enforce_budget_cap_per_scenario(
+                        points,
+                        kept_ids,
+                        budget,
+                        scenario_windows,
+                        min_incident_traces_per_scenario=1,
+                    )
+                else:
+                    kept_ids, target_trace_count, pre_cap_trace_count = _enforce_budget_cap(points, kept_ids, budget)
+                    scenario_floor_fail_count = 0
                 achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
+            else:
+                scenario_floor_fail_count = 0
 
             sampled_trace_dir = root / "reports/analysis/paper-sampled-traces" / args.tag / spec.name / budget_slug / "trace"
             total_rows, kept_rows = _materialize_sampled_trace_dir(spec.trace_dir, sampled_trace_dir, kept_ids)
@@ -1532,7 +2814,6 @@ def main() -> int:
             _write_text(phase1_summary_file, phase1_summary_text)
 
             # Build sampled scenarios for Phase 2.
-            base_scenarios = _load_jsonl(spec.base_scenario_file)
             sampled_scenarios = []
             for row in base_scenarios:
                 row2 = dict(row)
@@ -1579,13 +2860,28 @@ def main() -> int:
                 f"rca-benchmark-{sampled_dataset_name}-coverage-first-{sampled_eval_tag}-summary.json"
             )
             sampled = json.loads(sampled_summary_file.read_text(encoding="utf-8"))
+            adapter_summary_file = root / "reports/compare" / (
+                f"rca-engine-adapter-{sampled_dataset_name}-coverage-first-{sampled_eval_tag}.json"
+            )
+            adapter = json.loads(adapter_summary_file.read_text(encoding="utf-8")) if adapter_summary_file.exists() else {}
+            parse_fail_count = int(adapter.get("parse_fail_count") or 0)
+            ok_count = int(adapter.get("ok_count") or 0)
+            expected_scenarios = len(base_scenarios)
+
+            if args.budget_mode == "strict" and parse_fail_count > 0:
+                invalid_run_reasons.append(
+                    f"{spec.name} budget={budget}% parse_fail_count={parse_fail_count} ok_count={ok_count} expected={expected_scenarios}"
+                )
 
             benchmark_rows.append(
                 {
                     "dataset": spec.name,
                     "budget_pct": budget,
                     "budget_slug": budget_slug,
+                    "expected_scenarios": expected_scenarios,
                     "scenario_count": sampled.get("scenario_count"),
+                    "adapter_ok_count": ok_count,
+                    "adapter_parse_fail_count": parse_fail_count,
                     "A@1": sampled.get("A@1"),
                     "A@3": sampled.get("A@3"),
                     "MRR": sampled.get("MRR"),
@@ -1600,6 +2896,7 @@ def main() -> int:
                     "budget_mode": args.budget_mode,
                     "achieved_keep_pct": achieved_keep_pct,
                     "pre_cap_keep_pct": pre_cap_keep_pct,
+                    "scenario_floor_fail_count": scenario_floor_fail_count,
                 }
             )
 
@@ -1637,9 +2934,19 @@ def main() -> int:
                     "kept_error_traces_pct": (err_kept / err_total * 100.0) if err_total else None,
                     "achieved_keep_pct": achieved_keep_pct,
                     "pre_cap_keep_pct": pre_cap_keep_pct,
+                    "scenario_floor_fail_count": scenario_floor_fail_count,
+                    "expected_scenarios": expected_scenarios,
+                    "adapter_ok_count": ok_count,
+                    "adapter_parse_fail_count": parse_fail_count,
                     "phase1_summary_file": str(phase1_summary_file),
                 }
             )
+
+    if args.budget_mode == "strict" and invalid_run_reasons:
+        print("\\nINVALID STRICT BENCHMARK: parse_fail detected. Aborting report generation.")
+        for r in invalid_run_reasons:
+            print(f"- {r}")
+        raise SystemExit(2)
 
     # Output 1: benchmark table (teacher-facing, paper-table style with richer columns).
     benchmark_csv = root / "reports/compare" / f"rca-paper-table-sampled-budgets-{args.tag}.csv"
@@ -1651,69 +2958,175 @@ def main() -> int:
         for row in benchmark_rows:
             w.writerow(row)
 
-    # Output 2: compare CSV for post-processing.
+    # Output 2: averaged compare CSV (macro over datasets per budget) for post-processing.
+    compare_avg_rows: list[dict[str, Any]] = []
+    by_budget: dict[float, list[dict[str, Any]]] = defaultdict(list)
+    for row in compare_rows:
+        by_budget[float(row["budget_pct"])].append(row)
+
+    for budget in sorted(by_budget.keys()):
+        rows_b = by_budget[budget]
+        n = len(rows_b)
+        if n <= 0:
+            continue
+
+        paper_a1 = float(rows_b[0]["paper_A@1_pct"] or 0.0)
+        paper_a3 = float(rows_b[0]["paper_A@3_pct"] or 0.0)
+        paper_mrr = float(rows_b[0]["paper_MRR"] or 0.0)
+
+        ours_a1 = sum(float(r["ours_A@1_pct"] or 0.0) for r in rows_b) / n
+        ours_a3 = sum(float(r["ours_A@3_pct"] or 0.0) for r in rows_b) / n
+        ours_mrr = sum(float(r["ours_MRR"] or 0.0) for r in rows_b) / n
+        scenario_total = sum(int(r0.get("scenario_count") or 0) for r0 in benchmark_rows if float(r0["budget_pct"]) == budget)
+
+        compare_avg_rows.append(
+            {
+                "budget_pct": budget,
+                "dataset_count": n,
+                "scenario_total": scenario_total,
+                "paper_A@1_pct": paper_a1,
+                "paper_A@3_pct": paper_a3,
+                "paper_MRR": paper_mrr,
+                "ours_avg_A@1_pct": ours_a1,
+                "ours_avg_A@3_pct": ours_a3,
+                "ours_avg_MRR": ours_mrr,
+                "delta_A@1_pct": ours_a1 - paper_a1,
+                "delta_A@3_pct": ours_a3 - paper_a3,
+                "delta_MRR": ours_mrr - paper_mrr,
+            }
+        )
+
     compare_csv = root / "reports/compare" / f"rca-paper-vs-ours-microrank-budgets-{args.tag}.csv"
-    c_fields = list(compare_rows[0].keys()) if compare_rows else []
+    c_fields = list(compare_avg_rows[0].keys()) if compare_avg_rows else []
     with compare_csv.open("w", encoding="utf-8", newline="") as f:
         w = csv.DictWriter(f, fieldnames=c_fields)
         w.writeheader()
-        for row in compare_rows:
+        for row in compare_avg_rows:
             w.writerow(row)
 
-    # Output 3: compare markdown (paper-like summary for advisor presentation).
-    compare_md = root / "reports/compare" / f"rca-paper-vs-ours-microrank-budgets-{args.tag}.md"
-    lines = []
-    lines.append("# MicroRank: Paper vs Ours (All Datasets, Multi-Budget)")
-    lines.append("")
-    lines.append(f"tag: {args.tag}")
-    lines.append(f"budgets_pct: {', '.join(str(b) for b in budgets)}")
-    lines.append("")
-    lines.append("| dataset | budget | paper A@1(%) | ours A@1(%) | delta | paper A@3(%) | ours A@3(%) | delta | paper MRR | ours MRR | delta |")
-    lines.append("|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
-    for r in compare_rows:
-        lines.append(
-            "| {dataset} | {budget:.1f}% | {p1:.2f} | {o1:.2f} | {d1:+.2f} | {p3:.2f} | {o3:.2f} | {d3:+.2f} | {pm:.4f} | {om:.4f} | {dm:+.4f} |".format(
-                dataset=r["dataset"],
-                budget=r["budget_pct"],
-                p1=float(r["paper_A@1_pct"] or 0.0),
-                o1=float(r["ours_A@1_pct"] or 0.0),
-                d1=float(r["delta_A@1_pct"] or 0.0),
-                p3=float(r["paper_A@3_pct"] or 0.0),
-                o3=float(r["ours_A@3_pct"] or 0.0),
-                d3=float(r["delta_A@3_pct"] or 0.0),
-                pm=float(r["paper_MRR"] or 0.0),
-                om=float(r["ours_MRR"] or 0.0),
-                dm=float(r["delta_MRR"] or 0.0),
-            )
-        )
+    # Output 3 (primary markdown #1): per-dataset per-budget benchmark with paper delta.
+    benchmark_md = root / "reports/compare" / f"rca-dataset-budget-metrics-{args.tag}.md"
+    b_lines = []
+    b_lines.append(f"# RCA Final Summary ({args.selection_mode})")
+    b_lines.append("")
+    b_lines.append(f"tag: {args.tag}")
+    b_lines.append("")
+    b_lines.append("| budget | dataset | scenarios | A@1 | A@3 | MRR |")
+    b_lines.append("|---:|---|---:|---:|---:|---:|")
 
-    lines.extend(
+    by_budget_for_md: dict[float, list[dict[str, Any]]] = defaultdict(list)
+    for row in benchmark_rows:
+        by_budget_for_md[float(row["budget_pct"])].append(row)
+
+    for budget in sorted(by_budget_for_md.keys()):
+        rows_b = sorted(by_budget_for_md[budget], key=lambda r: str(r["dataset"]))
+        total_sc = 0
+        sum_a1 = 0.0
+        sum_a3 = 0.0
+        sum_mrr = 0.0
+        for row in rows_b:
+            sc = int(row.get("scenario_count") or 0)
+            a1 = float(row.get("A@1") or 0.0)
+            a3 = float(row.get("A@3") or 0.0)
+            mrr = float(row.get("MRR") or 0.0)
+            total_sc += sc
+            sum_a1 += a1
+            sum_a3 += a3
+            sum_mrr += mrr
+            b_lines.append(
+                "| {budget:.1f}% | {dataset} | {sc} | {a1:.4f} | {a3:.4f} | {mrr:.4f} |".format(
+                    budget=budget,
+                    dataset=str(row["dataset"]),
+                    sc=sc,
+                    a1=a1,
+                    a3=a3,
+                    mrr=mrr,
+                )
+            )
+
+        n = len(rows_b)
+        if n > 0:
+            b_lines.append(
+                "| {budget:.1f}% | AVERAGE | {sc} | {a1:.4f} | {a3:.4f} | {mrr:.4f} |".format(
+                    budget=budget,
+                    sc=total_sc,
+                    a1=(sum_a1 / n),
+                    a3=(sum_a3 / n),
+                    mrr=(sum_mrr / n),
+                )
+            )
+
+    b_lines.extend(
         [
             "",
-            "## Output Guide",
-            "",
-            "- Phase1 sampled traces + kept trace IDs:",
-            f"  - reports/analysis/paper-sampled-traces/{args.tag}/<dataset>/<budget_slug>/trace/*.csv",
-            f"  - reports/analysis/paper-sampled-traces/{args.tag}/<dataset>/<budget_slug>/kept_trace_ids.txt",
-            "- Phase1 combined-style metric file:",
-            f"  - reports/compare/paper-sampling-phase1-<dataset>-<budget_slug>-{args.tag}.txt",
-            "- Phase2 benchmark table (teacher-facing):",
-            f"  - {benchmark_csv}",
-            "- Phase2 compare with paper (csv + markdown):",
-            f"  - {compare_csv}",
-            f"  - {compare_md}",
-            "",
-            "## Notes",
-            "",
-            "- Budgets are calibrated by binary-searching target_tps to approximate requested keep ratio.",
-            f"- budget_mode={args.budget_mode}: strict mode enforces exact trace-count budget after simulation.",
-            "- Compare-to-paper uses MicroRank row from paper Table 3.",
-            "- A@1/A@3 in paper are percentage points; internal evaluator outputs are ratios and converted to % here.",
+            "## Related CSV",
+            f"- {benchmark_csv}",
         ]
     )
-    _write_text(compare_md, "\n".join(lines) + "\n")
+    _write_text(benchmark_md, "\n".join(b_lines) + "\n")
 
-    # Output 4: sampling quality key metrics (requested operational indicators).
+    # Output 5: table3 style summary (paper rows + selected internal baselines + current run).
+    known_rows = _known_ours_reference_rows()
+    current_row = _current_ours_table3_row(compare_avg_rows, args.selection_mode, args.tag)
+    if any(str(r.get("model")) == str(current_row.get("model")) for r in known_rows):
+        table3_rows = _paper_table3_reference_rows() + known_rows
+    else:
+        table3_rows = _paper_table3_reference_rows() + known_rows + [current_row]
+    table3_csv = root / "reports/compare" / f"table3-all-models-plus-ours-{run_stamp}.csv"
+    with table3_csv.open("w", encoding="utf-8", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["Model", "A@1 0.1%", "A@1 1.0%", "A@1 2.5%", "A@3 0.1%", "A@3 1.0%", "A@3 2.5%", "MRR 0.1%", "MRR 1.0%", "MRR 2.5%"])
+        for r in table3_rows:
+            w.writerow(
+                [
+                    r["model"],
+                    f"{float(r['a1_0p1']):.2f}",
+                    f"{float(r['a1_1p0']):.2f}",
+                    f"{float(r['a1_2p5']):.2f}",
+                    f"{float(r['a3_0p1']):.2f}",
+                    f"{float(r['a3_1p0']):.2f}",
+                    f"{float(r['a3_2p5']):.2f}",
+                    f"{float(r['mrr_0p1']):.4f}",
+                    f"{float(r['mrr_1p0']):.4f}",
+                    f"{float(r['mrr_2p5']):.4f}",
+                ]
+            )
+
+    table3_md = root / "reports/compare" / f"table3-all-models-plus-ours-{run_stamp}.md"
+    t_lines = []
+    t_lines.append("# Table 3 Style Comparison: All Paper Models + Ours")
+    t_lines.append("")
+    t_lines.append(f"generated_at: {run_stamp}")
+    t_lines.append("")
+    t_lines.append("| Model | A@1 0.1% | A@1 1.0% | A@1 2.5% | A@3 0.1% | A@3 1.0% | A@3 2.5% | MRR 0.1% | MRR 1.0% | MRR 2.5% |")
+    t_lines.append("|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
+    for r in table3_rows:
+        t_lines.append(
+            "| {model} | {a1_0p1:.2f} | {a1_1p0:.2f} | {a1_2p5:.2f} | {a3_0p1:.2f} | {a3_1p0:.2f} | {a3_2p5:.2f} | {mrr_0p1:.4f} | {mrr_1p0:.4f} | {mrr_2p5:.4f} |".format(
+                model=str(r["model"]),
+                a1_0p1=float(r["a1_0p1"]),
+                a1_1p0=float(r["a1_1p0"]),
+                a1_2p5=float(r["a1_2p5"]),
+                a3_0p1=float(r["a3_0p1"]),
+                a3_1p0=float(r["a3_1p0"]),
+                a3_2p5=float(r["a3_2p5"]),
+                mrr_0p1=float(r["mrr_0p1"]),
+                mrr_1p0=float(r["mrr_1p0"]),
+                mrr_2p5=float(r["mrr_2p5"]),
+            )
+        )
+    t_lines.extend(
+        [
+            "",
+            "## Notes",
+            "- Paper model rows are copied from Table 3 screenshot provided in this chat.",
+            "- Ours reference rows (Hybrid, Stream v1 strictfix, stream-v2 milestone) are preserved from prior comparison artifacts.",
+            f"- Current run row is generated automatically from this run with selection-mode={args.selection_mode}.",
+        ]
+    )
+    _write_text(table3_md, "\n".join(t_lines) + "\n")
+
+    # Keep detailed quality CSV for deeper diagnostics (no additional markdown output).
     quality_csv = root / "reports/compare" / f"sampling-quality-key-metrics-{args.tag}.csv"
     q_fields = list(sampling_quality_rows[0].keys()) if sampling_quality_rows else []
     with quality_csv.open("w", encoding="utf-8", newline="") as f:
@@ -1722,40 +3135,13 @@ def main() -> int:
         for row in sampling_quality_rows:
             w.writerow(row)
 
-    quality_md = root / "reports/compare" / f"sampling-quality-key-metrics-{args.tag}.md"
-    q_lines = []
-    q_lines.append("# Sampling Quality Key Metrics")
-    q_lines.append("")
-    q_lines.append(f"tag: {args.tag}")
-    q_lines.append(f"budgets_pct: {', '.join(str(b) for b in budgets)}")
-    q_lines.append("")
-    q_lines.append("| dataset | budget | incident_capture_latency_ms | early_incident_retention_pct | critical_endpoint_coverage_pct | threshold_volatility_pct | max_step_change_pct | kept error traces |")
-    q_lines.append("|---|---:|---:|---:|---:|---:|---:|---:|")
-    for r in sampling_quality_rows:
-        kept_err_txt = (
-            f"{int(r['kept_error_traces'])}/{int(r['baseline_error_traces'])} ({float(r['kept_error_traces_pct']):.2f}%)"
-            if r["kept_error_traces_pct"] is not None
-            else "NA"
-        )
-        q_lines.append(
-            "| {dataset} | {budget:.1f}% | {lat} | {early} | {cov} | {vol} | {step} | {ke} |".format(
-                dataset=r["dataset"],
-                budget=float(r["budget_pct"]),
-                lat=("NA" if r["incident_capture_latency_ms"] is None else f"{float(r['incident_capture_latency_ms']):.1f}"),
-                early=("NA" if r["early_incident_retention_pct"] is None else f"{float(r['early_incident_retention_pct']):.2f}"),
-                cov=("NA" if r["critical_endpoint_coverage_pct"] is None else f"{float(r['critical_endpoint_coverage_pct']):.2f} ({int(r['critical_endpoint_coverage_kept'])}/{int(r['critical_endpoint_coverage_total'])})"),
-                vol=("NA" if r["threshold_volatility_pct"] is None else f"{float(r['threshold_volatility_pct']):.2f}"),
-                step=("NA" if r["max_step_change_pct"] is None else f"{float(r['max_step_change_pct']):.2f}"),
-                ke=kept_err_txt,
-            )
-        )
-    _write_text(quality_md, "\n".join(q_lines) + "\n")
-
     print(f"benchmark_csv={benchmark_csv}")
     print(f"compare_csv={compare_csv}")
-    print(f"compare_md={compare_md}")
+    print(f"benchmark_md={benchmark_md}")
+    print(f"table3_csv={table3_csv}")
+    print(f"table3_md={table3_md}")
     print(f"quality_csv={quality_csv}")
-    print(f"quality_md={quality_md}")
+    print("primary_markdown_outputs=2")
     return 0
 
 
