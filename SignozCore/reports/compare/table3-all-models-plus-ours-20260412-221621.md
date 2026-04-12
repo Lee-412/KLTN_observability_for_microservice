@@ -1,6 +1,6 @@
 # Table 3 Style Comparison: All Paper Models + Ours
 
-generated_at: 20260406-212723
+generated_at: 20260412-221621
 
 | Model | A@1 0.1% | A@1 1.0% | A@1 2.5% | A@3 0.1% | A@3 1.0% | A@3 2.5% | MRR 0.1% | MRR 1.0% | MRR 2.5% |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
@@ -14,10 +14,9 @@ generated_at: 20260406-212723
 | Ours (MicroRank + Hybrid c0.7 m2) | 9.25 | 20.00 | 17.69 | 39.18 | 40.81 | 37.36 | 0.2981 | 0.3736 | 0.3502 |
 | Ours (MicroRank + Stream v1 strictfix) | 10.04 | 15.26 | 17.34 | 43.99 | 48.90 | 48.90 | 0.3255 | 0.3655 | 0.3823 |
 | Ours (MicroRank + stream-v2) | 15.87 | 9.80 | 11.81 | 57.94 | 21.41 | 25.57 | 0.3944 | 0.2180 | 0.2613 |
-| Ours (MicroRank + stream-v3) | 14.81 | 18.16 | 10.99 | 39.20 | 47.86 | 49.02 | 0.3469 | 0.3898 | 0.3477 |
-| Ours (MicroRank + stream-v3-composite-strictcap) | 0.00 | 11.76 | 0.00 | 0.00 | 52.94 | 0.00 | 0.0000 | 0.3343 | 0.0000 |
+| Ours (MicroRank + stream-v3-composite) | 19.81 | 17.69 | 17.69 | 41.34 | 49.24 | 52.25 | 0.3860 | 0.3856 | 0.3962 |
 
 ## Notes
 - Paper model rows are copied from Table 3 screenshot provided in this chat.
 - Ours reference rows (Hybrid, Stream v1 strictfix, stream-v2 milestone) are preserved from prior comparison artifacts.
-- Current run row is generated automatically from this run with selection-mode=stream-v3.
+- Current run row is generated automatically from this run with selection-mode=stream-v3-composite.

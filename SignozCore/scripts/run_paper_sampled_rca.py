@@ -32,6 +32,7 @@ from pathlib import Path
 from typing import Any
 
 import evaluate_paper_sampling as eps
+import streamv3_composite_strictcap as sv3comp
 
 
 @dataclass
@@ -2457,9 +2458,9 @@ def main() -> int:
     )
     ap.add_argument(
         "--selection-mode",
-        choices=["adaptive", "ranked", "ranked-v11", "ranked-v11-quota", "ranked-v11-stochastic", "ranked-v11-hybrid", "stream-v1", "stream-v2", "stream-v2-lite", "stream-v2-fusion", "stream-v3"],
+        choices=["adaptive", "ranked", "ranked-v11", "ranked-v11-quota", "ranked-v11-stochastic", "ranked-v11-hybrid", "stream-v1", "stream-v2", "stream-v2-lite", "stream-v2-fusion", "stream-v3", "stream-v3-composite", "stream-v3-composite-strictcap"],
         default="adaptive",
-        help="adaptive: existing target_tps simulator; ranked: error/context split ranking; ranked-v11: formula-based global ranking; ranked-v11-quota: formula ranking with hard error/normal partition; ranked-v11-stochastic: calibrated probabilistic sampling; ranked-v11-hybrid: deterministic core + stochastic edge exploration; stream-v1: online dynamic voting with AND/OR gate; stream-v2: robust trace-only v2.7 baseline; stream-v2-lite: p_s-only + tiny random normal breathing hole (no p_d/clustering); stream-v2-fusion: v2 core + hybrid context fusion; stream-v3: V2 core + OR soft-quota 70/30 (no hard strict-cap)",
+        help="adaptive: existing target_tps simulator; ranked: error/context split ranking; ranked-v11: formula-based global ranking; ranked-v11-quota: formula ranking with hard error/normal partition; ranked-v11-stochastic: calibrated probabilistic sampling; ranked-v11-hybrid: deterministic core + stochastic edge exploration; stream-v1: online dynamic voting with AND/OR gate; stream-v2: robust trace-only v2.7 baseline; stream-v2-lite: p_s-only + tiny random normal breathing hole (no p_d/clustering); stream-v2-fusion: v2 core + hybrid context fusion; stream-v3: V2 core + OR soft-quota 70/30 (no hard strict-cap); stream-v3-composite/stream-v3-composite-strictcap: V3 + coverage-aware metric modulation + deterministic cap",
     )
     ap.add_argument(
         "--error-budget-ratio",
@@ -2691,6 +2692,32 @@ def main() -> int:
                     incident_services=incident_services,
                     incident_anchor_sec=incident_anchor_sec,
                     seed=args.stochastic_seed,
+                    online_soft_cap=(args.budget_mode != "strict"),
+                )
+                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
+                pre_cap_keep_pct = achieved_keep_pct
+                sim_metrics = {
+                    "incident_capture_latency_ms": None,
+                    "threshold_volatility_pct": None,
+                    "max_step_change_pct": None,
+                }
+            elif args.selection_mode in {"stream-v3-composite", "stream-v3-composite-strictcap"}:
+                # Use the composite sampler implemented in streamv3_composite_strictcap.py
+                target_tps = 0.0
+                preference_vector, metric_stats = sv3comp.build_metric_inputs(points)
+
+                # For tiny budgets (0.1%) allow disabling per-scenario strict floor to test its effect
+                min_floor = 0 if abs(float(budget) - 0.1) < 1e-9 else 1
+                kept_ids = sv3comp._composite_v3_metrics_strictcap(
+                    points=points,
+                    budget_pct=budget,
+                    preference_vector=preference_vector,
+                    metric_stats=metric_stats,
+                    scenario_windows=scenario_windows,
+                    incident_anchor_sec=incident_anchor_sec,
+                    seed=args.stochastic_seed,
+                    incident_services=incident_services,
+                    min_incident_traces_per_scenario=min_floor,
                     online_soft_cap=(args.budget_mode != "strict"),
                 )
                 achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0

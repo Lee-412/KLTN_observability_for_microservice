@@ -9,3 +9,4 @@ SignozCore/reports/analysis/
 SignozCore/reports/sampler-proof/
 SignozCore/reports/compare/*.csv
 SignozCore/reports/compare/*.txt
+SignozCore/data/streamv3test
