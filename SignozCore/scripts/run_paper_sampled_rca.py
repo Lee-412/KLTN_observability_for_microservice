@@ -33,6 +33,9 @@ from typing import Any
 
 import evaluate_paper_sampling as eps
 import streamv3_composite_strictcap as sv3comp
+import streamv3_8_composite_anomaly as sv38comp
+import streamv3_9_composite_anomaly as sv39comp
+import streamv3_10_composite_anomaly as sv310comp
 
 
 @dataclass
@@ -2458,9 +2461,15 @@ def main() -> int:
     )
     ap.add_argument(
         "--selection-mode",
-        choices=["adaptive", "ranked", "ranked-v11", "ranked-v11-quota", "ranked-v11-stochastic", "ranked-v11-hybrid", "stream-v1", "stream-v2", "stream-v2-lite", "stream-v2-fusion", "stream-v3", "stream-v3-composite", "stream-v3-composite-strictcap"],
+        choices=["adaptive", "ranked", "ranked-v11", "ranked-v11-quota", "ranked-v11-stochastic", "ranked-v11-hybrid", "stream-v1", "stream-v2", "stream-v2-lite", "stream-v2-fusion", "stream-v3", "stream-v3-composite", "stream-v3-composite-strictcap", "stream-v3.8-composite-anomaly", "stream-v3.9-composite-anomaly", "stream-v3.10-composite-anomaly"],
         default="adaptive",
-        help="adaptive: existing target_tps simulator; ranked: error/context split ranking; ranked-v11: formula-based global ranking; ranked-v11-quota: formula ranking with hard error/normal partition; ranked-v11-stochastic: calibrated probabilistic sampling; ranked-v11-hybrid: deterministic core + stochastic edge exploration; stream-v1: online dynamic voting with AND/OR gate; stream-v2: robust trace-only v2.7 baseline; stream-v2-lite: p_s-only + tiny random normal breathing hole (no p_d/clustering); stream-v2-fusion: v2 core + hybrid context fusion; stream-v3: V2 core + OR soft-quota 70/30 (no hard strict-cap); stream-v3-composite/stream-v3-composite-strictcap: V3 + coverage-aware metric modulation + deterministic cap",
+        help="adaptive: existing target_tps simulator; ranked: error/context split ranking; ranked-v11: formula-based global ranking; ranked-v11-quota: formula ranking with hard error/normal partition; ranked-v11-stochastic: calibrated probabilistic sampling; ranked-v11-hybrid: deterministic core + stochastic edge exploration; stream-v1: online dynamic voting with AND/OR gate; stream-v2: robust trace-only v2.7 baseline; stream-v2-lite: p_s-only + tiny random normal breathing hole (no p_d/clustering); stream-v2-fusion: v2 core + hybrid context fusion; stream-v3: V2 core + OR soft-quota 70/30 (no hard strict-cap); stream-v3-composite/stream-v3-composite-strictcap: V3 + coverage-aware metric modulation + deterministic cap; stream-v3.8-composite-anomaly: v3.8 Method 3; stream-v3.9-composite-anomaly: v3.9 anomaly-modulated diversity; stream-v3.10-composite-anomaly: v3.10 anomaly warmup + multiplicative gate + unlocked gamma",
+    )
+    ap.add_argument(
+        "--v39-ablation",
+        choices=["none", "ps-only", "gamma-only", "full"],
+        default="full",
+        help="When selection-mode=stream-v3.9-composite-anomaly: choose anomaly modulation ablation",
     )
     ap.add_argument(
         "--error-budget-ratio",
@@ -2706,9 +2715,84 @@ def main() -> int:
                 target_tps = 0.0
                 preference_vector, metric_stats = sv3comp.build_metric_inputs(points)
 
-                # For tiny budgets (0.1%) allow disabling per-scenario strict floor to test its effect
-                min_floor = 0 if abs(float(budget) - 0.1) < 1e-9 else 1
+                min_floor = 1
                 kept_ids = sv3comp._composite_v3_metrics_strictcap(
+                    points=points,
+                    budget_pct=budget,
+                    preference_vector=preference_vector,
+                    metric_stats=metric_stats,
+                    scenario_windows=scenario_windows,
+                    incident_anchor_sec=incident_anchor_sec,
+                    seed=args.stochastic_seed,
+                    incident_services=incident_services,
+                    min_incident_traces_per_scenario=min_floor,
+                    online_soft_cap=(args.budget_mode != "strict"),
+                )
+                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
+                pre_cap_keep_pct = achieved_keep_pct
+                sim_metrics = {
+                    "incident_capture_latency_ms": None,
+                    "threshold_volatility_pct": None,
+                    "max_step_change_pct": None,
+                }
+            elif args.selection_mode == "stream-v3.8-composite-anomaly":
+                # Use the v3.8 composite sampler: v3.5 + Method 3 anomaly scoring.
+                target_tps = 0.0
+                preference_vector, metric_stats = sv38comp.build_metric_inputs(points)
+
+                min_floor = 1
+                kept_ids = sv38comp._composite_v3_metrics_strictcap(
+                    points=points,
+                    budget_pct=budget,
+                    preference_vector=preference_vector,
+                    metric_stats=metric_stats,
+                    scenario_windows=scenario_windows,
+                    incident_anchor_sec=incident_anchor_sec,
+                    seed=args.stochastic_seed,
+                    incident_services=incident_services,
+                    min_incident_traces_per_scenario=min_floor,
+                    online_soft_cap=(args.budget_mode != "strict"),
+                )
+                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
+                pre_cap_keep_pct = achieved_keep_pct
+                sim_metrics = {
+                    "incident_capture_latency_ms": None,
+                    "threshold_volatility_pct": None,
+                    "max_step_change_pct": None,
+                }
+            elif args.selection_mode == "stream-v3.9-composite-anomaly":
+                # Use the v3.9 composite sampler: anomaly modulation in constraint space.
+                target_tps = 0.0
+                preference_vector, metric_stats = sv39comp.build_metric_inputs(points)
+
+                min_floor = 1
+                kept_ids = sv39comp._composite_v3_metrics_strictcap(
+                    points=points,
+                    budget_pct=budget,
+                    preference_vector=preference_vector,
+                    metric_stats=metric_stats,
+                    scenario_windows=scenario_windows,
+                    incident_anchor_sec=incident_anchor_sec,
+                    seed=args.stochastic_seed,
+                    incident_services=incident_services,
+                    min_incident_traces_per_scenario=min_floor,
+                    online_soft_cap=(args.budget_mode != "strict"),
+                    ablation_mode=args.v39_ablation,
+                )
+                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
+                pre_cap_keep_pct = achieved_keep_pct
+                sim_metrics = {
+                    "incident_capture_latency_ms": None,
+                    "threshold_volatility_pct": None,
+                    "max_step_change_pct": None,
+                }
+            elif args.selection_mode == "stream-v3.10-composite-anomaly":
+                # Use the v3.10 composite sampler: faster anomaly warmup + multiplicative boost + unlocked gamma path.
+                target_tps = 0.0
+                preference_vector, metric_stats = sv310comp.build_metric_inputs(points)
+
+                min_floor = 1
+                kept_ids = sv310comp._composite_v3_metrics_strictcap(
                     points=points,
                     budget_pct=budget,
                     preference_vector=preference_vector,

@@ -7,6 +7,20 @@ from collections import defaultdict, deque
 from dataclasses import dataclass
 from typing import Any, Set, List, Tuple, Dict, FrozenSet, Optional
 
+# Method 3: service-level anomaly scoring (trace-derived pseudo metrics)
+TIME_WINDOW_SEC = 15.0
+MIN_SAMPLES = 5
+EVICTION_INTERVAL_SEC = 2.0
+EVICTION_COUNTER_MOD = 100
+
+W_ERR = 0.5
+W_VAR = 0.2
+W_BURST = 0.3
+STD_CLIP = 5.0
+EMA_ALPHA = 0.2
+K_ANOMALY = 2.0
+ANOMALY_WEIGHT = 0.25
+
 @dataclass
 class TracePoint:
     trace_id: str
@@ -15,6 +29,75 @@ class TracePoint:
     span_count: int
     has_error: bool
     services: FrozenSet[str]
+
+
+@dataclass
+class ServiceAnomalyState:
+    latencies: deque
+    errors: deque
+    ema_latency: Optional[float]
+    last_eviction_ts: float
+    sum_latency: float
+    sum_latency_sq: float
+    sum_errors: float
+
+
+def update_service_state(
+    state: ServiceAnomalyState,
+    current_ts: float,
+    latency: float,
+    has_error: bool,
+    force_evict: bool = False,
+) -> None:
+    state.latencies.append((current_ts, latency))
+    state.errors.append((current_ts, 1 if has_error else 0))
+    state.sum_latency += latency
+    state.sum_latency_sq += latency * latency
+    state.sum_errors += 1.0 if has_error else 0.0
+
+    if state.ema_latency is None:
+        state.ema_latency = latency
+    else:
+        state.ema_latency = EMA_ALPHA * latency + (1.0 - EMA_ALPHA) * state.ema_latency
+
+    should_evict = force_evict or (current_ts - state.last_eviction_ts > EVICTION_INTERVAL_SEC)
+    if not should_evict:
+        return
+
+    cutoff_time = current_ts - TIME_WINDOW_SEC
+    while state.latencies and state.latencies[0][0] < cutoff_time:
+        _ts, old_lat = state.latencies.popleft()
+        state.sum_latency -= old_lat
+        state.sum_latency_sq -= old_lat * old_lat
+    while state.errors and state.errors[0][0] < cutoff_time:
+        _ts, old_err = state.errors.popleft()
+        state.sum_errors -= float(old_err)
+    state.last_eviction_ts = current_ts
+
+
+def compute_anomaly_score(
+    state: ServiceAnomalyState,
+    latency: float,
+) -> float:
+    n = len(state.latencies)
+    if n < MIN_SAMPLES:
+        return 0.0
+
+    err_n = len(state.errors)
+    error_density = (state.sum_errors + 1.0) / (float(err_n) + 2.0)
+
+    mean_lat = state.sum_latency / float(n)
+    variance = max(0.0, (state.sum_latency_sq / float(n)) - (mean_lat * mean_lat))
+    std_lat = math.sqrt(variance)
+    std_lat = min(std_lat, STD_CLIP)
+    lat_var_score = std_lat / (mean_lat + 1e-6)
+
+    ema = state.ema_latency if state.ema_latency is not None else latency
+    burstiness = abs(latency - ema) / (ema + 1e-6)
+
+    anomaly_score = (W_ERR * error_density) + (W_VAR * lat_var_score) + (W_BURST * burstiness)
+    norm_anomaly = anomaly_score / (anomaly_score + K_ANOMALY)
+    return _clamp(norm_anomaly, 0.0, 1.0)
 
 MetricVector = Dict[str, float]
 PreferenceVector = Dict[str, MetricVector]
@@ -216,6 +299,7 @@ def _composite_v3_metrics_strictcap(
     alpha: float = 1.2,
     gamma: float = 0.8,
     anomaly_weight: float = 0.7,
+    ablation_mode: str = "full",
 ) -> Set[str]:
     # --- V3+metrics sampling ---
     total = len(points)
@@ -224,6 +308,8 @@ def _composite_v3_metrics_strictcap(
     beta = _clamp(budget_pct / 100.0, 0.0, 1.0)
     if beta <= 0.0:
         return set()
+    if ablation_mode not in {"none", "ps-only", "gamma-only", "full"}:
+        raise ValueError(f"Unsupported ablation_mode={ablation_mode}")
     traces = sorted(points, key=lambda p: (p.start_ns, p.trace_id))
     target_count = max(1, min(total, int(round(total * beta))))
     t0_sec = min(p.start_ns for p in traces) // 1_000_000_000
@@ -304,6 +390,18 @@ def _composite_v3_metrics_strictcap(
             "count": 0.0,
         }
     )
+    anomaly_state: Dict[str, ServiceAnomalyState] = defaultdict(
+        lambda: ServiceAnomalyState(
+            latencies=deque(),
+            errors=deque(),
+            ema_latency=None,
+            last_eviction_ts=0.0,
+            sum_latency=0.0,
+            sum_latency_sq=0.0,
+            sum_errors=0.0,
+        )
+    )
+    global_trace_counter = 0
     current_preference_vector: PreferenceVector = {}
     current_metric_stats: MetricStats = {}
 
@@ -400,6 +498,30 @@ def _composite_v3_metrics_strictcap(
             },
         )
 
+        # Method 3 extension: per-service anomaly score from trace-derived signals.
+        global_trace_counter += 1
+        norm_anomaly = 0.0
+        if p.services:
+            anomaly_scores: List[float] = []
+            for service in sorted(p.services):
+                service_state = anomaly_state[service]
+                update_service_state(
+                    service_state,
+                    float(sec),
+                    float(p.duration_ms),
+                    bool(p.has_error),
+                    force_evict=(global_trace_counter % EVICTION_COUNTER_MOD == 0),
+                )
+                anomaly_scores.append(compute_anomaly_score(service_state, float(p.duration_ms)))
+            if anomaly_scores:
+                norm_anomaly = max(anomaly_scores)
+        if ablation_mode in {"ps-only", "full"}:
+            p_s = _clamp(
+                p_s * (1.0 - ANOMALY_WEIGHT) + norm_anomaly * ANOMALY_WEIGHT,
+                0.02,
+                0.98,
+            )
+
         incident_floor = 0.0
         if incident_service > 0.0:
             if (err_flag > 0.0) and (time_prox >= 0.55):
@@ -429,8 +551,16 @@ def _composite_v3_metrics_strictcap(
             gamma_eff = max(0.35, gamma * 0.55)
             pd_floor = 0.20
         else:
-            gamma_eff = gamma
-            pd_floor = 0.05
+            if ablation_mode in {"gamma-only", "full"}:
+                gamma_reduction = 1.0 - (0.7 * norm_anomaly)
+                gamma_eff = gamma * gamma_reduction
+                pd_floor = min(0.15, 0.05 + 0.2 * norm_anomaly)
+            else:
+                gamma_eff = gamma
+                pd_floor = 0.05
+
+        if ablation_mode in {"gamma-only", "full"} and norm_anomaly >= 0.45:
+            gamma_eff *= 0.85
         p_d = _clamp((1.0 + effective_mass) ** (-gamma_eff), pd_floor, 1.0)
         theta = (len(kept_ids) / seen) if seen > 0 else 0.0
         if beta <= 0.0015:
