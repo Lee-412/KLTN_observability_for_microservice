@@ -36,6 +36,13 @@ import streamv3_composite_strictcap as sv3comp
 import streamv3_8_composite_anomaly as sv38comp
 import streamv3_9_composite_anomaly as sv39comp
 import streamv3_10_composite_anomaly as sv310comp
+import streamv48_causal_booster as sv48comp
+import streamv40_real_metrics_sampling as sv40comp
+import streamv41_anomaly_precedence_sampler as sv41comp
+import streamv42_trend_precursor_sampler as sv42comp
+import streamv43_service_first_dual_channel as sv43comp
+import streamv44_reserve_channel_sampler as sv44comp
+import streamv45_hybrid_prerca_rerank as sv45comp
 
 
 @dataclass
@@ -228,7 +235,12 @@ def _write_text(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
-def _materialize_sampled_trace_dir(src_trace_dir: Path, out_trace_dir: Path, kept_ids: set[str]) -> tuple[int, int]:
+def _materialize_sampled_trace_dir(
+    src_trace_dir: Path,
+    out_trace_dir: Path,
+    kept_ids: set[str],
+    kept_rank: dict[str, int] | None = None,
+) -> tuple[int, int]:
     out_trace_dir.mkdir(parents=True, exist_ok=True)
     total_rows = 0
     kept_rows = 0
@@ -242,12 +254,25 @@ def _materialize_sampled_trace_dir(src_trace_dir: Path, out_trace_dir: Path, kep
             writer = csv.DictWriter(wf, fieldnames=reader.fieldnames)
             writer.writeheader()
 
+            kept_rows_buffer: list[dict[str, str]] = []
+
             for row in reader:
                 total_rows += 1
                 tid = str(row.get("TraceID", "")).strip().lower()
                 if tid in kept_ids:
-                    writer.writerow(row)
+                    kept_rows_buffer.append(row)
                     kept_rows += 1
+
+            if kept_rank is not None:
+                kept_rows_buffer.sort(
+                    key=lambda r: (
+                        kept_rank.get(str(r.get("TraceID", "")).strip().lower(), 10**18),
+                        str(r.get("TraceID", "")).strip().lower(),
+                    )
+                )
+
+            for row in kept_rows_buffer:
+                writer.writerow(row)
 
     return total_rows, kept_rows
 
@@ -2371,6 +2396,10 @@ def _dataset_specs(root: Path) -> list[DatasetSpec]:
     ]
 
 
+def _metric_dir_from_trace_dir(trace_dir: Path) -> Path:
+    return trace_dir.parent / "metric"
+
+
 def _paper_microrank_reference() -> dict[float, dict[str, float]]:
     # Table-3 MicroRank + TraStrainer row.
     return {
@@ -2461,9 +2490,9 @@ def main() -> int:
     )
     ap.add_argument(
         "--selection-mode",
-        choices=["adaptive", "ranked", "ranked-v11", "ranked-v11-quota", "ranked-v11-stochastic", "ranked-v11-hybrid", "stream-v1", "stream-v2", "stream-v2-lite", "stream-v2-fusion", "stream-v3", "stream-v3-composite", "stream-v3-composite-strictcap", "stream-v3.8-composite-anomaly", "stream-v3.9-composite-anomaly", "stream-v3.10-composite-anomaly"],
+        choices=["adaptive", "ranked", "ranked-v11", "ranked-v11-quota", "ranked-v11-stochastic", "ranked-v11-hybrid", "stream-v1", "stream-v2", "stream-v2-lite", "stream-v2-fusion", "stream-v3", "stream-v3-composite", "stream-v3-composite-strictcap", "stream-v3.8-composite-anomaly", "stream-v3.9-composite-anomaly", "stream-v3.10-composite-anomaly", "stream-v4.8-causal-booster", "stream-v4.0-real-metrics", "stream-v4.1-anomaly-precedence", "stream-v4.2-trend-precursor", "stream-v4.3-service-first", "stream-v4.4-reserve-channel", "stream-v4.5-hybrid-rerank"],
         default="adaptive",
-        help="adaptive: existing target_tps simulator; ranked: error/context split ranking; ranked-v11: formula-based global ranking; ranked-v11-quota: formula ranking with hard error/normal partition; ranked-v11-stochastic: calibrated probabilistic sampling; ranked-v11-hybrid: deterministic core + stochastic edge exploration; stream-v1: online dynamic voting with AND/OR gate; stream-v2: robust trace-only v2.7 baseline; stream-v2-lite: p_s-only + tiny random normal breathing hole (no p_d/clustering); stream-v2-fusion: v2 core + hybrid context fusion; stream-v3: V2 core + OR soft-quota 70/30 (no hard strict-cap); stream-v3-composite/stream-v3-composite-strictcap: V3 + coverage-aware metric modulation + deterministic cap; stream-v3.8-composite-anomaly: v3.8 Method 3; stream-v3.9-composite-anomaly: v3.9 anomaly-modulated diversity; stream-v3.10-composite-anomaly: v3.10 anomaly warmup + multiplicative gate + unlocked gamma",
+        help="adaptive: existing target_tps simulator; ranked: error/context split ranking; ranked-v11: formula-based global ranking; ranked-v11-quota: formula ranking with hard error/normal partition; ranked-v11-stochastic: calibrated probabilistic sampling; ranked-v11-hybrid: deterministic core + stochastic edge exploration; stream-v1: online dynamic voting with AND/OR gate; stream-v2: robust trace-only v2.7 baseline; stream-v2-lite: p_s-only + tiny random normal breathing hole (no p_d/clustering); stream-v2-fusion: v2 core + hybrid context fusion; stream-v3: V2 core + OR soft-quota 70/30 (no hard strict-cap); stream-v3-composite/stream-v3-composite-strictcap: V3 + coverage-aware metric modulation + deterministic cap; stream-v3.8-composite-anomaly: v3.8 Method 3; stream-v3.9-composite-anomaly: v3.9 anomaly-modulated diversity; stream-v3.10-composite-anomaly: v3.10 anomaly warmup + multiplicative gate + unlocked gamma; stream-v4.8-causal-booster: v3.5 plus streaming causal graph booster; stream-v4.0-real-metrics: v3.5 plus real paper metrics distress fusion; stream-v4.1-anomaly-precedence: v3.5 plus real metrics anomaly precedence reservation; stream-v4.3-service-first: paper-grade service-first dual-channel voting with 60/40 quota; stream-v4.4-reserve-channel: frozen v3.5 main channel with metric reserve add-on (80/20); stream-v4.5-hybrid-rerank: frozen v3.5 sampling plus metric-aware deterministic pre-RCA rerank",
     )
     ap.add_argument(
         "--v39-ablation",
@@ -2539,6 +2568,10 @@ def main() -> int:
         for budget in budgets:
             budget_slug = _safe_slug(f"{budget:.3f}pct")
             print(f"  -- budget={budget}%")
+            v43_debug_logs: list[dict[str, Any]] | None = None
+            v44_debug_logs: list[dict[str, Any]] | None = None
+            v45_debug_logs: list[dict[str, Any]] | None = None
+            kept_ordered_ids: list[str] | None = None
 
             # Phase 1: calibrate simulator to requested budget and materialize sampled traces.
             target_trace_count = None
@@ -2811,6 +2844,218 @@ def main() -> int:
                     "threshold_volatility_pct": None,
                     "max_step_change_pct": None,
                 }
+            elif args.selection_mode == "stream-v4.8-causal-booster":
+                # Use the v4.8 add-on wrapper: frozen v3.5 + streaming causal graph booster.
+                target_tps = 0.0
+                preference_vector, metric_stats = sv48comp.build_metric_inputs(points)
+                metrics_stream_by_sec = sv48comp.build_metrics_stream_proxy(points)
+
+                min_floor = 1
+                kept_ids = sv48comp._composite_v48_streaming_causal_booster(
+                    points=points,
+                    budget_pct=budget,
+                    preference_vector=preference_vector,
+                    metric_stats=metric_stats,
+                    scenario_windows=scenario_windows,
+                    incident_anchor_sec=incident_anchor_sec,
+                    seed=args.stochastic_seed,
+                    incident_services=incident_services,
+                    min_incident_traces_per_scenario=min_floor,
+                    online_soft_cap=(args.budget_mode != "strict"),
+                    metrics_stream_by_sec=metrics_stream_by_sec,
+                )
+                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
+                pre_cap_keep_pct = achieved_keep_pct
+                sim_metrics = {
+                    "incident_capture_latency_ms": None,
+                    "threshold_volatility_pct": None,
+                    "max_step_change_pct": None,
+                }
+            elif args.selection_mode == "stream-v4.0-real-metrics":
+                # Use v4.0 sampler: frozen v3.5 with real paper metrics fusion.
+                target_tps = 0.0
+                preference_vector, metric_stats = sv40comp.build_metric_inputs(points)
+                metric_dir = _metric_dir_from_trace_dir(spec.trace_dir)
+                metrics_stream_by_sec = sv40comp.build_real_metrics_stream(str(metric_dir))
+
+                min_floor = 1
+                kept_ids = sv40comp._composite_v40_real_metrics_sampling(
+                    points=points,
+                    budget_pct=budget,
+                    preference_vector=preference_vector,
+                    metric_stats=metric_stats,
+                    scenario_windows=scenario_windows,
+                    incident_anchor_sec=incident_anchor_sec,
+                    seed=args.stochastic_seed,
+                    incident_services=incident_services,
+                    min_incident_traces_per_scenario=min_floor,
+                    online_soft_cap=(args.budget_mode != "strict"),
+                    metrics_stream_by_sec=metrics_stream_by_sec,
+                    metric_lookback_sec=20,
+                )
+                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
+                pre_cap_keep_pct = achieved_keep_pct
+                sim_metrics = {
+                    "incident_capture_latency_ms": None,
+                    "threshold_volatility_pct": None,
+                    "max_step_change_pct": None,
+                }
+            elif args.selection_mode == "stream-v4.1-anomaly-precedence":
+                # Use v4.1 sampler: v3.5 + real metrics anomaly precedence reservation.
+                target_tps = 0.0
+                preference_vector, metric_stats = sv41comp.build_metric_inputs(points)
+                metric_dir = _metric_dir_from_trace_dir(spec.trace_dir)
+                metrics_stream_by_sec = sv41comp.build_real_metrics_stream(str(metric_dir))
+
+                min_floor = 1
+                kept_ids = sv41comp._composite_v41_anomaly_precedence_sampler(
+                    points=points,
+                    budget_pct=budget,
+                    preference_vector=preference_vector,
+                    metric_stats=metric_stats,
+                    scenario_windows=scenario_windows,
+                    incident_anchor_sec=incident_anchor_sec,
+                    seed=args.stochastic_seed,
+                    incident_services=incident_services,
+                    min_incident_traces_per_scenario=min_floor,
+                    online_soft_cap=(args.budget_mode != "strict"),
+                    metrics_stream_by_sec=metrics_stream_by_sec,
+                    metric_lookback_sec=20,
+                    precedence_threshold=0.70,
+                )
+                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
+                pre_cap_keep_pct = achieved_keep_pct
+                sim_metrics = {
+                    "incident_capture_latency_ms": None,
+                    "threshold_volatility_pct": None,
+                    "max_step_change_pct": None,
+                }
+            elif args.selection_mode == "stream-v4.2-trend-precursor":
+                # v4.2: Option 1 (temporal trend slope) + Option 3 (incident precursor window)
+                target_tps = 0.0
+                preference_vector, metric_stats = sv42comp.build_metric_inputs(points)
+                metric_dir = _metric_dir_from_trace_dir(spec.trace_dir)
+                metrics_stream_by_sec = sv42comp.build_real_metrics_stream(str(metric_dir))
+
+                min_floor = 1
+                kept_ids = sv42comp._composite_v42_trend_precursor_sampler(
+                    points=points,
+                    budget_pct=budget,
+                    preference_vector=preference_vector,
+                    metric_stats=metric_stats,
+                    scenario_windows=scenario_windows,
+                    incident_anchor_sec=incident_anchor_sec,
+                    seed=args.stochastic_seed,
+                    incident_services=incident_services,
+                    min_incident_traces_per_scenario=min_floor,
+                    online_soft_cap=(args.budget_mode != "strict"),
+                    metrics_stream_by_sec=metrics_stream_by_sec,
+                    metric_lookback_sec=20,
+                    precedence_threshold=0.65,
+                )
+                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
+                pre_cap_keep_pct = achieved_keep_pct
+                sim_metrics = {
+                    "incident_capture_latency_ms": None,
+                    "threshold_volatility_pct": None,
+                    "max_step_change_pct": None,
+                }
+            elif args.selection_mode == "stream-v4.3-service-first":
+                # v4.3: service-first system channel + diversity channel + adaptive OR/AND voting.
+                target_tps = 0.0
+                preference_vector, metric_stats = sv43comp.build_metric_inputs(points)
+                metric_dir = _metric_dir_from_trace_dir(spec.trace_dir)
+                metrics_stream_by_sec = sv43comp.build_real_metrics_stream(str(metric_dir))
+                v43_debug_logs = []
+
+                min_floor = 1
+                kept_ids = sv43comp._composite_v43_service_first_dual_channel(
+                    points=points,
+                    budget_pct=budget,
+                    preference_vector=preference_vector,
+                    metric_stats=metric_stats,
+                    scenario_windows=scenario_windows,
+                    incident_anchor_sec=incident_anchor_sec,
+                    seed=args.stochastic_seed,
+                    incident_services=incident_services,
+                    min_incident_traces_per_scenario=min_floor,
+                    online_soft_cap=(args.budget_mode != "strict"),
+                    metrics_stream_by_sec=metrics_stream_by_sec,
+                    metric_lookback_sec=20,
+                    debug_trace_logs=v43_debug_logs,
+                )
+                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
+                pre_cap_keep_pct = achieved_keep_pct
+                sim_metrics = {
+                    "incident_capture_latency_ms": None,
+                    "threshold_volatility_pct": None,
+                    "max_step_change_pct": None,
+                }
+            elif args.selection_mode == "stream-v4.4-reserve-channel":
+                # v4.4: frozen v3.5 main channel (80%) + deterministic metric reserve channel (20%).
+                target_tps = 0.0
+                preference_vector, metric_stats = sv44comp.build_metric_inputs(points)
+                metric_dir = _metric_dir_from_trace_dir(spec.trace_dir)
+                metrics_stream_by_sec = sv44comp.build_real_metrics_stream(str(metric_dir))
+                v44_debug_logs = []
+
+                min_floor = 1
+                kept_ids = sv44comp._composite_v44_reserve_channel_sampler(
+                    points=points,
+                    budget_pct=budget,
+                    preference_vector=preference_vector,
+                    metric_stats=metric_stats,
+                    scenario_windows=scenario_windows,
+                    incident_anchor_sec=incident_anchor_sec,
+                    seed=args.stochastic_seed,
+                    incident_services=incident_services,
+                    min_incident_traces_per_scenario=min_floor,
+                    online_soft_cap=(args.budget_mode != "strict"),
+                    metrics_stream_by_sec=metrics_stream_by_sec,
+                    metric_lookback_sec=20,
+                    debug_trace_logs=v44_debug_logs,
+                )
+                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
+                pre_cap_keep_pct = achieved_keep_pct
+                sim_metrics = {
+                    "incident_capture_latency_ms": None,
+                    "threshold_volatility_pct": None,
+                    "max_step_change_pct": None,
+                }
+            elif args.selection_mode == "stream-v4.5-hybrid-rerank":
+                # v4.5: frozen v3.5 sampling then metric-aware deterministic pre-RCA rerank.
+                target_tps = 0.0
+                preference_vector, metric_stats = sv45comp.build_metric_inputs(points)
+                metric_dir = _metric_dir_from_trace_dir(spec.trace_dir)
+                metrics_stream_by_sec = sv45comp.build_real_metrics_stream(str(metric_dir))
+                v45_debug_logs = []
+
+                min_floor = 1
+                kept_ordered_ids = sv45comp._composite_v45_hybrid_rerank(
+                    points=points,
+                    budget_pct=budget,
+                    preference_vector=preference_vector,
+                    metric_stats=metric_stats,
+                    scenario_windows=scenario_windows,
+                    incident_anchor_sec=incident_anchor_sec,
+                    seed=args.stochastic_seed,
+                    incident_services=incident_services,
+                    min_incident_traces_per_scenario=min_floor,
+                    online_soft_cap=(args.budget_mode != "strict"),
+                    metrics_stream_by_sec=metrics_stream_by_sec,
+                    metric_lookback_sec=20,
+                    debug_trace_logs=v45_debug_logs,
+                )
+                kept_ids = set(kept_ordered_ids)
+                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
+                pre_cap_keep_pct = achieved_keep_pct
+                target_trace_count = len(kept_ids)
+                pre_cap_trace_count = len(kept_ids)
+                sim_metrics = {
+                    "incident_capture_latency_ms": None,
+                    "threshold_volatility_pct": None,
+                    "max_step_change_pct": None,
+                }
             else:
                 target_tps, kept_ids, achieved_keep_pct = _calibrate_target_tps(points, budget)
                 pre_cap_keep_pct = achieved_keep_pct
@@ -2843,7 +3088,28 @@ def main() -> int:
                 scenario_floor_fail_count = 0
 
             sampled_trace_dir = root / "reports/analysis/paper-sampled-traces" / args.tag / spec.name / budget_slug / "trace"
-            total_rows, kept_rows = _materialize_sampled_trace_dir(spec.trace_dir, sampled_trace_dir, kept_ids)
+            kept_rank = None
+            if kept_ordered_ids is not None:
+                kept_rank = {tid: idx for idx, tid in enumerate(kept_ordered_ids)}
+
+            total_rows, kept_rows = _materialize_sampled_trace_dir(
+                spec.trace_dir,
+                sampled_trace_dir,
+                kept_ids,
+                kept_rank=kept_rank,
+            )
+
+            if v43_debug_logs is not None:
+                v43_log_file = root / "reports/analysis/paper-sampled-traces" / args.tag / spec.name / budget_slug / "v43-trace-debug.jsonl"
+                _write_jsonl(v43_log_file, v43_debug_logs)
+
+            if v44_debug_logs is not None:
+                v44_log_file = root / "reports/analysis/paper-sampled-traces" / args.tag / spec.name / budget_slug / "v44-trace-debug.jsonl"
+                _write_jsonl(v44_log_file, v44_debug_logs)
+
+            if v45_debug_logs is not None:
+                v45_log_file = root / "reports/analysis/paper-sampled-traces" / args.tag / spec.name / budget_slug / "v45-rerank-debug.jsonl"
+                _write_jsonl(v45_log_file, v45_debug_logs)
 
             kept_ids_file = root / "reports/analysis/paper-sampled-traces" / args.tag / spec.name / budget_slug / "kept_trace_ids.txt"
             _write_text(kept_ids_file, "\n".join(sorted(kept_ids)) + ("\n" if kept_ids else ""))
