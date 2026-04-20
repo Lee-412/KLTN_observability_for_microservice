@@ -513,6 +513,7 @@ def _composite_v3_metrics_strictcap(
                     kept_ids.discard(tid)
                 for tid in add_ids[:drop_n]:
                     kept_ids.add(tid)
+
     # --- Strict cap per scenario ---
     if not scenario_windows or min_incident_traces_per_scenario <= 0:
         ranked_ids = sorted(

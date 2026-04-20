@@ -35,6 +35,7 @@ class TracePoint:
     has_error: bool
     root_service: str
     services: frozenset[str]
+    service_path: tuple[str, ...]
 
 
 def strip_pod_to_service(pod_name: str) -> str:
@@ -116,6 +117,7 @@ def build_trace_points(
                 "pods": set(),
                 "root_service": "",
                 "services": set(),
+                "span_seq": [],
             }
             grouped[trace_id] = cur
 
@@ -126,6 +128,7 @@ def build_trace_points(
             cur["pods"].add(pod_name)
             svc = strip_pod_to_service(pod_name)
             cur["services"].add(svc)
+            cur["span_seq"].append((start_ns, svc))
             if not cur["root_service"]:
                 cur["root_service"] = svc
 
@@ -152,6 +155,11 @@ def build_trace_points(
                 break
 
         dur_ms = max(0.0, (g["end_ns"] - g["start_ns"]) / 1_000_000.0)
+        span_seq = sorted(g.get("span_seq", []), key=lambda x: (x[0], x[1]))
+        ordered_services: list[str] = []
+        for _ns, svc in span_seq:
+            if not ordered_services or ordered_services[-1] != svc:
+                ordered_services.append(svc)
         points.append(
             TracePoint(
                 trace_id=tid,
@@ -161,6 +169,7 @@ def build_trace_points(
                 has_error=has_error,
                 root_service=str(g["root_service"]),
                 services=frozenset(g["services"]),
+                service_path=tuple(ordered_services[:12]),
             )
         )
 
