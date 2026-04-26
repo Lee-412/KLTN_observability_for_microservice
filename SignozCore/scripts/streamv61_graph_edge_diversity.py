@@ -542,10 +542,14 @@ def _composite_v61_graph_edge_diversity(
             pd_floor = 0.05
         p_d = _clamp((1.0 + effective_mass) ** (-gamma_eff), pd_floor, 1.0)
 
-        # v6.1: boost p_d when trace brings novel edges
-        # Edge novelty ranges [0, 1]. Boost p_d by up to edge_diversity_weight
-        # when trace has fully novel edges (novelty=1).
-        edge_boost = edge_diversity_weight * edge_novelty
+        # v6.1: boost p_d when trace brings novel edges AND is RCA-relevant.
+        # Guard by rca_value >= 0.40 (Gold/Silver/Mixed quadrant) to avoid
+        # admitting structurally diverse but RCA-irrelevant traces.
+        # Noise quadrant (rca_value=0.28) is excluded from the edge boost.
+        if rca_value >= 0.40:
+            edge_boost = edge_diversity_weight * edge_novelty
+        else:
+            edge_boost = 0.0
         p_d = _clamp(p_d + edge_boost, pd_floor, 1.0)
 
         theta = (len(kept_ids) / seen) if seen > 0 else 0.0
@@ -622,12 +626,14 @@ def _composite_v61_graph_edge_diversity(
 
         p_s_final_by_id[p.trace_id] = p_s
 
-        # v6.1: scoring includes edge novelty contribution
+        # v6.1: scoring for post-hoc ranking.
+        # Edge novelty is an admission-time signal (biased by arrival order)
+        # and is intentionally excluded from post-hoc scoring.
+        # Instead, weight rca_value more heavily.
         score_by_id[p.trace_id] = (
-            0.40 * p_s
-            + 0.15 * p_d
-            + 0.25 * rca_value
-            + 0.20 * edge_novelty
+            0.50 * p_s
+            + 0.20 * p_d
+            + 0.30 * rca_value
         )
 
         seen_win.append((sec, err_flag, lat_pressure, incident_service))
@@ -661,13 +667,14 @@ def _composite_v61_graph_edge_diversity(
                     for edge in _extract_service_edges(by_id[tid]):
                         kept_edge_freq[edge] = kept_edge_freq.get(edge, 0) + 1
 
-    # v6.1 post-hoc ranking: combines rca_value + edge contribution
+    # v6.1 post-hoc ranking: rca_value primary, p_s secondary,
+    # edge novelty as tertiary tiebreaker (not primary — it's admission-order biased).
     def _graph_rank_key(tid: str) -> Tuple[float, float, float, float, str]:
         return (
             -rca_value_by_id.get(tid, 0.0),
-            -edge_score_by_id.get(tid, 0.0),
             -(1.0 if by_id.get(tid) and by_id[tid].has_error else 0.0),
             -p_s_final_by_id.get(tid, 0.0),
+            -edge_score_by_id.get(tid, 0.0),
             tid,
         )
 

@@ -1,7 +1,0 @@
-variant,kept_traces,kept_spans_rate,kept_error_traces,kept_non_error_traces,critical_cov,early_retention,report
-floor00_target50,3975/8000 (49.69%),40018/95415 (41.94%),289/334 (86.53%),3686/7666 (48.08%),24.10 (482/2000),49.69,/home/leeduc/Desktop/KLTN/SignozCore/reports/compare/20260324-202809-combined-proof-thesis-proof-20260324-202655.txt
-floor10_target20,3847/8000 (48.09%),40033/95415 (41.96%),294/334 (88.02%),3553/7666 (46.35%),29.65 (593/2000),48.09,/home/leeduc/Desktop/KLTN/SignozCore/reports/compare/20260324-202943-combined-proof-thesis-proof-20260324-202829.txt
-floor10_target35,3860/8000 (48.25%),40026/95415 (41.95%),278/334 (83.23%),3582/7666 (46.73%),28.05 (561/2000),48.25,/home/leeduc/Desktop/KLTN/SignozCore/reports/compare/20260324-203911-combined-proof-thesis-proof-20260324-203757.txt
-floor10_target50,3880/8000 (48.50%),40031/95415 (41.95%),256/334 (76.65%),3624/7666 (47.27%),25.75 (515/2000),48.50,/home/leeduc/Desktop/KLTN/SignozCore/reports/compare/20260324-204046-combined-proof-thesis-proof-20260324-203931.txt
-floor10_target70,3819/8000 (47.74%),40029/95415 (41.95%),262/334 (78.44%),3557/7666 (46.40%),26.50 (530/2000),47.74,/home/leeduc/Desktop/KLTN/SignozCore/reports/compare/20260324-204957-combined-proof-thesis-proof-20260324-204843.txt
-floor20_target50,3719/8000 (46.49%),40051/95415 (41.98%),253/334 (75.75%),3466/7666 (45.21%),30.10 (602/2000),46.49,/home/leeduc/Desktop/KLTN/SignozCore/reports/compare/20260324-205133-combined-proof-thesis-proof-20260324-205017.txt

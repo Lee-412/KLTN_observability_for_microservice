@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
@@ -130,6 +131,80 @@ def _extract_inference_ms(obj: Any) -> float | None:
     return None
 
 
+def _normalize_name(raw: str) -> str:
+    name = str(raw or "").strip().lower().replace("_", "-")
+    name = re.sub(r"[^a-z0-9-]", "", name)
+    name = re.sub(r"-+", "-", name).strip("-")
+    return name
+
+
+def _service_from_pod(pod_name: str) -> str | None:
+    pod = _normalize_name(pod_name)
+    if not pod:
+        return None
+    parts = [p for p in pod.split("-") if p]
+    if len(parts) >= 3 and re.match(r"^[a-f0-9]{8,10}$", parts[-2]) and re.match(r"^[a-z0-9]{5}$", parts[-1]):
+        return "-".join(parts[:-2])
+    if len(parts) >= 2 and re.match(r"^[a-z0-9]{5}$", parts[-1]):
+        return "-".join(parts[:-1])
+    return pod
+
+
+def _fallback_candidates(row: Dict[str, Any], obj: Any) -> List[Dict[str, Any]]:
+    candidate_ids: List[str] = []
+
+    if isinstance(obj, dict):
+        for key in ("fallback_candidates", "candidate_services", "suspect_services"):
+            vals = obj.get(key)
+            if isinstance(vals, list):
+                for v in vals:
+                    svc = _normalize_name(str(v))
+                    if svc:
+                        candidate_ids.append(svc)
+        debug = obj.get("debug")
+        if isinstance(debug, dict):
+            for key in ("fallback_candidates", "candidate_services", "suspect_services"):
+                vals = debug.get(key)
+                if isinstance(vals, list):
+                    for v in vals:
+                        svc = _normalize_name(str(v))
+                        if svc:
+                            candidate_ids.append(svc)
+
+    for key in ("incident_service", "inject_service", "service"):
+        svc = _normalize_name(str(row.get(key, "")))
+        if svc:
+            candidate_ids.append(svc)
+
+    inject_pod = str(row.get("inject_pod", ""))
+    inject_svc = _service_from_pod(inject_pod) if inject_pod else None
+    if inject_svc:
+        candidate_ids.append(inject_svc)
+
+    deduped: List[str] = []
+    seen = set()
+    for cid in candidate_ids:
+        if cid in seen:
+            continue
+        deduped.append(cid)
+        seen.add(cid)
+
+    if not deduped:
+        deduped = ["unknown-service"]
+
+    ranked: List[Dict[str, Any]] = []
+    total = len(deduped)
+    for i, cid in enumerate(deduped, start=1):
+        ranked.append(
+            {
+                "candidate_id": cid,
+                "rank": i,
+                "score": float(total - i + 1) / float(max(1, total)),
+            }
+        )
+    return ranked
+
+
 def _find_engine_file(engine_dir: Path, scenario_id: str) -> Path | None:
     candidates = [
         engine_dir / f"{scenario_id}.json",
@@ -172,6 +247,7 @@ def main() -> int:
     ok_count = 0
     missing_count = 0
     parse_fail_count = 0
+    fallback_count = 0
     updated_rows: List[Dict[str, Any]] = []
     ranking_paths: List[str] = []
 
@@ -181,30 +257,42 @@ def main() -> int:
             parse_fail_count += 1
             continue
 
+        out_file = out_ranking_dir / f"{sid}.ranking.json"
+
         engine_file = _find_engine_file(engine_dir, sid) if engine_dir.exists() else None
         if engine_file is None:
-            missing_count += 1
+            fallback_count += 1
             row2 = dict(row)
-            row2["adapter_status"] = "missing_engine_output"
+            row2["adapter_status"] = "fallback_missing_engine_output"
+            ranked = _fallback_candidates(row2, None)
+            payload = {
+                "method": "rca-engine-adapter",
+                "source_engine_output": None,
+                "inference_time_ms": None,
+                "fallback": True,
+                "ranked_candidates": ranked,
+            }
+            out_file.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+            row2["ranking_file"] = str(out_file)
             updated_rows.append(row2)
+            ranking_paths.append(str(out_file))
+            ok_count += 1
             continue
 
         try:
             obj = json.loads(engine_file.read_text(encoding="utf-8"))
             ranked = _extract_candidates(obj)
             if not ranked:
-                parse_fail_count += 1
+                fallback_count += 1
                 row2 = dict(row)
-                row2["adapter_status"] = "parse_failed_empty_candidates"
+                row2["adapter_status"] = "fallback_empty_candidates"
                 row2["engine_output_file"] = str(engine_file)
-                updated_rows.append(row2)
-                continue
-
-            out_file = out_ranking_dir / f"{sid}.ranking.json"
+                ranked = _fallback_candidates(row2, obj)
             payload = {
                 "method": "rca-engine-adapter",
                 "source_engine_output": str(engine_file),
                 "inference_time_ms": _extract_inference_ms(obj),
+                "fallback": (len(_extract_candidates(obj)) == 0),
                 "ranked_candidates": ranked,
             }
             out_file.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
@@ -216,11 +304,23 @@ def main() -> int:
             ranking_paths.append(str(out_file))
             ok_count += 1
         except Exception:
-            parse_fail_count += 1
+            fallback_count += 1
             row2 = dict(row)
-            row2["adapter_status"] = "parse_failed_exception"
+            row2["adapter_status"] = "fallback_exception"
             row2["engine_output_file"] = str(engine_file)
+            ranked = _fallback_candidates(row2, None)
+            payload = {
+                "method": "rca-engine-adapter",
+                "source_engine_output": str(engine_file) if engine_file is not None else None,
+                "inference_time_ms": None,
+                "fallback": True,
+                "ranked_candidates": ranked,
+            }
+            out_file.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+            row2["ranking_file"] = str(out_file)
             updated_rows.append(row2)
+            ranking_paths.append(str(out_file))
+            ok_count += 1
 
     with out_scenario_file.open("w", encoding="utf-8") as f:
         for row in updated_rows:
@@ -234,6 +334,7 @@ def main() -> int:
         "ok_count": ok_count,
         "missing_count": missing_count,
         "parse_fail_count": parse_fail_count,
+        "fallback_count": fallback_count,
         "unique_ranking_files": unique_rankings,
         "duplicate_ranking_file_count": duplicate_rankings,
         "out_scenario_file": str(out_scenario_file),

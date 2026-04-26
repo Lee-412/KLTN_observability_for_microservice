@@ -1,5 +1,0 @@
-metric,mean,std_pop,min,max,source
-kept_spans_rate,33.03,0.80,31.90,33.62,"README.20260325.tracking (3 seeds)"
-kept_error_traces_pct,97.19,1.28,95.83,98.90,"README.20260325.tracking (3 seeds)"
-critical_endpoint_coverage_pct,38.86,0.32,38.49,39.26,"README.20260325.tracking (3 seeds)"
-early_incident_retention_pct,39.88,6.18,31.20,45.15,"README.20260325.tracking (3 seeds)"

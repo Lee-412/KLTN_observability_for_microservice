@@ -1,7 +1,0 @@
-run_id: thesis-proof-20260326-a2z
-trace_count: 10000
-seed: 20260326
-endpoint_profile: mixed-4xx
-baseline_file: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/baseline2/20260326-170235-traces.json
-model_file: /home/leeduc/Desktop/KLTN/SignozCore/signoz/deploy/docker/otel-export/model1/20260326-170314-traces.model.json
-retention_file: /home/leeduc/Desktop/KLTN/SignozCore/reports/compare/20260326-170319-combined-proof-thesis-proof-20260326-a2z.txt

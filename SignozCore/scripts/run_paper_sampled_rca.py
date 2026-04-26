@@ -36,26 +36,17 @@ import streamv3_composite_strictcap as sv3comp
 import streamv36 as sv36comp
 import streamv37_rca_aware as sv37comp
 import streamv39_tuned_rca as sv39tunedcomp
-import streamv46_rca_decision_boundary as sv46comp
-import streamv46b_orgate_only as sv46bcomp
+
 import streamv37m_multistage as sv37mcomp
 import streamv38_inline_refine_rca_aware as sv38inlinecomp
 import streamv3_8_composite_anomaly as sv38comp
 import streamv3_9_composite_anomaly as sv39comp
 import streamv3_10_composite_anomaly as sv310comp
-import streamv48_causal_booster as sv48comp
-import streamv40_real_metrics_sampling as sv40comp
-import streamv41_anomaly_precedence_sampler as sv41comp
-import streamv42_trend_precursor_sampler as sv42comp
-import streamv43_service_first_dual_channel as sv43comp
-import streamv44_reserve_channel_sampler as sv44comp
-import streamv45_hybrid_prerca_rerank as sv45comp
-import streamv49_alignment_golden_sampler as sv49comp
-import streamv60_motif_path_boost as sv60comp
+
 import streamv61_graph_edge_diversity as sv61comp
-import streamv51_dual_space_sampler as sv51comp
-import streamv52_true_trastrainer_emulator as sv52comp
-import streamv52_oracle_metrics_upper_bound as sv52oracle
+import streamv71_budget_aware_alpha as sv71comp
+import streamv72_two_stage_gating as sv72comp
+
 import streamv351_contrast_rebalance as sv351comp
 import streamv352_service_coverage as sv352comp
 import streamv353_seed_ensemble as sv353comp
@@ -63,6 +54,7 @@ import streamv391_contrast_rebalance as sv391comp
 import streamv392_service_coverage as sv392comp
 import streamv393_seed_ensemble as sv393comp
 import streamv394_consensus_ensemble as sv394comp
+import streamv394_sprint1_metric_contrast_guard as sv394s1comp
 import streamv395_contrast_ensemble as sv395comp
 
 
@@ -2517,7 +2509,7 @@ def main() -> int:
     )
     ap.add_argument(
         "--selection-mode",
-        choices=["adaptive", "ranked", "ranked-v11", "ranked-v11-quota", "ranked-v11-stochastic", "ranked-v11-hybrid", "stream-v1", "stream-v2", "stream-v2-lite", "stream-v2-fusion", "stream-v3", "stream-v3-composite", "stream-v3-composite-strictcap", "stream-v3.6-service-quota", "stream-v3.7-rca-aware", "stream-v3.7m-multistage", "stream-v3.8-inline-refine-rca-aware", "stream-v3.8-composite-anomaly", "stream-v3.9-composite-anomaly", "stream-v3.10-composite-anomaly", "stream-v3.9-tuned-rca", "stream-v4.6-rca-decision-boundary", "stream-v4.6b-orgate-only", "stream-v4.8-causal-booster", "stream-v4.0-real-metrics", "stream-v4.1-anomaly-precedence", "stream-v4.2-trend-precursor", "stream-v4.3-service-first", "stream-v4.4-reserve-channel", "stream-v4.5-hybrid-rerank", "stream-v4.9-alignment-golden", "stream-v5.1-dual-space", "stream-v6.0-motif-path-boost", "stream-v6.1-graph-edge-diversity", "v52_true_trastrainer", "v52_oracle_metrics_upper_bound", "stream-v3.51-contrast-rebalance", "stream-v3.52-service-coverage", "stream-v3.53-seed-ensemble", "stream-v3.91-contrast-rebalance", "stream-v3.92-service-coverage", "stream-v3.93-seed-ensemble", "stream-v3.94-consensus-ensemble", "stream-v3.95-contrast-ensemble"],
+        choices=["adaptive", "ranked", "ranked-v11", "ranked-v11-quota", "ranked-v11-stochastic", "ranked-v11-hybrid", "stream-v1", "stream-v2", "stream-v2-lite", "stream-v2-fusion", "stream-v3", "stream-v3-composite", "stream-v3-composite-strictcap", "stream-v3.6-service-quota", "stream-v3.7-rca-aware", "stream-v3.7m-multistage", "stream-v3.8-inline-refine-rca-aware", "stream-v3.8-composite-anomaly", "stream-v3.9-composite-anomaly", "stream-v3.10-composite-anomaly", "stream-v3.9-tuned-rca", "stream-v4.6-rca-decision-boundary", "stream-v4.6b-orgate-only", "stream-v4.8-causal-booster", "stream-v4.0-real-metrics", "stream-v4.1-anomaly-precedence", "stream-v4.2-trend-precursor", "stream-v4.3-service-first", "stream-v4.4-reserve-channel", "stream-v4.5-hybrid-rerank", "stream-v4.9-alignment-golden", "stream-v5.1-dual-space", "stream-v6.0-motif-path-boost", "stream-v6.1-graph-edge-diversity", "stream-v7.1-budget-aware-alpha", "stream-v7.2-two-stage-gating", "v52_true_trastrainer", "v52_oracle_metrics_upper_bound", "stream-v3.51-contrast-rebalance", "stream-v3.52-service-coverage", "stream-v3.53-seed-ensemble", "stream-v3.91-contrast-rebalance", "stream-v3.92-service-coverage", "stream-v3.93-seed-ensemble", "stream-v3.94-consensus-ensemble", "stream-v3.94-sprint1-metric-contrast-guard", "stream-v3.95-contrast-ensemble"],
         default="adaptive",
         help="adaptive: existing target_tps simulator; ranked: error/context split ranking; ranked-v11: formula-based global ranking; ranked-v11-quota: formula ranking with hard error/normal partition; ranked-v11-stochastic: calibrated probabilistic sampling; ranked-v11-hybrid: deterministic core + stochastic edge exploration; stream-v1: online dynamic voting with AND/OR gate; stream-v2: robust trace-only v2.7 baseline; stream-v2-lite: p_s-only + tiny random normal breathing hole (no p_d/clustering); stream-v2-fusion: v2 core + hybrid context fusion; stream-v3: V2 core + OR soft-quota 70/30 (no hard strict-cap); stream-v3-composite/stream-v3-composite-strictcap: V3 + coverage-aware metric modulation + deterministic cap; stream-v3.6-service-quota: v3.5 core plus post-sampling suspicious-service quota enforcement; stream-v3.8-composite-anomaly: v3.8 Method 3; stream-v3.9-composite-anomaly: v3.9 anomaly-modulated diversity; stream-v3.10-composite-anomaly: v3.10 anomaly warmup + multiplicative gate + unlocked gamma; stream-v4.8-causal-booster: v3.5 plus streaming causal graph booster; stream-v4.0-real-metrics: v3.5 plus real paper metrics distress fusion; stream-v4.1-anomaly-precedence: v3.5 plus real metrics anomaly precedence reservation; stream-v4.3-service-first: paper-grade service-first dual-channel voting with 60/40 quota; stream-v4.4-reserve-channel: frozen v3.5 main channel with metric reserve add-on (80/20); stream-v4.5-hybrid-rerank: frozen v3.5 sampling plus metric-aware deterministic pre-RCA rerank; stream-v4.9-alignment-golden: frozen v3.5 membership plus alignment-based golden replacement slots; stream-v5.1-dual-space: dual latent spaces A(trace) and P(system) with interaction layer A.P and true streaming AND/OR gate; stream-v6.0-motif-path-boost: v3.9 baseline plus motif/path rarity replacement with root-service prior; v52_true_trastrainer: true TraStrainer emulator with vector A-space, independent predictive P-space, and true A.P interaction; v52_oracle_metrics_upper_bound: v5.2 framework with oracle P-space signal for upper-bound ablation",
     )
@@ -2622,6 +2614,18 @@ def main() -> int:
         type=float,
         default=0.40,
         help="When selection-mode=stream-v3.9-tuned-rca, strength of RCA-contrast boost to p_s",
+    )
+    ap.add_argument(
+        "--v394s1-min-normal-ratio",
+        type=float,
+        default=0.35,
+        help="When selection-mode=stream-v3.94-sprint1-metric-contrast-guard, minimum normal trace floor ratio",
+    )
+    ap.add_argument(
+        "--v394s1-min-error-ratio",
+        type=float,
+        default=0.25,
+        help="When selection-mode=stream-v3.94-sprint1-metric-contrast-guard, minimum error trace floor ratio",
     )
     ap.add_argument(
         "--v46-rca-weight",
@@ -2949,6 +2953,8 @@ def main() -> int:
                 # v3.9: v3.7 tuned — softer quadrant, adaptive suspicious threshold, stronger swap.
                 target_tps = 0.0
                 preference_vector, metric_stats = sv39tunedcomp.build_metric_inputs(points)
+                metric_dir = _metric_dir_from_trace_dir(spec.trace_dir)
+                metrics_stream_by_sec = sv39tunedcomp.build_real_metrics_stream(str(metric_dir))
 
                 min_floor = 1
                 kept_ids = sv39tunedcomp._composite_v39_tuned_rca(
@@ -2963,6 +2969,8 @@ def main() -> int:
                     min_incident_traces_per_scenario=min_floor,
                     online_soft_cap=(args.budget_mode != "strict"),
                     rca_weight=args.v39_rca_weight,
+                    metrics_stream_by_sec=metrics_stream_by_sec,
+                    metric_lookback_sec=20,
                 )
                 achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
                 pre_cap_keep_pct = achieved_keep_pct
@@ -3103,6 +3111,33 @@ def main() -> int:
                 achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
                 pre_cap_keep_pct = achieved_keep_pct
                 sim_metrics = {"incident_capture_latency_ms": None, "threshold_volatility_pct": None, "max_step_change_pct": None}
+            elif args.selection_mode == "stream-v3.94-sprint1-metric-contrast-guard":
+                target_tps = 0.0
+                preference_vector, metric_stats = sv394s1comp.build_metric_inputs(points)
+                metric_dir = _metric_dir_from_trace_dir(spec.trace_dir)
+                metrics_stream_by_sec = sv39tunedcomp.build_real_metrics_stream(str(metric_dir))
+                min_floor = 1
+                kept_ids = sv394s1comp._composite_v394_sprint1_metric_contrast_guard(
+                    points=points,
+                    budget_pct=budget,
+                    preference_vector=preference_vector,
+                    metric_stats=metric_stats,
+                    scenario_windows=scenario_windows,
+                    incident_anchor_sec=incident_anchor_sec,
+                    seed=args.stochastic_seed,
+                    incident_services=incident_services,
+                    min_incident_traces_per_scenario=min_floor,
+                    online_soft_cap=(args.budget_mode != "strict"),
+                    rca_weight=args.v39_rca_weight,
+                    metrics_stream_by_sec=metrics_stream_by_sec,
+                    metric_lookback_sec=20,
+                    min_normal_ratio=args.v394s1_min_normal_ratio,
+                    min_error_ratio=args.v394s1_min_error_ratio,
+                    emit_debug=True,
+                )
+                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
+                pre_cap_keep_pct = achieved_keep_pct
+                sim_metrics = {"incident_capture_latency_ms": None, "threshold_volatility_pct": None, "max_step_change_pct": None}
             elif args.selection_mode == "stream-v3.95-contrast-ensemble":
                 target_tps = 0.0
                 preference_vector, metric_stats = sv395comp.build_metric_inputs(points)
@@ -3121,60 +3156,7 @@ def main() -> int:
                 achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
                 pre_cap_keep_pct = achieved_keep_pct
                 sim_metrics = {"incident_capture_latency_ms": None, "threshold_volatility_pct": None, "max_step_change_pct": None}
-            elif args.selection_mode == "stream-v4.6-rca-decision-boundary":
-                # v4.6: decision-boundary redesign — OR-gated gold + budget-adaptive + gold reservation
-                target_tps = 0.0
-                preference_vector, metric_stats = sv46comp.build_metric_inputs(points)
-
-                min_floor = 1
-                kept_ids = sv46comp._composite_v46_rca_decision_boundary(
-                    points=points,
-                    budget_pct=budget,
-                    preference_vector=preference_vector,
-                    metric_stats=metric_stats,
-                    scenario_windows=scenario_windows,
-                    incident_anchor_sec=incident_anchor_sec,
-                    seed=args.stochastic_seed,
-                    incident_services=incident_services,
-                    min_incident_traces_per_scenario=min_floor,
-                    online_soft_cap=(args.budget_mode != "strict"),
-                    rca_weight=args.v46_rca_weight,
-                    gold_rca_threshold=args.v46_gold_threshold,
-                )
-                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
-                pre_cap_keep_pct = achieved_keep_pct
-                sim_metrics = {
-                    "incident_capture_latency_ms": None,
-                    "threshold_volatility_pct": None,
-                    "max_step_change_pct": None,
-                }
-            elif args.selection_mode == "stream-v4.6b-orgate-only":
-                # v4.6b ablation: Direction A only (OR-gate for Gold), no budget-adaptive or gold reservation
-                target_tps = 0.0
-                preference_vector, metric_stats = sv46bcomp.build_metric_inputs(points)
-
-                min_floor = 1
-                kept_ids = sv46bcomp._composite_v46b_orgate_only(
-                    points=points,
-                    budget_pct=budget,
-                    preference_vector=preference_vector,
-                    metric_stats=metric_stats,
-                    scenario_windows=scenario_windows,
-                    incident_anchor_sec=incident_anchor_sec,
-                    seed=args.stochastic_seed,
-                    incident_services=incident_services,
-                    min_incident_traces_per_scenario=min_floor,
-                    online_soft_cap=(args.budget_mode != "strict"),
-                    rca_weight=args.v46_rca_weight,
-                    gold_rca_threshold=args.v46_gold_threshold,
-                )
-                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
-                pre_cap_keep_pct = achieved_keep_pct
-                sim_metrics = {
-                    "incident_capture_latency_ms": None,
-                    "threshold_volatility_pct": None,
-                    "max_step_change_pct": None,
-                }
+      
             elif args.selection_mode == "stream-v3.7m-multistage":
                 # v3.7m: two-stage coarse capture + RCA-contrast refinement.
                 target_tps = 0.0
@@ -3303,25 +3285,23 @@ def main() -> int:
                     "threshold_volatility_pct": None,
                     "max_step_change_pct": None,
                 }
-            elif args.selection_mode == "stream-v4.8-causal-booster":
-                # Use the v4.8 add-on wrapper: frozen v3.5 + streaming causal graph booster.
-                target_tps = 0.0
-                preference_vector, metric_stats = sv48comp.build_metric_inputs(points)
-                metrics_stream_by_sec = sv48comp.build_metrics_stream_proxy(points)
 
+            elif args.selection_mode == "stream-v7.1-budget-aware-alpha":
+                # v7.1: v3.9 backbone + budget-aware AND gate threshold + budget-aware score weights.
+                target_tps = 0.0
+                preference_vector, metric_stats = sv71comp.build_metric_inputs(points)
                 min_floor = 1
-                kept_ids = sv48comp._composite_v48_streaming_causal_booster(
+                kept_ids = sv71comp._composite_v71_budget_aware_alpha(
                     points=points,
                     budget_pct=budget,
                     preference_vector=preference_vector,
-                    metric_stats=metric_stats,
                     scenario_windows=scenario_windows,
                     incident_anchor_sec=incident_anchor_sec,
                     seed=args.stochastic_seed,
                     incident_services=incident_services,
                     min_incident_traces_per_scenario=min_floor,
                     online_soft_cap=(args.budget_mode != "strict"),
-                    metrics_stream_by_sec=metrics_stream_by_sec,
+                    rca_weight=args.v39_rca_weight,
                 )
                 achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
                 pre_cap_keep_pct = achieved_keep_pct
@@ -3330,216 +3310,22 @@ def main() -> int:
                     "threshold_volatility_pct": None,
                     "max_step_change_pct": None,
                 }
-            elif args.selection_mode == "stream-v4.0-real-metrics":
-                # Use v4.0 sampler: frozen v3.5 with real paper metrics fusion.
+            elif args.selection_mode == "stream-v7.2-two-stage-gating":
+                # v7.2: deterministic two-stage gating (full population scan + diversity filter).
                 target_tps = 0.0
-                preference_vector, metric_stats = sv40comp.build_metric_inputs(points)
-                metric_dir = _metric_dir_from_trace_dir(spec.trace_dir)
-                metrics_stream_by_sec = sv40comp.build_real_metrics_stream(str(metric_dir))
-
+                preference_vector, metric_stats = sv72comp.build_metric_inputs(points)
                 min_floor = 1
-                kept_ids = sv40comp._composite_v40_real_metrics_sampling(
+                kept_ids = sv72comp._composite_v72_two_stage_gating(
                     points=points,
                     budget_pct=budget,
                     preference_vector=preference_vector,
-                    metric_stats=metric_stats,
                     scenario_windows=scenario_windows,
                     incident_anchor_sec=incident_anchor_sec,
                     seed=args.stochastic_seed,
                     incident_services=incident_services,
                     min_incident_traces_per_scenario=min_floor,
                     online_soft_cap=(args.budget_mode != "strict"),
-                    metrics_stream_by_sec=metrics_stream_by_sec,
-                    metric_lookback_sec=20,
-                )
-                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
-                pre_cap_keep_pct = achieved_keep_pct
-                sim_metrics = {
-                    "incident_capture_latency_ms": None,
-                    "threshold_volatility_pct": None,
-                    "max_step_change_pct": None,
-                }
-            elif args.selection_mode == "stream-v4.1-anomaly-precedence":
-                # Use v4.1 sampler: v3.5 + real metrics anomaly precedence reservation.
-                target_tps = 0.0
-                preference_vector, metric_stats = sv41comp.build_metric_inputs(points)
-                metric_dir = _metric_dir_from_trace_dir(spec.trace_dir)
-                metrics_stream_by_sec = sv41comp.build_real_metrics_stream(str(metric_dir))
-
-                min_floor = 1
-                kept_ids = sv41comp._composite_v41_anomaly_precedence_sampler(
-                    points=points,
-                    budget_pct=budget,
-                    preference_vector=preference_vector,
-                    metric_stats=metric_stats,
-                    scenario_windows=scenario_windows,
-                    incident_anchor_sec=incident_anchor_sec,
-                    seed=args.stochastic_seed,
-                    incident_services=incident_services,
-                    min_incident_traces_per_scenario=min_floor,
-                    online_soft_cap=(args.budget_mode != "strict"),
-                    metrics_stream_by_sec=metrics_stream_by_sec,
-                    metric_lookback_sec=20,
-                    precedence_threshold=0.70,
-                )
-                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
-                pre_cap_keep_pct = achieved_keep_pct
-                sim_metrics = {
-                    "incident_capture_latency_ms": None,
-                    "threshold_volatility_pct": None,
-                    "max_step_change_pct": None,
-                }
-            elif args.selection_mode == "stream-v4.2-trend-precursor":
-                # v4.2: Option 1 (temporal trend slope) + Option 3 (incident precursor window)
-                target_tps = 0.0
-                preference_vector, metric_stats = sv42comp.build_metric_inputs(points)
-                metric_dir = _metric_dir_from_trace_dir(spec.trace_dir)
-                metrics_stream_by_sec = sv42comp.build_real_metrics_stream(str(metric_dir))
-
-                min_floor = 1
-                kept_ids = sv42comp._composite_v42_trend_precursor_sampler(
-                    points=points,
-                    budget_pct=budget,
-                    preference_vector=preference_vector,
-                    metric_stats=metric_stats,
-                    scenario_windows=scenario_windows,
-                    incident_anchor_sec=incident_anchor_sec,
-                    seed=args.stochastic_seed,
-                    incident_services=incident_services,
-                    min_incident_traces_per_scenario=min_floor,
-                    online_soft_cap=(args.budget_mode != "strict"),
-                    metrics_stream_by_sec=metrics_stream_by_sec,
-                    metric_lookback_sec=20,
-                    precedence_threshold=0.65,
-                )
-                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
-                pre_cap_keep_pct = achieved_keep_pct
-                sim_metrics = {
-                    "incident_capture_latency_ms": None,
-                    "threshold_volatility_pct": None,
-                    "max_step_change_pct": None,
-                }
-            elif args.selection_mode == "stream-v4.3-service-first":
-                # v4.3: service-first system channel + diversity channel + adaptive OR/AND voting.
-                target_tps = 0.0
-                preference_vector, metric_stats = sv43comp.build_metric_inputs(points)
-                metric_dir = _metric_dir_from_trace_dir(spec.trace_dir)
-                metrics_stream_by_sec = sv43comp.build_real_metrics_stream(str(metric_dir))
-                v43_debug_logs = []
-
-                min_floor = 1
-                kept_ids = sv43comp._composite_v43_service_first_dual_channel(
-                    points=points,
-                    budget_pct=budget,
-                    preference_vector=preference_vector,
-                    metric_stats=metric_stats,
-                    scenario_windows=scenario_windows,
-                    incident_anchor_sec=incident_anchor_sec,
-                    seed=args.stochastic_seed,
-                    incident_services=incident_services,
-                    min_incident_traces_per_scenario=min_floor,
-                    online_soft_cap=(args.budget_mode != "strict"),
-                    metrics_stream_by_sec=metrics_stream_by_sec,
-                    metric_lookback_sec=20,
-                    debug_trace_logs=v43_debug_logs,
-                )
-                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
-                pre_cap_keep_pct = achieved_keep_pct
-                sim_metrics = {
-                    "incident_capture_latency_ms": None,
-                    "threshold_volatility_pct": None,
-                    "max_step_change_pct": None,
-                }
-            elif args.selection_mode == "stream-v4.4-reserve-channel":
-                # v4.4: frozen v3.5 main channel (80%) + deterministic metric reserve channel (20%).
-                target_tps = 0.0
-                preference_vector, metric_stats = sv44comp.build_metric_inputs(points)
-                metric_dir = _metric_dir_from_trace_dir(spec.trace_dir)
-                metrics_stream_by_sec = sv44comp.build_real_metrics_stream(str(metric_dir))
-                v44_debug_logs = []
-
-                min_floor = 1
-                kept_ids = sv44comp._composite_v44_reserve_channel_sampler(
-                    points=points,
-                    budget_pct=budget,
-                    preference_vector=preference_vector,
-                    metric_stats=metric_stats,
-                    scenario_windows=scenario_windows,
-                    incident_anchor_sec=incident_anchor_sec,
-                    seed=args.stochastic_seed,
-                    incident_services=incident_services,
-                    min_incident_traces_per_scenario=min_floor,
-                    online_soft_cap=(args.budget_mode != "strict"),
-                    metrics_stream_by_sec=metrics_stream_by_sec,
-                    metric_lookback_sec=20,
-                    debug_trace_logs=v44_debug_logs,
-                )
-                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
-                pre_cap_keep_pct = achieved_keep_pct
-                sim_metrics = {
-                    "incident_capture_latency_ms": None,
-                    "threshold_volatility_pct": None,
-                    "max_step_change_pct": None,
-                }
-            elif args.selection_mode == "stream-v4.5-hybrid-rerank":
-                # v4.5: frozen v3.5 sampling then metric-aware deterministic pre-RCA rerank.
-                target_tps = 0.0
-                preference_vector, metric_stats = sv45comp.build_metric_inputs(points)
-                metric_dir = _metric_dir_from_trace_dir(spec.trace_dir)
-                metrics_stream_by_sec = sv45comp.build_real_metrics_stream(str(metric_dir))
-                v45_debug_logs = []
-
-                min_floor = 1
-                kept_ordered_ids = sv45comp._composite_v45_hybrid_rerank(
-                    points=points,
-                    budget_pct=budget,
-                    preference_vector=preference_vector,
-                    metric_stats=metric_stats,
-                    scenario_windows=scenario_windows,
-                    incident_anchor_sec=incident_anchor_sec,
-                    seed=args.stochastic_seed,
-                    incident_services=incident_services,
-                    min_incident_traces_per_scenario=min_floor,
-                    online_soft_cap=(args.budget_mode != "strict"),
-                    metrics_stream_by_sec=metrics_stream_by_sec,
-                    metric_lookback_sec=20,
-                    debug_trace_logs=v45_debug_logs,
-                )
-                kept_ids = set(kept_ordered_ids)
-                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
-                pre_cap_keep_pct = achieved_keep_pct
-                target_trace_count = len(kept_ids)
-                pre_cap_trace_count = len(kept_ids)
-                sim_metrics = {
-                    "incident_capture_latency_ms": None,
-                    "threshold_volatility_pct": None,
-                    "max_step_change_pct": None,
-                }
-            elif args.selection_mode == "stream-v4.9-alignment-golden":
-                # v4.9: frozen v3.5 membership plus alignment-driven golden replacement slots.
-                target_tps = 0.0
-                preference_vector, metric_stats = sv49comp.build_metric_inputs(points)
-                metric_dir = _metric_dir_from_trace_dir(spec.trace_dir)
-                metrics_stream_by_sec = sv49comp.build_real_metrics_stream(str(metric_dir))
-                v49_debug_logs = []
-
-                min_floor = 1
-                kept_ids = sv49comp._composite_v49_alignment_golden_sampler(
-                    points=points,
-                    budget_pct=budget,
-                    preference_vector=preference_vector,
-                    metric_stats=metric_stats,
-                    scenario_windows=scenario_windows,
-                    incident_anchor_sec=incident_anchor_sec,
-                    seed=args.stochastic_seed,
-                    incident_services=incident_services,
-                    min_incident_traces_per_scenario=min_floor,
-                    online_soft_cap=(args.budget_mode != "strict"),
-                    metrics_stream_by_sec=metrics_stream_by_sec,
-                    metric_lookback_sec=20,
-                    golden_ratio=args.v49_golden_ratio,
-                    alignment_percentile=args.v49_alignment_percentile,
-                    debug_trace_logs=v49_debug_logs,
+                    rca_weight=args.v39_rca_weight,
                 )
                 achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
                 pre_cap_keep_pct = achieved_keep_pct
@@ -3575,127 +3361,7 @@ def main() -> int:
                     "threshold_volatility_pct": None,
                     "max_step_change_pct": None,
                 }
-            elif args.selection_mode == "stream-v6.0-motif-path-boost":
-                # v6.0: v3.9 base membership plus motif/path rarity replacement.
-                target_tps = 0.0
-                preference_vector, metric_stats = sv60comp.build_metric_inputs(points)
 
-                min_floor = 1
-                kept_ids = sv60comp._composite_v60_motif_path_boost(
-                    points=points,
-                    budget_pct=budget,
-                    preference_vector=preference_vector,
-                    metric_stats=metric_stats,
-                    scenario_windows=scenario_windows,
-                    incident_anchor_sec=incident_anchor_sec,
-                    seed=args.stochastic_seed,
-                    incident_services=incident_services,
-                    min_incident_traces_per_scenario=min_floor,
-                    online_soft_cap=(args.budget_mode != "strict"),
-                    rca_weight=args.v39_rca_weight,
-                    motif_swap_ratio=args.v60_motif_swap_ratio,
-                    motif_admission_percentile=args.v60_motif_admission_percentile,
-                )
-                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
-                pre_cap_keep_pct = achieved_keep_pct
-                sim_metrics = {
-                    "incident_capture_latency_ms": None,
-                    "threshold_volatility_pct": None,
-                    "max_step_change_pct": None,
-                }
-            elif args.selection_mode == "stream-v5.1-dual-space":
-                # v5.1: dual latent spaces A(trace) and P(system) with explicit interaction A.P.
-                target_tps = 0.0
-                preference_vector, metric_stats = sv51comp.build_metric_inputs(points)
-                metric_dir = _metric_dir_from_trace_dir(spec.trace_dir)
-                metrics_stream_by_sec = sv51comp.build_real_metrics_stream(str(metric_dir))
-                v51_debug_logs = []
-
-                min_floor = 1
-                kept_ids = sv51comp._composite_v51_dual_space_sampler(
-                    points=points,
-                    budget_pct=budget,
-                    preference_vector=preference_vector,
-                    metric_stats=metric_stats,
-                    scenario_windows=scenario_windows,
-                    incident_anchor_sec=incident_anchor_sec,
-                    seed=args.stochastic_seed,
-                    incident_services=incident_services,
-                    min_incident_traces_per_scenario=min_floor,
-                    online_soft_cap=(args.budget_mode != "strict"),
-                    metrics_stream_by_sec=metrics_stream_by_sec,
-                    metric_lookback_sec=20,
-                    debug_trace_logs=v51_debug_logs,
-                )
-                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
-                pre_cap_keep_pct = achieved_keep_pct
-                sim_metrics = {
-                    "incident_capture_latency_ms": None,
-                    "threshold_volatility_pct": None,
-                    "max_step_change_pct": None,
-                }
-            elif args.selection_mode == "v52_true_trastrainer":
-                # v5.2: true TraStrainer emulator with A/P vectors and true A.P interaction.
-                target_tps = 0.0
-                preference_vector, metric_stats = sv52comp.build_metric_inputs(points)
-                metric_dir = _metric_dir_from_trace_dir(spec.trace_dir)
-                metrics_stream_by_sec = sv52comp.build_real_metrics_stream(str(metric_dir))
-                v52_debug_logs = []
-
-                min_floor = 1
-                kept_ids = sv52comp._composite_v52_true_trastrainer_emulator(
-                    points=points,
-                    budget_pct=budget,
-                    preference_vector=preference_vector,
-                    metric_stats=metric_stats,
-                    scenario_windows=scenario_windows,
-                    incident_anchor_sec=incident_anchor_sec,
-                    seed=args.stochastic_seed,
-                    incident_services=incident_services,
-                    min_incident_traces_per_scenario=min_floor,
-                    online_soft_cap=(args.budget_mode != "strict"),
-                    metrics_stream_by_sec=metrics_stream_by_sec,
-                    metric_lookback_sec=20,
-                    debug_trace_logs=v52_debug_logs,
-                )
-                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
-                pre_cap_keep_pct = achieved_keep_pct
-                sim_metrics = {
-                    "incident_capture_latency_ms": None,
-                    "threshold_volatility_pct": None,
-                    "max_step_change_pct": None,
-                }
-            elif args.selection_mode == "v52_oracle_metrics_upper_bound":
-                # Oracle upper-bound ablation: keep v5.2 framework, replace only P-space signal source.
-                target_tps = 0.0
-                preference_vector, metric_stats = sv52oracle.build_metric_inputs(points)
-                metric_dir = _metric_dir_from_trace_dir(spec.trace_dir)
-                oracle_signal_by_sec = sv52oracle.load_oracle_metric_signal(str(metric_dir))
-                v52_oracle_debug_logs = []
-
-                min_floor = 1
-                kept_ids = sv52oracle._composite_v52_oracle_metrics_upper_bound(
-                    points=points,
-                    budget_pct=budget,
-                    preference_vector=preference_vector,
-                    metric_stats=metric_stats,
-                    scenario_windows=scenario_windows,
-                    incident_anchor_sec=incident_anchor_sec,
-                    seed=args.stochastic_seed,
-                    incident_services=incident_services,
-                    min_incident_traces_per_scenario=min_floor,
-                    online_soft_cap=(args.budget_mode != "strict"),
-                    oracle_signal_by_sec=oracle_signal_by_sec,
-                    metric_lookback_sec=20,
-                    debug_trace_logs=v52_oracle_debug_logs,
-                )
-                achieved_keep_pct = (len(kept_ids) / len(points) * 100.0) if points else 0.0
-                pre_cap_keep_pct = achieved_keep_pct
-                sim_metrics = {
-                    "incident_capture_latency_ms": None,
-                    "threshold_volatility_pct": None,
-                    "max_step_change_pct": None,
-                }
             else:
                 target_tps, kept_ids, achieved_keep_pct = _calibrate_target_tps(points, budget)
                 pre_cap_keep_pct = achieved_keep_pct

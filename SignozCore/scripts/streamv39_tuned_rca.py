@@ -21,6 +21,7 @@ v3.7 backbone + 3 targeted signal tunings (no architecture changes):
 import math
 import os
 import random
+import csv
 from collections import defaultdict, deque
 from dataclasses import dataclass
 from typing import Any, Set, List, Tuple, Dict, FrozenSet, Optional
@@ -37,8 +38,168 @@ class TracePoint:
 MetricVector = Dict[str, float]
 PreferenceVector = Dict[str, MetricVector]
 MetricStats = Dict[str, Dict[str, Any]]
+MetricsSnapshot = Dict[str, Dict[str, float]]
 
 _DISABLE_OVERRIDE = os.getenv("STREAMV3_DISABLE_OVERRIDE", "0") == "1"
+
+
+def _strip_pod_to_service(pod_name: str) -> str:
+    parts = str(pod_name).strip().split("-")
+    if len(parts) >= 3:
+        return "-".join(parts[:-2])
+    return str(pod_name).strip()
+
+
+def build_real_metrics_stream(metric_dir: str) -> Dict[int, MetricsSnapshot]:
+    if not metric_dir:
+        return {}
+
+    path = os.path.abspath(metric_dir)
+    if not os.path.isdir(path):
+        return {}
+
+    rows_by_service: Dict[str, List[Tuple[int, float, float, float, float, float]]] = defaultdict(list)
+
+    for name in sorted(os.listdir(path)):
+        if not name.endswith(".csv"):
+            continue
+        if name in {"dependency.csv", "front_service.csv", "source_50.csv", "destination_50.csv"}:
+            continue
+
+        file_path = os.path.join(path, name)
+        with open(file_path, "r", encoding="utf-8") as handle:
+            reader = csv.DictReader(handle)
+            for row in reader:
+                try:
+                    sec = int(float(str(row.get("TimeStamp", "0")).strip()))
+                except Exception:
+                    continue
+                if sec <= 0:
+                    continue
+
+                pod = str(row.get("PodName", "")).strip()
+                if not pod:
+                    continue
+                service = _strip_pod_to_service(pod)
+
+                cpu = _clamp(float(row.get("CpuUsageRate(%)", 0.0)) / 100.0, 0.0, 1.0)
+                mem = _clamp(float(row.get("MemoryUsageRate(%)", 0.0)) / 100.0, 0.0, 1.0)
+                client_p95 = float(row.get("PodClientLatencyP95(s)", 0.0))
+                server_p95 = float(row.get("PodServerLatencyP95(s)", 0.0))
+                latency = max(client_p95, server_p95)
+                workload_ops = max(0.0, float(row.get("PodWorkload(Ops)", 0.0)))
+                success_rate = _clamp(float(row.get("PodSuccessRate(%)", 0.0)) / 100.0, 0.0, 1.0)
+                rows_by_service[service].append((sec, cpu, mem, latency, workload_ops, success_rate))
+
+    out: Dict[int, MetricsSnapshot] = defaultdict(dict)
+
+    for service, rows in rows_by_service.items():
+        rows.sort(key=lambda item: item[0])
+        lat_hist: deque[float] = deque(maxlen=120)
+        ops_hist: deque[float] = deque(maxlen=120)
+        per_sec_acc: Dict[int, Dict[str, List[float]]] = defaultdict(
+            lambda: {
+                "cpu": [],
+                "memory": [],
+                "latency": [],
+                "workload": [],
+                "success_rate": [],
+            }
+        )
+
+        for sec, cpu, mem, latency, ops, success in rows:
+            lat_hist.append(latency)
+            ops_hist.append(ops)
+
+            sorted_lat = sorted(lat_hist)
+            sorted_ops = sorted(ops_hist)
+            lat_p95 = sorted_lat[int(0.95 * (len(sorted_lat) - 1))] if sorted_lat else 1.0
+            ops_p95 = sorted_ops[int(0.95 * (len(sorted_ops) - 1))] if sorted_ops else 1.0
+            lat_p95 = max(1e-6, float(lat_p95))
+            ops_p95 = max(1e-6, float(ops_p95))
+
+            norm_latency = _clamp(latency / lat_p95, 0.0, 1.0)
+            norm_workload = _clamp(ops / ops_p95, 0.0, 1.0)
+
+            acc = per_sec_acc[sec]
+            acc["cpu"].append(cpu)
+            acc["memory"].append(mem)
+            acc["latency"].append(norm_latency)
+            acc["workload"].append(norm_workload)
+            acc["success_rate"].append(success)
+
+        for sec, acc in per_sec_acc.items():
+            out[sec][service] = {
+                "cpu": _mean(acc["cpu"]),
+                "memory": _mean(acc["memory"]),
+                "latency": _mean(acc["latency"]),
+                "workload": _mean(acc["workload"]),
+                "success_rate": _mean(acc["success_rate"]),
+            }
+
+    return dict(out)
+
+
+def get_aligned_metrics(
+    trace_sec: int,
+    service: str,
+    metrics_stream_by_sec: Dict[int, MetricsSnapshot],
+    lookback_sec: int = 20,
+) -> Optional[Dict[str, float]]:
+    for sec in range(trace_sec, trace_sec - max(1, lookback_sec) - 1, -1):
+        snap = metrics_stream_by_sec.get(sec)
+        if not snap:
+            continue
+        metric = snap.get(service)
+        if metric is not None:
+            return metric
+    return None
+
+
+def _metric_positive_z(x: float, history: deque[float]) -> float:
+    if len(history) < 5:
+        return 0.0
+    mu = _mean(list(history))
+    sigma = _std(list(history))
+    z_score = (x - mu) / (sigma + 0.001)
+    return max(0.0, z_score)
+
+
+def _service_metric_anomaly(
+    service: str,
+    trace_sec: int,
+    metrics_stream_by_sec: Dict[int, MetricsSnapshot],
+    service_metric_hist: Dict[str, Dict[str, deque[float]]],
+    metric_lookback_sec: int = 20,
+) -> float:
+    aligned = get_aligned_metrics(trace_sec, service, metrics_stream_by_sec, lookback_sec=metric_lookback_sec)
+    if aligned is None:
+        return 0.0
+
+    hist = service_metric_hist[service]
+    x_lat = _clamp(float(aligned.get("latency", 0.0)), 0.0, 1.0)
+    x_cpu = _clamp(float(aligned.get("cpu", 0.0)), 0.0, 1.0)
+    x_mem = _clamp(float(aligned.get("memory", 0.0)), 0.0, 1.0)
+    x_work = _clamp(float(aligned.get("workload", 0.0)), 0.0, 1.0)
+    success_rate = _clamp(float(aligned.get("success_rate", 1.0)), 0.0, 1.0)
+    error_rate = 1.0 - success_rate
+
+    z_lat = _metric_positive_z(x_lat, hist["latency"])
+    z_cpu = _metric_positive_z(x_cpu, hist["cpu"])
+    z_mem = _metric_positive_z(x_mem, hist["memory"])
+    z_work = _metric_positive_z(x_work, hist["workload"])
+
+    raw_score = 0.35 * z_lat + 0.25 * z_cpu + 0.20 * z_mem + 0.20 * z_work
+    svc_score = _sigmoid(raw_score)
+    if error_rate > 0.01:
+        svc_score += 0.20
+    svc_score = _clamp(svc_score, 0.0, 1.0)
+
+    hist["latency"].append(x_lat)
+    hist["cpu"].append(x_cpu)
+    hist["memory"].append(x_mem)
+    hist["workload"].append(x_work)
+    return svc_score
 
 def _clamp(v: float, lo: float, hi: float) -> float:
     return max(lo, min(hi, v))
@@ -245,6 +406,9 @@ def _composite_v39_tuned_rca(
     anomaly_weight: float = 0.7,
     rca_weight: float = 0.40,
     high_error_service_threshold: float = 0.15,
+    metrics_stream_by_sec: Optional[Dict[int, MetricsSnapshot]] = None,
+    metric_lookback_sec: int = 20,
+    enable_inner_real_metrics: bool = True,
     debug_trace_logs: Optional[List[Dict[str, Any]]] = None,
 ) -> Set[str]:
     total = len(points)
@@ -326,6 +490,9 @@ def _composite_v39_tuned_rca(
     p_s_final_by_id: Dict[str, float] = {}
     by_id: Dict[str, TracePoint] = {p.trace_id: p for p in traces}
     incident_services = incident_services or set()
+    metrics_stream_by_sec = metrics_stream_by_sec or {}
+    if not enable_inner_real_metrics:
+        metrics_stream_by_sec = {}
 
     # --- v3.7 addition: RCA tracking state ---
     svc_trace_count: Dict[str, int] = defaultdict(int)
@@ -345,6 +512,14 @@ def _composite_v39_tuned_rca(
             "ema": 0.0,
             "sec": None,
             "count": 0.0,
+        }
+    )
+    service_metric_hist: Dict[str, Dict[str, deque[float]]] = defaultdict(
+        lambda: {
+            "latency": deque(maxlen=10),
+            "cpu": deque(maxlen=10),
+            "memory": deque(maxlen=10),
+            "workload": deque(maxlen=10),
         }
     )
 
@@ -372,10 +547,23 @@ def _composite_v39_tuned_rca(
 
         # --- v3.9: dynamic suspicious set with adaptive threshold ---
         dynamic_suspicious = set(incident_services)
+        trace_sec_abs = int(p.start_ns // 1_000_000_000)
+        real_metric_distress = 0.0
         for svc in p.services:
             if svc_trace_count[svc] > min_suspicious_history:
                 err_rate = svc_error_trace_count[svc] / svc_trace_count[svc]
                 if err_rate > high_error_service_threshold:
+                    dynamic_suspicious.add(svc)
+            if enable_inner_real_metrics:
+                svc_metric_score = _service_metric_anomaly(
+                    service=svc,
+                    trace_sec=trace_sec_abs,
+                    metrics_stream_by_sec=metrics_stream_by_sec,
+                    service_metric_hist=service_metric_hist,
+                    metric_lookback_sec=metric_lookback_sec,
+                )
+                real_metric_distress = max(real_metric_distress, svc_metric_score)
+                if svc_metric_score >= 0.70:
                     dynamic_suspicious.add(svc)
 
         suspicious_hit = len(set(p.services) & dynamic_suspicious)
@@ -454,6 +642,12 @@ def _composite_v39_tuned_rca(
                 "metric_stats": historical_metric_stats,
             },
         )
+
+        if enable_inner_real_metrics:
+            p_s = p_s + 0.35 * real_metric_distress * (1.0 - p_s)
+            if real_metric_distress > 0.75:
+                p_s = max(p_s, 0.75)
+        p_s = _clamp(p_s, 0.02, 0.98)
 
         incident_floor = 0.0
         if incident_service > 0.0:
