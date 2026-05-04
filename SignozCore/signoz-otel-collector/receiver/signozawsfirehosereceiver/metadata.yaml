@@ -1,9 +1,0 @@
-type: signozawsfirehose
-
-status:
-  class: receiver
-  stability:
-    alpha: [metrics, logs]
-
-tests:
-  config:

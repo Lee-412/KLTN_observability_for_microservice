@@ -1,3 +1,0 @@
-package signozstanzaentry
-
-const InternalTempAttributePrefix = "__signozlogspipelineprocessor_internal__"

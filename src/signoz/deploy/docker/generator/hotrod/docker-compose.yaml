@@ -1,0 +1,42 @@
+version: "3"
+x-common: &common
+  networks:
+    - signoz-net
+  extra_hosts:
+    - host.docker.internal:host-gateway
+  logging:
+    options:
+      max-size: 50m
+      max-file: "3"
+  restart: unless-stopped
+services:
+  hotrod:
+    <<: *common
+    image: jaegertracing/example-hotrod:1.61.0
+    container_name: hotrod
+    command: [ "all" ]
+    environment:
+      - ERROR_RATE=${ERROR_RATE:-0.3}
+      # Send traces directly to the collector container over the shared Docker network.
+      # This is more reliable than host.docker.internal on Linux.
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://signoz-otel-collector:4318
+      # - OTEL_OTLP_HEADERS=signoz-access-token=<your-access-token>
+  load-hotrod:
+    <<: *common
+    image: "signoz/locust:1.2.3"
+    container_name: load-hotrod
+    environment:
+      ATTACKED_HOST: http://hotrod:8080
+      LOCUST_MODE: standalone
+      NO_PROXY: standalone
+      TASK_DELAY_FROM: ${TASK_DELAY_FROM:-0}
+      TASK_DELAY_TO: ${TASK_DELAY_TO:-1}
+      QUIET_MODE: "${QUIET_MODE:-false}"
+      LOCUST_OPTS: "${LOCUST_OPTS:---headless -u 200 -r 20}"
+    volumes:
+      - ../../../common/locust-scripts:/locust
+
+networks:
+  signoz-net:
+    name: signoz-net
+    external: true

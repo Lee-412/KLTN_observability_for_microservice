@@ -3,10 +3,13 @@ otel-export/
 *.json
 *.model.json
 
-SignozCore/signoz/deploy/docker/otel-export/
+src/signoz/deploy/docker/otel-export/
 
-SignozCore/reports/analysis/
-SignozCore/reports/sampler-proof/
-SignozCore/reports/compare/*.csv
-SignozCore/reports/compare/*.txt
-SignozCore/data/streamv3test
+src/reports/analysis/
+src/reports/sampler-proof/
+src/reports/compare/*.csv
+src/reports/compare/*.txt
+src/reports/compare/*.md
+src/data/streamv3test
+
+src/data/paper-source/TraStrainer/

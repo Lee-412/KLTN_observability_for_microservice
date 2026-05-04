@@ -1,213 +1,208 @@
-# KLTN – Observability for Microservices with SigNoz and Model-based Tail Sampling
+# KLTN - Observability for Microservices
 
-## Overview
+This repository is maintained as a graduation thesis (KLTN) workspace for offline trace sampling and RCA benchmarking on microservice datasets.
 
-This repository contains my **graduation thesis (KLTN)** project focusing on **observability for microservice systems**, with a practical study on **tail-based trace sampling** using **SigNoz** and **OpenTelemetry**.
+This README is intentionally focused on running two sampler versions only:
 
-The project starts from the standard SigNoz stack and extends it by introducing a **model-based tail sampling policy**. Instead of sampling traces purely by rules or probability, this approach uses a **linear scoring model** based on trace features (such as duration, span count, and error signals) to decide which traces should be retained.
-
-The goal is to:
-
-* Preserve the default SigNoz tail sampling behavior.
-* Extend the collector with a new sampling policy (`type: model`).
-* Evaluate the impact of model-based sampling compared to a baseline setup.
-
-This repository includes:
-
-* A full SigNoz Docker Compose setup.
-* A customized `signoz-otel-collector` with model-based tail sampling.
-* Configuration and scripts to run baseline vs model experiments.
+- TASD `v3`
+- MESC `v3942`
 
 ---
 
-## Project Structure
+### 1. Problem Statement
 
-```
-KLTN_observability_for_microservice/
-├── signoz/                   # SigNoz deployment (Docker Compose, ClickHouse, UI)
-├── signoz-otel-collector/    # Custom OpenTelemetry Collector with model sampling
-├── scripts/                  # Helper scripts (comparison, analysis)
-├── docs/                     # Design notes and experiment documentation
-└── README.md                 # Project documentation (this file)
-```
+Microservice systems generate a large number of traces, so it is usually impossible to retain everything under a tight storage and processing budget. The thesis problem addressed in this repository is:
 
----
+- keep fewer traces,
+- but preserve the most informative ones,
+- so that the downstream RCA stage can still identify root causes effectively.
 
-## Architecture Overview
+### 2. Two Methods
 
-At a high level, the system consists of:
+#### TASD v3
 
-* **Instrumented microservices** emitting OTLP traces.
-* **SigNoz OpenTelemetry Collector**
+- this is the baseline sampler track,
+- it focuses on trace-level signals, error signals, diversity, and strict budget control,
+- it is used as the main baseline for comparison.
 
-  * Applies tail-based sampling.
-  * Supports a custom `model` policy for score-based sampling.
-* **ClickHouse** for trace storage.
-* **SigNoz UI** for visualization and analysis.
+Main files:
 
-The model-based sampler computes a linear score per trace and samples traces whose score exceeds a configurable threshold.
+- `src/scripts/TASD/run_paper_sampled_rca.py`
+- `src/scripts/TASD/streamv3_composite_strictcap.py`
 
----
+#### MESC v3942
 
-## Prerequisites
+- this is the more advanced sampler track,
+- it combines trace signals with metric-native context,
+- it uses signed metric modulation, seed ensemble, and consensus to prioritize RCA-useful traces.
 
-Make sure the following tools are installed:
+Main files:
 
-* Linux environment
-* Docker Engine
-* Docker Compose (`docker-compose` CLI)
-* Git
-* (Optional) Python 3 for offline comparison scripts
+- `src/scripts/MESC/run_paper_sampled_rca_v9_contrast.py`
+- `src/scripts/MESC/streamv3942_metric_native_signed_contrast.py`
 
-Check versions:
+### 3. Requirements and Setup
 
-```bash
-git --version
-docker --version
-docker-compose --version
-python3 --version
-```
+#### Minimum requirements
 
----
+- Python 3
+- `numpy`
+- Git Bash or any environment with `bash` for phase 2 on Windows
+- TraStrainer data under `src/data/paper-source/TraStrainer/...`
 
-## Installation and Setup
+#### Recommended setup
 
-### 1) Clone the repository
+Run from the repository root:
 
-```bash
-git clone https://github.com/Lee-412/KLTN_observability_for_microservice.git
-cd KLTN_observability_for_microservice
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install numpy
 ```
 
----
+Quick verification:
 
-### 2) Build the custom collector image
-
-The collector includes a custom **model-based tail sampling policy**.
-
-```bash
-cd signoz-otel-collector
-
-docker build -t signoz/signoz-otel-collector:kltn-model .
+```powershell
+.\.venv\Scripts\python.exe --version
+.\.venv\Scripts\python.exe -c "import numpy; print(numpy.__version__)"
 ```
 
----
+#### Input data
 
-### 3) Configure SigNoz to use the custom collector
+The repository assumes these datasets are available:
 
-Edit the environment file:
+- `src/data/paper-source/TraStrainer/data/dataset/train_ticket/test/`
+- `src/data/paper-source/TraStrainer/data/dataset/hipster/batches/batch1/`
+- `src/data/paper-source/TraStrainer/data/dataset/hipster/batches/batch2/`
 
-```bash
-cd ../signoz/deploy/docker
-nano .env
+Each dataset should contain:
+
+- `label.json`
+- `trace/`
+- `metric/`
+
+Note:
+
+- if `scenarios.*.paper-source.*.jsonl` files are missing, the current runners can bootstrap them from `label.json`.
+
+### 4. Run Scripts
+
+#### 4.1 Run TASD v3
+
+Example smoke test for `train-ticket` at `1.0%` from the repository root:
+
+```powershell
+.\.venv\Scripts\python.exe -m src.scripts.TASD.run_paper_sampled_rca `
+  --root .\src `
+  --tag tasd-v3-train-ticket-1pct `
+  --datasets train-ticket `
+  --budgets 1.0 `
+  --budget-mode strict `
+  --selection-mode stream-v3-composite-strictcap
 ```
 
-Set the collector image tag:
+Example full 3-dataset run:
 
-```env
-OTELCOL_TAG=kltn-model
-SCHEMA_MIGRATOR_TAG=v0.129.13
+```powershell
+.\.venv\Scripts\python.exe -m src.scripts.TASD.run_paper_sampled_rca `
+  --root .\src `
+  --tag tasd-v3-full `
+  --budget-mode strict
 ```
 
----
+Current TASD runner defaults:
 
-### 4) Start the SigNoz stack
+- `--datasets`: `train-ticket,hipster-batch1,hipster-batch2`
+- `--budgets`: `0.1,1.0,2.5`
+- `--selection-mode`: `stream-v3-composite-strictcap`
 
-```bash
-cd signoz/deploy/docker
+#### 4.2 Run MESC v3942
 
-docker-compose up -d
+Example sampler-only sanity run from the repository root:
+
+```powershell
+.\.venv\Scripts\python.exe .\src\scripts\MESC\run_paper_sampled_rca_v9_contrast.py `
+  --root .\src `
+  --tag v3942-sanity `
+  --selection-mode stream-v3.94.2-metric-native-signed-contrast `
+  --datasets hipster-batch1 `
+  --budgets 0.1 `
+  --before-sec 300 `
+  --after-sec 600 `
+  --budget-mode strict `
+  --v3942-min-consensus 2 `
+  --sampling-only `
+  --sampling-timing-csv .\src\reports\compare\sampler-timing-v3942-sanity.csv
 ```
 
-Verify services:
+Example full 3-dataset run:
 
-```bash
-docker-compose ps
+```powershell
+.\.venv\Scripts\python.exe .\src\scripts\MESC\run_paper_sampled_rca_v9_contrast.py `
+  --root .\src `
+  --tag v3942-full `
+  --selection-mode stream-v3.94.2-metric-native-signed-contrast `
+  --budget-mode strict `
+  --v3942-min-consensus 2 `
+  --sampling-timing-csv .\src\reports\compare\sampler-timing-v3942-full.csv
 ```
 
-Once started, open the SigNoz UI:
+Current MESC runner defaults:
 
-* [http://localhost:8080](http://localhost:8080)
+- `--datasets`: `train-ticket,hipster-batch1,hipster-batch2`
+- `--budgets`: `0.1,1.0,2.5`
+- `--dataset-config`: `scripts/configs/datasets.trastrainer.json`
 
----
+### 5. How To Check Results
 
-### 5) Enable tail sampling with the model policy
+After a full run, inspect first:
 
-The tail sampling processor is configured in:
+- `src/reports/compare/`
+- `src/reports/analysis/rca-benchmark/`
 
-```
-signoz/deploy/docker/otel-collector-config.yaml
-```
+Most important output files:
 
-Example policy:
+- `rca-dataset-budget-metrics-<tag>.md`
+- `table3-all-models-plus-ours-<timestamp>.md`
+- `rca-paper-table-sampled-budgets-<tag>.csv`
+- `sampling-quality-key-metrics-<tag>.csv`
 
-```yaml
-processors:
-  signoz_tail_sampling:
-    policies:
-      - name: model-policy
-        type: model
-        model:
-          type: linear
-          threshold: 2.0
-          intercept: 0.0
-          weights:
-            duration_ms: 0.01
-            span_count: 0.05
-            has_error: 2.0
-```
+Metrics to check first:
 
-Make sure `signoz_tail_sampling` is included in the **traces pipeline** before the `batch` processor.
+- `scenario_count`
+- `A@1`
+- `A@3`
+- `MRR`
+- `parse_fail_count`
+- `ok_count`
 
----
+On a successful run, the terminal usually prints:
 
-### 6) Generate test traces
-
-You can use the built-in **HotROD** trace generator:
-
-```bash
-cd signoz/deploy/docker/generator/hotrod
-
-docker-compose up -d
-sleep 30
-docker-compose down
+```text
+benchmark_csv=...
+compare_csv=...
+benchmark_md=...
+table3_csv=...
+table3_md=...
+quality_csv=...
+primary_markdown_outputs=2
 ```
 
-Traces should now appear in the SigNoz UI.
+For `sampling-only`, also inspect the timing CSV, for example:
 
----
-
-## Baseline vs Model Experiment
-
-The typical experiment flow is:
-
-1. **Baseline run**: Tail sampling disabled or using default SigNoz policies.
-2. **Model run**: Tail sampling enabled with the `model` policy.
-3. Compare:
-
-   * Number of ingested traces
-   * Coverage of error traces
-   * Trace duration distribution
-
-Optional file exporters can be enabled to export OTLP traces as JSON for offline analysis.
-
-
-## Future Work
-
-* Support more advanced models (logistic regression, tree-based models).
-* Learn weights automatically from historical traces.
-* Extend feature set with service-level and attribute-based signals.
+- `src/reports/compare/sampler-timing-v3942-sanity.csv`
 
 ---
 
 ## Author
 
-**Lee**
-Bachelor Thesis – Observability for Microservices
+**Lee**  
+Bachelor Thesis (KLTN) - Observability for Microservices  
 Vietnam National University
 
 ---
 
 ## License
 
-This project is for academic and research purposes.
+This project is maintained for academic and research purposes.

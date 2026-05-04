@@ -1,0 +1,169 @@
+connectors:
+  signozmeter:
+    metrics_flush_interval: 1h
+    dimensions:
+      - name: service.name
+      - name: deployment.environment
+      - name: host.name
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+  prometheus:
+    config:
+      global:
+        scrape_interval: 60s
+      scrape_configs:
+        - job_name: otel-collector
+          static_configs:
+          - targets:
+              - localhost:8888
+            labels:
+              job_name: otel-collector
+processors:
+  batch:
+    send_batch_size: 10000
+    send_batch_max_size: 11000
+    timeout: 10s
+  batch/meter:
+    send_batch_max_size: 25000
+    send_batch_size: 20000
+    timeout: 1s
+  resourcedetection:
+    # Using OTEL_RESOURCE_ATTRIBUTES envvar, env detector adds custom labels.
+    detectors: [env, system]
+    timeout: 2s
+  signozspanmetrics/delta:
+    metrics_exporter: signozclickhousemetrics
+    metrics_flush_interval: 60s
+    latency_histogram_buckets: [100us, 1ms, 2ms, 6ms, 10ms, 50ms, 100ms, 250ms, 500ms, 1000ms, 1400ms, 2000ms, 5s, 10s, 20s, 40s, 60s ]
+    dimensions_cache_size: 100000
+    aggregation_temporality: AGGREGATION_TEMPORALITY_DELTA
+    enable_exp_histogram: true
+    dimensions:
+      - name: service.namespace
+        default: default
+      - name: deployment.environment
+        default: default
+      # This is added to ensure the uniqueness of the timeseries
+      # Otherwise, identical timeseries produced by multiple replicas of
+      # collectors result in incorrect APM metrics
+      - name: signoz.collector.id
+      - name: service.version
+      - name: browser.platform
+      - name: browser.mobile
+      - name: k8s.cluster.name
+      - name: k8s.node.name
+      - name: k8s.namespace.name
+      - name: host.name
+      - name: host.type
+      - name: container.name
+  
+  # Tail sampling processor with adaptive linear model
+  signoz_tail_sampling:
+    decision_wait: 5s  # Wait time before making sampling decision
+    num_traces: 50000  # Number of traces kept in memory
+    expected_new_traces_per_sec: 100
+    policies:
+      # Adaptive Linear Model Policy
+      - name: adaptive-model-policy
+        type: model
+        model:
+          type: linear
+          # Fallback threshold when not enough data yet
+          threshold: 5.0
+          intercept: 0.0
+          weights:
+            duration_ms: 0.01   # Weight for duration (10ms = +0.1 score)
+            span_count: 0.5     # Weight for span count
+            has_error: 10.0     # High weight for errors
+          
+          # Adaptive configuration
+          adaptive:
+            enabled: true
+            # How long to observe traces before recomputing threshold
+            window_duration: 30s
+            # How often to recompute the threshold
+            recompute_interval: 10s
+            # Number of recent scores to keep for quantile calculation
+            max_samples: 10000
+            
+            # Target budget: keep approximately 50 traces/sec
+            # If incoming rate is 200/sec, this will drop ~75%
+            target_traces_per_sec: 50
+            
+            # Alternative: use a fixed keep ratio (commented out since target_traces_per_sec takes precedence)
+            # keep_ratio: 0.25  # Keep 25% of traces
+            
+            # Safety bounds on keep ratio
+            min_keep_ratio: 0.05  # Always keep at least 5%
+            max_keep_ratio: 1.0   # Never exceed 100%
+            
+            # Always keep traces with errors regardless of score
+            always_keep_errors: true
+            
+            # SLA incident detection (optional)
+            sla_duration_ms: 2000  # Traces > 2s are considered violations
+            violation_rate_threshold: 0.1  # If >10% of traces violate SLA
+            incident_keep_ratio: 0.5  # Boost keep ratio to 50% during incidents
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+  pprof:
+    endpoint: 0.0.0.0:1777
+exporters:
+  clickhousetraces:
+    datasource: tcp://clickhouse:9000/signoz_traces
+    low_cardinal_exception_grouping: ${env:LOW_CARDINAL_EXCEPTION_GROUPING}
+    use_new_schema: true
+  signozclickhousemetrics:
+    dsn: tcp://clickhouse:9000/signoz_metrics
+  clickhouselogsexporter:
+    dsn: tcp://clickhouse:9000/signoz_logs
+    timeout: 10s
+    use_new_schema: true
+  signozclickhousemeter:
+    dsn: tcp://clickhouse:9000/signoz_meter
+    timeout: 45s
+    sending_queue:
+      enabled: false
+  
+  # Logging exporter for debugging (optional)
+  logging:
+    verbosity: detailed
+    sampling_initial: 10
+    sampling_thereafter: 100
+
+service:
+  telemetry:
+    logs:
+      level: debug  # Set to debug to see sampling decisions
+      encoding: json
+  extensions:
+    - health_check
+    - pprof
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [signoz_tail_sampling, signozspanmetrics/delta, batch]
+      exporters: [clickhousetraces, signozmeter]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [signozclickhousemetrics, signozmeter]
+    metrics/prometheus:
+      receivers: [prometheus]
+      processors: [batch]
+      exporters: [signozclickhousemetrics, signozmeter]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [clickhouselogsexporter, signozmeter]
+    metrics/meter:
+      receivers: [signozmeter]
+      processors: [batch/meter]
+      exporters: [signozclickhousemeter]
