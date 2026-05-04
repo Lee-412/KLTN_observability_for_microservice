@@ -70,21 +70,40 @@ Quick verification:
 
 #### Input data
 
-The repository assumes these datasets are available:
+If the TraStrainer paper dataset is not available locally yet, clone the paper repository first:
+
+```powershell
+git clone https://github.com/IntelligentDDS/TraStrainer.git .\src\data\paper-source\TraStrainer
+```
+
+If the target directory already exists, update it instead:
+
+```powershell
+git -C .\src\data\paper-source\TraStrainer pull
+```
+
+After cloning, the repository expects these dataset directories to exist:
 
 - `src/data/paper-source/TraStrainer/data/dataset/train_ticket/test/`
 - `src/data/paper-source/TraStrainer/data/dataset/hipster/batches/batch1/`
 - `src/data/paper-source/TraStrainer/data/dataset/hipster/batches/batch2/`
 
-Each dataset should contain:
+Each dataset should contain at least:
 
 - `label.json`
 - `trace/`
 - `metric/`
 
+Quick check:
+
+```powershell
+Get-ChildItem .\src\data\paper-source\TraStrainer\data\dataset
+```
+
 Note:
 
 - if `scenarios.*.paper-source.*.jsonl` files are missing, the current runners can bootstrap them from `label.json`.
+- this project only reads the TraStrainer data from the cloned paper repository; the sampling and RCA outputs are still written into this repository under `src/reports/...`.
 
 ### 4. Run Scripts
 

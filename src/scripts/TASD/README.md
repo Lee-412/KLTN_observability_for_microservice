@@ -61,6 +61,18 @@ hipster-batch1
 hipster-batch2
 ```
 
+If the TraStrainer paper dataset is not available locally yet, clone the paper repository into the expected data directory from the repository root:
+
+```powershell
+git clone https://github.com/IntelligentDDS/TraStrainer.git .\src\data\paper-source\TraStrainer
+```
+
+If it already exists, update it with:
+
+```powershell
+git -C .\src\data\paper-source\TraStrainer pull
+```
+
 Expected input locations under `src`:
 
 ```text
