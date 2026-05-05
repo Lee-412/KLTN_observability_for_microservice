@@ -14,11 +14,13 @@ from pathlib import Path
 from typing import Any
 
 import src.scripts.outputAndEvaluation.evaluate_paper_sampling as eps
+from src.scripts.outputAndEvaluation.shell_utils import resolve_bash_executable
 from src.scripts.prepareData.build_scenarios_from_trastrainer_labels import build_rows as build_scenario_rows
 import src.scripts.TASD.streamv3_composite_strictcap as sv3comp
 
 
 V3_SELECTION_MODE = "stream-v3-composite-strictcap"
+BASH_EXECUTABLE = resolve_bash_executable()
 
 
 @dataclass
@@ -2690,7 +2692,7 @@ def main() -> int:
 
             _run(
                 [
-                    "bash",
+                    BASH_EXECUTABLE,
                     "scripts/outputAndEvaluation/run_paper_coverage_first_pipeline.sh",
                     _slash_path(sampled_scenario_file),
                     _slash_path(raw_out_dir),

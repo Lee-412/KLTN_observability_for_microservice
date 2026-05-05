@@ -32,6 +32,7 @@ from pathlib import Path
 from typing import Any
 
 import src.scripts.outputAndEvaluation.evaluate_paper_sampling as eps
+from src.scripts.outputAndEvaluation.shell_utils import resolve_bash_executable
 import src.scripts.TASD.streamv3_composite_strictcap as sv3comp
 import src.scripts.other.streamv36 as sv36comp
 import src.scripts.TASD.streamv37_rca_aware as sv37comp
@@ -53,6 +54,9 @@ import src.scripts.MESC.streamv393_seed_ensemble as sv393comp
 import src.scripts.MESC.streamv394_consensus_ensemble as sv394comp
 import src.scripts.MESC.streamv394_sprint1_metric_contrast_guard as sv394s1comp
 import src.scripts.MESC.streamv395_contrast_ensemble as sv395comp
+
+
+BASH_EXECUTABLE = resolve_bash_executable()
 
 
 @dataclass
@@ -3542,7 +3546,7 @@ def main() -> int:
 
             _run(
                 [
-                    "bash",
+                    BASH_EXECUTABLE,
                     "scripts/run_paper_coverage_first_pipeline.sh",
                     str(sampled_scenario_file),
                     str(raw_out_dir),

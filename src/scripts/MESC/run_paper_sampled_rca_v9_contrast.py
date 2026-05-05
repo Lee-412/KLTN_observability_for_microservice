@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 
 import time
@@ -17,9 +18,13 @@ if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import scripts.outputAndEvaluation.evaluate_paper_sampling as eps
+from scripts.outputAndEvaluation.shell_utils import resolve_bash_executable
 import scripts.MESC.streamv3942_metric_native_signed_contrast as sv3942comp
 from scripts.prepareData.build_scenarios_from_trastrainer_labels import build_rows as build_scenario_rows
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+
+BASH_EXECUTABLE = resolve_bash_executable()
 
 # DatasetSpec
 @dataclass
@@ -775,7 +780,7 @@ def _run_phase2_job(job: Phase2Job, root: Path) -> dict[str, Any]:
 
     _run(
         [
-            "bash",
+            BASH_EXECUTABLE,
             "scripts/outputAndEvaluation/run_paper_coverage_first_pipeline.sh",
             scenario_for_bash,
             raw_out_for_bash,

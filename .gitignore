@@ -1,6 +1,5 @@
-otel-export/
+otel-export/*.json
 *.log
-*.json
 *.model.json
 
 src/signoz/deploy/docker/otel-export/
@@ -9,7 +8,14 @@ src/reports/analysis/
 src/reports/sampler-proof/
 src/reports/compare/*.csv
 src/reports/compare/*.txt
+src/reports/compare/**/*.json
 src/reports/compare/*.md
 src/data/streamv3test
 
 src/data/paper-source/TraStrainer/
+
+.gitignore
+.gitmodules
+
+!src/scripts/configs/
+!src/scripts/configs/**/*.json

@@ -1,0 +1,25 @@
+{
+  "datasets": [
+    {
+      "name": "train-ticket",
+      "trace_dir": "data/paper-source/TraStrainer/data/dataset/train_ticket/test/trace",
+      "label_file": "data/paper-source/TraStrainer/data/dataset/train_ticket/test/label.json",
+      "base_scenario_file": "reports/analysis/rca-benchmark/scenarios.train-ticket.paper-source.20260401.jsonl",
+      "baseline_summary_file": "reports/compare/rca-benchmark-train-ticket-coverage-first-20260401-microrank-summary.json"
+    },
+    {
+      "name": "hipster-batch1",
+      "trace_dir": "data/paper-source/TraStrainer/data/dataset/hipster/batches/batch1/trace",
+      "label_file": "data/paper-source/TraStrainer/data/dataset/hipster/batches/batch1/label.json",
+      "base_scenario_file": "reports/analysis/rca-benchmark/scenarios.hipster-batch1.paper-source.20260401.jsonl",
+      "baseline_summary_file": "reports/compare/rca-benchmark-hipster-batch1-coverage-first-20260401-microrank-summary.json"
+    },
+    {
+      "name": "hipster-batch2",
+      "trace_dir": "data/paper-source/TraStrainer/data/dataset/hipster/batches/batch2/trace",
+      "label_file": "data/paper-source/TraStrainer/data/dataset/hipster/batches/batch2/label.json",
+      "base_scenario_file": "reports/analysis/rca-benchmark/scenarios.hipster-batch2.paper-source.20260401.jsonl",
+      "baseline_summary_file": "reports/compare/rca-benchmark-hipster-batch2-coverage-first-20260401-microrank-summary.json"
+    }
+  ]
+}

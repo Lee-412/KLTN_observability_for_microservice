@@ -1,4 +1,4 @@
-# KLTN - Observability for Microservices
+  # KLTN - Observability for Microservices
 
 This repository is maintained as a graduation thesis (KLTN) workspace for offline trace sampling and RCA benchmarking on microservice datasets.
 
@@ -45,20 +45,54 @@ Main files:
 
 #### Minimum requirements
 
-- Python 3
+- Python 3.10+
+- `pip`
 - `numpy`
-- Git Bash or any environment with `bash` for phase 2 on Windows
+- Git for cloning data
+- Bash for phase 2
 - TraStrainer data under `src/data/paper-source/TraStrainer/...`
+
+Notes:
+
+- all commands below assume the current working directory is the repository root;
+- on Windows, Git for Windows is recommended;
+- the current runners try `bash` from `PATH` first, then common Git Bash install locations on Windows;
+- on PowerShell, virtual environment activation is optional because every command can be run through `.\.venv\Scripts\python.exe` directly.
 
 #### Recommended setup
 
 Run from the repository root:
 
 ```powershell
+py -3 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install numpy
+```
+
+If `py` is not available, replace the first line with:
+
+```powershell
 python -m venv .venv
+```
+
+Optional activation in PowerShell:
+
+```powershell
 .\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-pip install numpy
+```
+
+If PowerShell blocks `Activate.ps1`, either skip activation and keep using `.\.venv\Scripts\python.exe`, or run:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+```
+
+Linux, macOS, or Git Bash:
+
+```bash
+python3 -m venv .venv
+./.venv/bin/python -m pip install --upgrade pip
+./.venv/bin/python -m pip install numpy
 ```
 
 Quick verification:
@@ -104,8 +138,16 @@ Note:
 
 - if `scenarios.*.paper-source.*.jsonl` files are missing, the current runners can bootstrap them from `label.json`.
 - this project only reads the TraStrainer data from the cloned paper repository; the sampling and RCA outputs are still written into this repository under `src/reports/...`.
+- before the first run, make sure the dataset you want actually contains `label.json`, `trace/`, and `metric/`.
 
 ### 4. Run Scripts
+
+All run commands below assume:
+
+- you are still at the repository root;
+- `.venv` exists at the repository root;
+- `numpy` is installed into that `.venv`;
+- TraStrainer data has already been cloned into `src/data/paper-source/TraStrainer`.
 
 #### 4.1 Run TASD v3
 
@@ -137,6 +179,12 @@ Current TASD runner defaults:
 - `--selection-mode`: `stream-v3-composite-strictcap`
 
 #### 4.2 Run MESC v3942
+
+Important:
+
+- this runner expects a dataset config JSON via `--dataset-config`;
+- the code default is `scripts/configs/datasets.trastrainer.json` relative to `--root`;
+- this repository snapshot does not currently include that JSON file, so MESC is not fully plug-and-play until you provide that config.
 
 Example sampler-only sanity run from the repository root:
 
@@ -171,7 +219,7 @@ Current MESC runner defaults:
 
 - `--datasets`: `train-ticket,hipster-batch1,hipster-batch2`
 - `--budgets`: `0.1,1.0,2.5`
-- `--dataset-config`: `scripts/configs/datasets.trastrainer.json`
+- `--dataset-config`: `scripts/configs/datasets.trastrainer.json` relative to `--root`, if that file exists in your local copy
 
 ### 5. How To Check Results
 
