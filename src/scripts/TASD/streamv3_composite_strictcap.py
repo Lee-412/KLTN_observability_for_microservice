@@ -3,15 +3,11 @@
 import math
 import os
 import random
+import re
+from bisect import bisect_right
 from collections import defaultdict, deque
 from dataclasses import dataclass
 from typing import Any, Set, List, Tuple, Dict, FrozenSet, Optional
-
-from src.scripts.other.streamv9_metric_aware_sampling_from_v35 import (
-    _build_pod_metric_index,
-    _build_service_pod_mapping,
-    _lookup_aligned_pod_snapshot,
-)
 
 @dataclass
 class TracePoint:
@@ -30,6 +26,87 @@ _DISABLE_OVERRIDE = os.getenv("STREAMV3_DISABLE_OVERRIDE", "0") == "1"
 
 def _clamp(v: float, lo: float, hi: float) -> float:
     return max(lo, min(hi, v))
+
+
+def _normalize_name(name: str) -> str:
+    return str(name).strip().lower().replace("_", "-")
+
+
+def _strip_k8s_hash_suffix(name: str) -> str:
+    parts = _normalize_name(name).split("-")
+    if len(parts) >= 3:
+        tail1 = parts[-1]
+        tail2 = parts[-2]
+        if re.fullmatch(r"[a-z0-9]{5,20}", tail1) and re.fullmatch(r"[a-z0-9]{5,20}", tail2):
+            return "-".join(parts[:-2])
+    return _normalize_name(name)
+
+
+def _service_to_pod_match(service_name: str, pod_name: str) -> Tuple[bool, float, str]:
+    service = _normalize_name(service_name)
+    pod = _normalize_name(pod_name)
+    if service == pod:
+        return True, 1.0, "exact"
+    if pod.startswith(service):
+        return True, 0.85, "prefix"
+    stripped = _strip_k8s_hash_suffix(pod)
+    if stripped == service or stripped.startswith(service):
+        return True, 0.65, "suffix-strip"
+    return False, 0.0, "mismatch"
+
+
+def _build_pod_metric_index(
+    metrics_stream_by_sec: Dict[int, Dict[str, Dict[str, float]]],
+) -> Tuple[Dict[str, List[int]], Dict[str, List[Dict[str, float]]]]:
+    sec_index: Dict[str, List[int]] = defaultdict(list)
+    snap_index: Dict[str, List[Dict[str, float]]] = defaultdict(list)
+    for sec in sorted(metrics_stream_by_sec.keys()):
+        for pod, snap in metrics_stream_by_sec[sec].items():
+            sec_index[pod].append(sec)
+            snap_index[pod].append(snap)
+    return dict(sec_index), dict(snap_index)
+
+
+def _lookup_aligned_pod_snapshot(
+    pod: str,
+    trace_sec: int,
+    sec_index: Dict[str, List[int]],
+    snap_index: Dict[str, List[Dict[str, float]]],
+    lookback_sec: int,
+) -> Optional[Dict[str, float]]:
+    secs = sec_index.get(pod)
+    snaps = snap_index.get(pod)
+    if not secs or not snaps:
+        return None
+    idx = bisect_right(secs, trace_sec) - 1
+    while idx >= 0:
+        sec = secs[idx]
+        if trace_sec - sec > max(1, lookback_sec):
+            break
+        return snaps[idx]
+    return None
+
+
+def _build_service_pod_mapping(
+    services: Set[str],
+    pods: Set[str],
+) -> Tuple[Dict[str, List[Tuple[str, float, str]]], int, int]:
+    mapping: Dict[str, List[Tuple[str, float, str]]] = {}
+    covered = 0
+    mismatch = 0
+    for service in sorted(services):
+        candidates: List[Tuple[str, float, str]] = []
+        for pod in pods:
+            ok, conf, kind = _service_to_pod_match(service, pod)
+            if ok:
+                candidates.append((pod, conf, kind))
+        candidates.sort(key=lambda item: (-item[1], item[0]))
+        mapping[service] = candidates
+        if candidates:
+            covered += 1
+        else:
+            mismatch += 1
+    return mapping, covered, mismatch
 
 
 def _median(values: List[float]) -> float:
