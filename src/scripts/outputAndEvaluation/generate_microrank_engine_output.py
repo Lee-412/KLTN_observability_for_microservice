@@ -1,10 +1,3 @@
-#!/usr/bin/env python3
-"""Generate per-scenario RCA rankings using MicroRank core algorithm in offline mode.
-
-This script adapts TraStrainer trace CSV files into MicroRank-compatible structures,
-executes the PageRank + spectrum pipeline, and writes one raw engine output file
-per scenario for downstream adapter/evaluator scripts.
-"""
 
 from __future__ import annotations
 

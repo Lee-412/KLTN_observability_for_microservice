@@ -249,12 +249,7 @@ def build_real_metrics_stream(metric_dir: str) -> Dict[int, MetricsSnapshot]:
 
 
 def build_metric_inputs(points: List[TracePoint]) -> Tuple[PreferenceVector, MetricStats]:
-    """Build service-keyed metric inputs for runner compatibility.
-
-    Contract:
-    - preference_vector[service] = {latency, error, throughput, burst}
-    - metric_stats[service] = {history_count, mean_duration_ms, error_rate, qps_mean, burst}
-    """
+   
     if not points:
         return {}, {}
 
@@ -341,40 +336,12 @@ def build_metric_inputs(points: List[TracePoint]) -> Tuple[PreferenceVector, Met
 
     return preference_vector, metric_stats
 
-# Legacy default dual floors based on budget percentage. => A@1 first =>  36.91
-# def _default_dual_floors(budget_pct: float) -> Tuple[float, float]:
-#     # 0.1 budget: 30% normal, 15% error 
-#     if budget_pct <= 0.1:
-#         return 0.30, 0.15
-#     if budget_pct <= 1.0:
-#         return 0.35, 0.20
-#     return 0.40, 0.20
-
-#  34.35 | 17.93 | 14.81 | 46.73 | 44.53 | 37.13 | 0.4682 | 0.3650 | 0.3310 | - 5seed
-#  39.91 | 20.36 | 16.20 | 50.20 | 41.18 | 32.74 | 0.5145 | 0.3795 | 0.3328 | - 1seed
 def _default_dual_floors(budget_pct: float) -> Tuple[float, float]:
     if budget_pct <= 0.1:
         return 0.30, 0.15
     if budget_pct <= 1.0:
         return 0.38, 0.18
     return 0.44, 0.16
-
-# Legacy default dual floors based on budget percentage. => balanced normal/error in tail after head-k
-# 28.23 | 17.93 | 17.24 | 42.69 | 40.60 | 35.74 | 0.4220 | 0.3630 | 0.3418
-# def _default_dual_floors(budget_pct: float) -> Tuple[float, float]:
-#     if budget_pct <= 0.1:
-#         return 0.25, 0.15
-#     if budget_pct <= 1.0:
-#         return 0.42, 0.15
-#     return 0.50, 0.12
-
-# 32.39 | 16.89 | 13.89 | 45.34 | 46.83 | 39.44 | 0.4587 | 0.3590 | 0.3309 |
-# def _default_dual_floors(budget_pct: float) -> Tuple[float, float]:
-#     if budget_pct <= 0.1:
-#         return 0.25, 0.15
-#     if budget_pct <= 1.0:
-#         return 0.35, 0.20
-#     return 0.40, 0.20
 
 def _resolve_tau(values: List[float], budget_pct: float, mode: str) -> float:
     if not values:
@@ -1253,13 +1220,20 @@ def _run_member_sampler(
         "structural_rarity_by_id": structural_rarity_by_id,
     }
 
-
+# MESC sample
 def _default_signed_metric_gain_for_budget(budget_pct: float) -> float:
     if budget_pct <= 0.1:
         return 0.45
     if budget_pct <= 1.0:
         return 0.60
     return 0.75
+
+# def _default_signed_metric_gain_for_budget(budget_pct: float) -> float:
+#     if budget_pct <= 0.1:
+#         return 0.45
+#     if budget_pct <= 1.0:
+#         return 0.25
+#     return 0.15
 
 
 def _resolve_signed_metric_gain(signed_metric_gain: Optional[float], budget_pct: float) -> float:

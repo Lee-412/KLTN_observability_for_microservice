@@ -51,15 +51,9 @@ On Windows, the following are recommended:
 - PowerShell for running Python commands.
 - Git Bash or an equivalent Bash environment for running `.sh` scripts in phase 2.
 
-### 3.2. Required Dataset Structure
+### 3.2. Expected Dataset Layout
 
-The runner reads the dataset configuration from the following default file:
-
-```text
-scripts/configs/datasets.trastrainer.json
-```
-
-The main datasets are typically:
+The runner supports three default datasets:
 
 ```text
 train-ticket
@@ -67,14 +61,37 @@ hipster-batch1
 hipster-batch2
 ```
 
+If the TraStrainer paper dataset is not available locally yet, clone the paper repository into the expected data directory from the repository root:
+
+```powershell
+git clone https://github.com/IntelligentDDS/TraStrainer.git .\src\data\paper-source\TraStrainer
+```
+
+If it already exists, update it with:
+
+```powershell
+git -C .\src\data\paper-source\TraStrainer pull
+```
+
+Expected input locations under `src`:
+
+```text
+data/paper-source/TraStrainer/data/dataset/train_ticket/test/
+
+data/paper-source/TraStrainer/data/dataset/hipster/batches/batch1/
+
+data/paper-source/TraStrainer/data/dataset/hipster/batches/batch2/
+```
+
 Each dataset should provide at least:
 
-- a trace CSV directory;
-- a `label.json` file;
-- a metric CSV directory for the metric-native branch;
-- a base scenario file, or enough label data for the runner to bootstrap scenarios automatically.
+```text
+label.json
+trace/
+metric/
+```
 
-If the base scenario file is missing, the runner can generate it from `label.json` using `--before-sec` and `--after-sec`.
+If a base scenario file is missing, the runner can generate it automatically from `label.json` using the configured `--before-sec` and `--after-sec` windows.
 
 ## 4. Installation
 
