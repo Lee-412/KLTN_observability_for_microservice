@@ -5,9 +5,7 @@ import time
 import argparse
 import csv
 import json
-import math
 import sys
-import subprocess
 from collections import defaultdict, deque
 from dataclasses import dataclass
 from datetime import datetime
@@ -28,23 +26,17 @@ try:
         DatasetSpec,
         _run,
         _safe_slug,
-        _parse_iso_utc_to_s,
         _scenario_windows,
         _load_jsonl,
         _ensure_base_scenario_file,
-        _enforce_budget_cap_per_scenario,
         _write_jsonl,
         _write_text,
         _materialize_sampled_trace_dir,
         _incident_services_from_labels,
-        _trace_has_incident_service,
         _incident_service_coverage,
-        _parse_operation_name,
         _endpoint_retention,
         _format_phase1_combined,
-        _avg_trace_rate,
         _enforce_budget_cap,
-        _calibrate_target_tps,
         _metric_dir_from_trace_dir,
         _paper_microrank_reference,
         _paper_table3_reference_rows,
@@ -55,23 +47,17 @@ except ModuleNotFoundError:
             DatasetSpec,
             _run,
             _safe_slug,
-            _parse_iso_utc_to_s,
             _scenario_windows,
             _load_jsonl,
             _ensure_base_scenario_file,
-            _enforce_budget_cap_per_scenario,
             _write_jsonl,
             _write_text,
             _materialize_sampled_trace_dir,
             _incident_services_from_labels,
-            _trace_has_incident_service,
             _incident_service_coverage,
-            _parse_operation_name,
             _endpoint_retention,
             _format_phase1_combined,
-            _avg_trace_rate,
             _enforce_budget_cap,
-            _calibrate_target_tps,
             _metric_dir_from_trace_dir,
             _paper_microrank_reference,
             _paper_table3_reference_rows,
@@ -81,27 +67,30 @@ except ModuleNotFoundError:
             DatasetSpec,
             _run,
             _safe_slug,
-            _parse_iso_utc_to_s,
             _scenario_windows,
             _load_jsonl,
             _ensure_base_scenario_file,
-            _enforce_budget_cap_per_scenario,
             _write_jsonl,
             _write_text,
             _materialize_sampled_trace_dir,
             _incident_services_from_labels,
-            _trace_has_incident_service,
             _incident_service_coverage,
-            _parse_operation_name,
             _endpoint_retention,
             _format_phase1_combined,
-            _avg_trace_rate,
             _enforce_budget_cap,
-            _calibrate_target_tps,
             _metric_dir_from_trace_dir,
             _paper_microrank_reference,
             _paper_table3_reference_rows,
         )
+
+
+try:
+    from scripts.paper_report_writer import write_final_reports
+except (ImportError, ModuleNotFoundError):
+    try:
+        from src.scripts.paper_report_writer import write_final_reports
+    except (ImportError, ModuleNotFoundError):
+        from paper_report_writer import write_final_reports
 
 
 BASH_EXECUTABLE = resolve_bash_executable()
@@ -668,15 +657,6 @@ def main() -> int:
             budget_cap_elapsed_sec = 0.0
             sampler_select_total_elapsed_sec = 0.0
 
-             # Total select time.
-                # Includes:
-                    # - sampler core
-                    # - optional strict budget cap
-                # Excludes:
-                    # - dataset-level metric precompute
-                    # - CSV materialization
-                        # - Phase-1 diagnostics
-                        # - Phase-2 MicroRank/RCA
             t_select_total = time.perf_counter()
 
            
@@ -1132,192 +1112,20 @@ def main() -> int:
             print(f"- {r}")
         raise SystemExit(2)
 
-    # Output 1: benchmark table (teacher-facing, paper-table style with richer columns).
-    benchmark_csv = root / "reports/compare" / f"rca-paper-table-sampled-budgets-{args.tag}.csv"
-    benchmark_csv.parent.mkdir(parents=True, exist_ok=True)
-    b_fields = list(benchmark_rows[0].keys()) if benchmark_rows else []
-    with benchmark_csv.open("w", encoding="utf-8", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=b_fields)
-        w.writeheader()
-        for row in benchmark_rows:
-            w.writerow(row)
-
-    # Output 2: averaged compare CSV (macro over datasets per budget) for post-processing.
-    compare_avg_rows: list[dict[str, Any]] = []
-    by_budget: dict[float, list[dict[str, Any]]] = defaultdict(list)
-    for row in compare_rows:
-        by_budget[float(row["budget_pct"])].append(row)
-
-    for budget in sorted(by_budget.keys()):
-        rows_b = by_budget[budget]
-        n = len(rows_b)
-        if n <= 0:
-            continue
-
-        paper_a1 = float(rows_b[0]["paper_A@1_pct"] or 0.0)
-        paper_a3 = float(rows_b[0]["paper_A@3_pct"] or 0.0)
-        paper_mrr = float(rows_b[0]["paper_MRR"] or 0.0)
-
-        ours_a1 = sum(float(r["ours_A@1_pct"] or 0.0) for r in rows_b) / n
-        ours_a3 = sum(float(r["ours_A@3_pct"] or 0.0) for r in rows_b) / n
-        ours_mrr = sum(float(r["ours_MRR"] or 0.0) for r in rows_b) / n
-        scenario_total = sum(int(r0.get("scenario_count") or 0) for r0 in benchmark_rows if float(r0["budget_pct"]) == budget)
-
-        compare_avg_rows.append(
-            {
-                "budget_pct": budget,
-                "dataset_count": n,
-                "scenario_total": scenario_total,
-                "paper_A@1_pct": paper_a1,
-                "paper_A@3_pct": paper_a3,
-                "paper_MRR": paper_mrr,
-                "ours_avg_A@1_pct": ours_a1,
-                "ours_avg_A@3_pct": ours_a3,
-                "ours_avg_MRR": ours_mrr,
-                "delta_A@1_pct": ours_a1 - paper_a1,
-                "delta_A@3_pct": ours_a3 - paper_a3,
-                "delta_MRR": ours_mrr - paper_mrr,
-            }
-        )
-
-    compare_csv = root / "reports/compare" / f"rca-paper-vs-ours-microrank-budgets-{args.tag}.csv"
-    c_fields = list(compare_avg_rows[0].keys()) if compare_avg_rows else []
-    with compare_csv.open("w", encoding="utf-8", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=c_fields)
-        w.writeheader()
-        for row in compare_avg_rows:
-            w.writerow(row)
-
-    # Output 3 (primary markdown #1): per-dataset per-budget benchmark with paper delta.
-    benchmark_md = root / "reports/compare" / f"rca-dataset-budget-metrics-{args.tag}.md"
-    b_lines = []
-    b_lines.append(f"# RCA Final Summary ({args.selection_mode})")
-    b_lines.append("")
-    b_lines.append(f"tag: {args.tag}")
-    b_lines.append("")
-    b_lines.append("| budget | dataset | scenarios | A@1 | A@3 | MRR |")
-    b_lines.append("|---:|---|---:|---:|---:|---:|")
-
-    by_budget_for_md: dict[float, list[dict[str, Any]]] = defaultdict(list)
-    for row in benchmark_rows:
-        by_budget_for_md[float(row["budget_pct"])].append(row)
-
-    for budget in sorted(by_budget_for_md.keys()):
-        rows_b = sorted(by_budget_for_md[budget], key=lambda r: str(r["dataset"]))
-        total_sc = 0
-        sum_a1 = 0.0
-        sum_a3 = 0.0
-        sum_mrr = 0.0
-        for row in rows_b:
-            sc = int(row.get("scenario_count") or 0)
-            a1 = float(row.get("A@1") or 0.0)
-            a3 = float(row.get("A@3") or 0.0)
-            mrr = float(row.get("MRR") or 0.0)
-            total_sc += sc
-            sum_a1 += a1
-            sum_a3 += a3
-            sum_mrr += mrr
-            b_lines.append(
-                "| {budget:.1f}% | {dataset} | {sc} | {a1:.4f} | {a3:.4f} | {mrr:.4f} |".format(
-                    budget=budget,
-                    dataset=str(row["dataset"]),
-                    sc=sc,
-                    a1=a1,
-                    a3=a3,
-                    mrr=mrr,
-                )
-            )
-
-        n = len(rows_b)
-        if n > 0:
-            b_lines.append(
-                "| {budget:.1f}% | AVERAGE | {sc} | {a1:.4f} | {a3:.4f} | {mrr:.4f} |".format(
-                    budget=budget,
-                    sc=total_sc,
-                    a1=(sum_a1 / n),
-                    a3=(sum_a3 / n),
-                    mrr=(sum_mrr / n),
-                )
-            )
-
-    b_lines.extend(
-        [
-            "",
-            "## Related CSV",
-            f"- {benchmark_csv}",
-        ]
+    write_final_reports(
+        root=root,
+        tag=args.tag,
+        run_stamp=run_stamp,
+        selection_mode=args.selection_mode,
+        benchmark_rows=benchmark_rows,
+        compare_rows=compare_rows,
+        sampling_quality_rows=sampling_quality_rows,
+        paper_table3_reference_rows=_paper_table3_reference_rows(),
+        known_ours_reference_rows=_known_ours_reference_rows(),
+        current_ours_table3_row_builder=_current_ours_table3_row,
+        table3_notes=None,
     )
-    _write_text(benchmark_md, "\n".join(b_lines) + "\n")
 
-    # Output 5: table3 style summary (paper rows + selected internal baselines + current run).
-    known_rows = _known_ours_reference_rows()
-    current_row = _current_ours_table3_row(compare_avg_rows, args.selection_mode, args.tag)
-    if any(str(r.get("model")) == str(current_row.get("model")) for r in known_rows):
-        table3_rows = _paper_table3_reference_rows() + known_rows
-    else:
-        table3_rows = _paper_table3_reference_rows() + known_rows + [current_row]
-    table3_csv = root / "reports/compare" / f"table3-all-models-plus-ours-{run_stamp}.csv"
-    with table3_csv.open("w", encoding="utf-8", newline="") as f:
-        w = csv.writer(f)
-        w.writerow(["Model", "A@1 0.1%", "A@1 1.0%", "A@1 2.5%", "A@3 0.1%", "A@3 1.0%", "A@3 2.5%", "MRR 0.1%", "MRR 1.0%", "MRR 2.5%"])
-        for r in table3_rows:
-            w.writerow(
-                [
-                    r["model"],
-                    f"{float(r['a1_0p1']):.2f}",
-                    f"{float(r['a1_1p0']):.2f}",
-                    f"{float(r['a1_2p5']):.2f}",
-                    f"{float(r['a3_0p1']):.2f}",
-                    f"{float(r['a3_1p0']):.2f}",
-                    f"{float(r['a3_2p5']):.2f}",
-                    f"{float(r['mrr_0p1']):.4f}",
-                    f"{float(r['mrr_1p0']):.4f}",
-                    f"{float(r['mrr_2p5']):.4f}",
-                ]
-            )
-
-    table3_md = root / "reports/compare" / f"table3-all-models-plus-ours-{run_stamp}.md"
-    t_lines = []
-    t_lines.append("# Table 3 Style Comparison: All Paper Models + Ours")
-    t_lines.append("")
-    t_lines.append(f"generated_at: {run_stamp}")
-    t_lines.append("")
-    t_lines.append("| Model | A@1 0.1% | A@1 1.0% | A@1 2.5% | A@3 0.1% | A@3 1.0% | A@3 2.5% | MRR 0.1% | MRR 1.0% | MRR 2.5% |")
-    t_lines.append("|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
-    for r in table3_rows:
-        t_lines.append(
-            "| {model} | {a1_0p1:.2f} | {a1_1p0:.2f} | {a1_2p5:.2f} | {a3_0p1:.2f} | {a3_1p0:.2f} | {a3_2p5:.2f} | {mrr_0p1:.4f} | {mrr_1p0:.4f} | {mrr_2p5:.4f} |".format(
-                model=str(r["model"]),
-                a1_0p1=float(r["a1_0p1"]),
-                a1_1p0=float(r["a1_1p0"]),
-                a1_2p5=float(r["a1_2p5"]),
-                a3_0p1=float(r["a3_0p1"]),
-                a3_1p0=float(r["a3_1p0"]),
-                a3_2p5=float(r["a3_2p5"]),
-                mrr_0p1=float(r["mrr_0p1"]),
-                mrr_1p0=float(r["mrr_1p0"]),
-                mrr_2p5=float(r["mrr_2p5"]),
-            )
-        )
-    
-    _write_text(table3_md, "\n".join(t_lines) + "\n")
-
-    # Keep detailed quality CSV for deeper diagnostics (no additional markdown output).
-    quality_csv = root / "reports/compare" / f"sampling-quality-key-metrics-{args.tag}.csv"
-    q_fields = list(sampling_quality_rows[0].keys()) if sampling_quality_rows else []
-    with quality_csv.open("w", encoding="utf-8", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=q_fields)
-        w.writeheader()
-        for row in sampling_quality_rows:
-            w.writerow(row)
-
-    print(f"benchmark_csv={benchmark_csv}")
-    print(f"compare_csv={compare_csv}")
-    print(f"benchmark_md={benchmark_md}")
-    print(f"table3_csv={table3_csv}")
-    print(f"table3_md={table3_md}")
-    print(f"quality_csv={quality_csv}")
-    print("primary_markdown_outputs=2")
     return 0
 
 

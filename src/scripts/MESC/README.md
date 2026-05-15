@@ -174,6 +174,8 @@ python .\scripts\MESC\run_paper_sampled_rca_v9_contrast.py `
   --budgets 1.0 `
   --budget-mode strict `
   --v3942-min-consensus 2
+  --sampling-timing-csv 
+  .\src\reports\compare\sampler-timing-v3942-sanity.csv 
 ```
 
 ### 5.3. Full Pipeline for Three Datasets and Three Budgets

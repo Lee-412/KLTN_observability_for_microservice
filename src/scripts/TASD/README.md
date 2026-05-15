@@ -139,22 +139,14 @@ The commands below assume that they are executed from the repository root with `
 Example: run `train-ticket` at `1.0%`.
 
 ```powershell
-window
-/.venv/Scripts/python.exe -m src.scripts.TASD.run_paper_sampled_rca 
-  --root ./src 
-  --tag tasd-v3-train-ticket-0p1 
-  --datasets train-ticket 
-  --budgets 0.1 --budget-mode strict 
-  --selection-mode stream-v3-composite-strictcap 
-  --stochastic-seed 42
-
 .\.venv\Scripts\python.exe -m src.scripts.TASD.run_paper_sampled_rca `
   --root .\src `
   --tag tasd-v3-train-ticket-1pct `
   --datasets train-ticket `
   --budgets 1.0 `
   --budget-mode strict `
-  --selection-mode stream-v3-composite-strictcap
+  --selection-mode stream-v3-composite-strictcap `
+  --stochastic-seed 42
 ```
 
 This command validates the main execution path:
@@ -182,7 +174,8 @@ Full command:
   --root .\src `
   --tag tasd-v3-full `
   --budget-mode strict `
-  --selection-mode stream-v3-composite-strictcap
+  --selection-mode stream-v3-composite-strictcap `
+  --stochastic-seed 42
 ```
 
 ### 5.3. Run a Custom Budget Set

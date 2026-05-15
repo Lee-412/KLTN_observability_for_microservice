@@ -160,7 +160,8 @@ Example smoke test for `train-ticket` at `1.0%` from the repository root:
   --datasets train-ticket `
   --budgets 1.0 `
   --budget-mode strict `
-  --selection-mode stream-v3-composite-strictcap
+  --selection-mode stream-v3-composite-strictcap `
+  --stochastic-seed 42
 ```
 
 Example full 3-dataset run:
@@ -169,9 +170,10 @@ Example full 3-dataset run:
 .\.venv\Scripts\python.exe -m src.scripts.TASD.run_paper_sampled_rca `
   --root .\src `
   --tag tasd-v3-full `
-  --budget-mode strict
+  --budget-mode strict `
+  --selection-mode stream-v3-composite-strictcap `
+  --stochastic-seed 42
 ```
-
 Current TASD runner defaults:
 
 - `--datasets`: `train-ticket,hipster-batch1,hipster-batch2`

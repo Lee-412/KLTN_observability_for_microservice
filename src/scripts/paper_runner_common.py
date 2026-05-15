@@ -428,14 +428,6 @@ def _avg_trace_rate(points: list[eps.TracePoint]) -> float:
     return len(points) / span_s
 
 def _enforce_budget_cap(points: list[eps.TracePoint], kept_ids: set[str], budget_pct: float) -> tuple[set[str], int, int]:
-    """Enforce exact trace-count budget by capping kept set with spectrum-aware ordering.
-
-    Priority order when trimming:
-    1) preserve error/normal mix close to dataset baseline ratio
-    2) within each class: longer duration first
-    3) then higher span count first
-    4) deterministic tie-break by trace_id
-    """
     total = len(points)
     if total == 0:
         return set(), 0, 0
