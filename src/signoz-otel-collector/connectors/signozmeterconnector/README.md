@@ -1,1 +1,0 @@
-# SigNoz Meter connector

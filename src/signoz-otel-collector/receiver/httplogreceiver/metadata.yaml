@@ -1,9 +1,0 @@
-type: httplogreceiver
-
-status:
-  class: receiver
-  stability:
-    alpha: [logs]
-  distributions: [signoz]
-  codeowners:
-    active: [signoz]
